@@ -1,0 +1,4 @@
+pair,full_similarity,effect_similarity,precondition_similarity,input_similarity,output_similarity,mechanism_similarity,operational_similarity
+API vs DB,0.9032,1.0,1.0,1.0,1.0,0.0,0.8246
+API vs GUI,0.9357,1.0,1.0,1.0,1.0,0.0,0.8572
+DB vs GUI,0.8907,1.0,1.0,1.0,1.0,0.0,0.7002

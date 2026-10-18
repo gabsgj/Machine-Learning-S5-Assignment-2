@@ -1,0 +1,86 @@
+# Client requirement sheet: register a patient in the canonical registry vocabulary.
+#
+# The canonical counterpart of register_pat. In the alias resolution experiment this requirement
+# must select the canonical register_patient capability, never the legacy Pat_reg, which shows
+# that the resolver separates two capabilities that mean the same thing in two vocabularies.
+spec_version: "1.0"
+
+module:
+  module_id: requirement-register-patient
+  version: "1.0"
+  domain: hospital
+  port: 5202
+  base_url: "http://127.0.0.1:5202"
+  health: /health
+  description: Client requirement for a patient registration step in the canonical registry vocabulary patient_mrn, full_name, patient_id.
+  language: specification
+
+state_schema:
+  - name: Patient.registered
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+
+initial_state:
+  Patient.registered: false
+
+resources:
+  - id: requirement_db
+    kind: database
+    available: true
+    details: Placeholder resource of the requirement, bound only when a candidate is selected
+
+constraints:
+  - id: K-Required-Inputs
+    kind: input
+    expression: patient_mrn and full_name are mandatory
+    enforced_by: requirement definition
+
+goal:
+  - variable: Patient.registered
+    op: "="
+    value: true
+
+capabilities:
+  - id: REQ-RegisterPatient
+    name: register_patient
+    type: API
+    description: Register a patient and return the generated patient identifier.
+    inputs:
+      - name: patient_mrn
+        type: string
+        domain: medical record number
+        required: true
+      - name: full_name
+        type: string
+        domain: patient name text
+        required: true
+    outputs:
+      - name: patient_id
+        type: string
+        domain: generated patient identifier
+    preconditions: []
+    effects:
+      - variable: Patient.registered
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - requirement_db
+    quality:
+      time_ms: 150
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/register_patient
+    roles:
+      - clerk

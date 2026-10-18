@@ -1,0 +1,7 @@
+pair,src_id,dst_id,align_ep,align_oi,vector_score,execution_score,formally_compatible
+CreateOrder -> MakePayment,C1,C2,1.0,1.0,1.0,1.0,True
+CreateOrder -> CancelCart,C1,C3,-1.0,0.0,-0.6,-0.6,False
+MakePayment -> CreateOrder,C2,C1,0.0,0.0,0.0,0.0,False
+CreateOrder -> SendNotification,C1,C4,0.0,0.0,0.0,0.0,False
+MakePayment -> SendNotification,C2,C4,1.0,1.0,1.0,1.0,True
+CreateOrder -> ArchiveOrder,C1,C8,0.5,1.0,0.7,0.7,False

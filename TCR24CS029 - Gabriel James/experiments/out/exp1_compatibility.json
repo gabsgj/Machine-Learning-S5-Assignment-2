@@ -1,0 +1,1673 @@
+{
+  "dataset": {
+    "pairs": [
+      {
+        "case": "clinic-order-sample",
+        "checks": [
+          {
+            "detail": "all 1 preconditions established by earlier effects",
+            "name": "precondition-entailment",
+            "outcome": "pass"
+          },
+          {
+            "detail": "1 of 2 inputs bound",
+            "name": "input-output",
+            "outcome": "pass"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0000000000000002,
+        "earlier": "CV-OrderLabTest",
+        "functional_similarity": 0.7807267482677863,
+        "implementation_similarity": 0.9542615592187791,
+        "label": "compatible",
+        "later": "CV-ReceiveSample",
+        "name_similarity": 0.3523021068521978,
+        "problem": "hospital_alias",
+        "signed_cosine": 1.0,
+        "vector_score": 1.0000000000000002,
+        "verdict": "compatible"
+      },
+      {
+        "case": "clinic-sample-result",
+        "checks": [
+          {
+            "detail": "all 1 preconditions established by earlier effects",
+            "name": "precondition-entailment",
+            "outcome": "pass"
+          },
+          {
+            "detail": "inputs not bound by CV-ReceiveSample outputs, effects or the initial state: lab_order_id, result_value; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0,
+        "earlier": "CV-ReceiveSample",
+        "functional_similarity": 0.8405737631348607,
+        "implementation_similarity": 0.9802618437528277,
+        "label": "uncertain",
+        "later": "CV-EnterResult",
+        "name_similarity": 0.6910211659957888,
+        "problem": "hospital_alias",
+        "signed_cosine": 1.0,
+        "vector_score": 1.0,
+        "verdict": "uncertain"
+      },
+      {
+        "case": "clinic-result-before-sample",
+        "checks": [
+          {
+            "detail": "cannot prove every precondition from CV-EnterResult effects alone; a state dependent or earlier written value is involved",
+            "name": "precondition-entailment",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "inputs not bound by CV-EnterResult outputs, effects or the initial state: lab_order_id; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 0.8838865757473444,
+        "earlier": "CV-EnterResult",
+        "functional_similarity": 0.8405737631348607,
+        "implementation_similarity": 0.9802618437528277,
+        "label": "uncertain",
+        "later": "CV-ReceiveSample",
+        "name_similarity": 0.6910211659957888,
+        "problem": "hospital_alias",
+        "signed_cosine": 0.0,
+        "vector_score": 0.4419432878736722,
+        "verdict": "uncertain"
+      },
+      {
+        "case": "clinic-order-result-skipping-sample",
+        "checks": [
+          {
+            "detail": "cannot prove every precondition from CV-OrderLabTest effects alone; a state dependent or earlier written value is involved",
+            "name": "precondition-entailment",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "inputs not bound by CV-OrderLabTest outputs, effects or the initial state: result_value; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 0.7781832104217061,
+        "earlier": "CV-OrderLabTest",
+        "functional_similarity": 0.777622360611198,
+        "implementation_similarity": 0.9621978671393494,
+        "label": "uncertain",
+        "later": "CV-EnterResult",
+        "name_similarity": 0.2696332347819546,
+        "problem": "hospital_alias",
+        "signed_cosine": 0.0,
+        "vector_score": 0.38909160521085306,
+        "verdict": "uncertain"
+      },
+      {
+        "case": "alias-register-verify",
+        "checks": [
+          {
+            "detail": "all 1 preconditions established by earlier effects",
+            "name": "precondition-entailment",
+            "outcome": "pass"
+          },
+          {
+            "detail": "1 of 1 inputs bound",
+            "name": "input-output",
+            "outcome": "pass"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0,
+        "earlier": "AR-PatReg",
+        "functional_similarity": 0.8616854660837717,
+        "implementation_similarity": 0.9727098701611769,
+        "label": "compatible",
+        "later": "AR-VerifyPat",
+        "name_similarity": 0.46126733274811604,
+        "problem": "hospital_alias",
+        "signed_cosine": 1.0,
+        "vector_score": 1.0,
+        "verdict": "compatible"
+      },
+      {
+        "case": "alias-verify-register",
+        "checks": [
+          {
+            "detail": "later capability has no preconditions",
+            "name": "precondition-entailment",
+            "outcome": "pass"
+          },
+          {
+            "detail": "inputs not bound by AR-VerifyPat outputs, effects or the initial state: pat_no, pat_name; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0,
+        "earlier": "AR-VerifyPat",
+        "functional_similarity": 0.8616854660837717,
+        "implementation_similarity": 0.9727098701611769,
+        "label": "uncertain",
+        "later": "AR-PatReg",
+        "name_similarity": 0.46126733274811604,
+        "problem": "hospital_alias",
+        "signed_cosine": 0.0,
+        "vector_score": 0.5,
+        "verdict": "uncertain"
+      },
+      {
+        "case": "ecom-place-pay",
+        "checks": [
+          {
+            "detail": "all 1 preconditions established by earlier effects",
+            "name": "precondition-entailment",
+            "outcome": "pass"
+          },
+          {
+            "detail": "inputs not bound by EC-PlaceOrder outputs, effects or the initial state: amount; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0000000000000002,
+        "earlier": "EC-PlaceOrder",
+        "functional_similarity": 0.8034046218046312,
+        "implementation_similarity": 0.9552319286640297,
+        "label": "uncertain",
+        "later": "EC-PayOrder",
+        "name_similarity": 0.7473816163128139,
+        "problem": "ecommerce_purchase",
+        "signed_cosine": 0.9762329786691519,
+        "vector_score": 0.9881164893345762,
+        "verdict": "uncertain"
+      },
+      {
+        "case": "ecom-add-place",
+        "checks": [
+          {
+            "detail": "all 1 preconditions established by earlier effects",
+            "name": "precondition-entailment",
+            "outcome": "pass"
+          },
+          {
+            "detail": "inputs not bound by EC-AddToCart outputs, effects or the initial state: payment_method; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0000000000000002,
+        "earlier": "EC-AddToCart",
+        "functional_similarity": 0.6751528373429466,
+        "implementation_similarity": 0.9703619301361054,
+        "label": "uncertain",
+        "later": "EC-PlaceOrder",
+        "name_similarity": 0.4789480751323703,
+        "problem": "ecommerce_purchase",
+        "signed_cosine": 0.999953364862975,
+        "vector_score": 0.9999766824314877,
+        "verdict": "uncertain"
+      },
+      {
+        "case": "ecom-ship-before-pay",
+        "checks": [
+          {
+            "detail": "cannot prove every precondition from EC-ShipOrder effects alone; a state dependent or earlier written value is involved",
+            "name": "precondition-entailment",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "inputs not bound by EC-ShipOrder outputs, effects or the initial state: order_id, amount; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 0.7900229621053714,
+        "earlier": "EC-ShipOrder",
+        "functional_similarity": 0.7034311071327801,
+        "implementation_similarity": 0.7189456230863976,
+        "label": "uncertain",
+        "later": "EC-PayOrder",
+        "name_similarity": 0.5648215554930365,
+        "problem": "ecommerce_purchase",
+        "signed_cosine": 0.0,
+        "vector_score": 0.3950114810526857,
+        "verdict": "uncertain"
+      },
+      {
+        "case": "ecom-totals-then-pay",
+        "checks": [
+          {
+            "detail": "cannot prove every precondition from EC-ComputeTotals effects alone; a state dependent or earlier written value is involved",
+            "name": "precondition-entailment",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "inputs not bound by EC-ComputeTotals outputs, effects or the initial state: order_id, amount; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 0.0,
+        "earlier": "EC-ComputeTotals",
+        "functional_similarity": 0.5746059627250513,
+        "implementation_similarity": 0.6008073648520565,
+        "label": "uncertain",
+        "later": "EC-PayOrder",
+        "name_similarity": 0.2284804990483937,
+        "problem": "ecommerce_purchase",
+        "signed_cosine": 0.0,
+        "vector_score": 0.0,
+        "verdict": "uncertain"
+      },
+      {
+        "case": "ecom-ship-then-confirm",
+        "checks": [
+          {
+            "detail": "1 conflicting precondition(s) against EC-ShipOrder effects",
+            "name": "precondition-entailment",
+            "outcome": "fail"
+          },
+          {
+            "detail": "inputs not bound by EC-ShipOrder outputs, effects or the initial state: order_id; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0000000000000002,
+        "earlier": "EC-ShipOrder",
+        "functional_similarity": 0.8377475355564137,
+        "implementation_similarity": 0.8314415456635299,
+        "label": "incompatible",
+        "later": "EC-EmailConfirmation",
+        "name_similarity": 0.7179704833851926,
+        "problem": "ecommerce_purchase",
+        "signed_cosine": -0.6321820946686739,
+        "vector_score": 0.18390895266566307,
+        "verdict": "incompatible"
+      },
+      {
+        "case": "ecom-cancel-then-confirm",
+        "checks": [
+          {
+            "detail": "1 conflicting precondition(s) against EC-CancelOrder effects",
+            "name": "precondition-entailment",
+            "outcome": "fail"
+          },
+          {
+            "detail": "inputs not bound by EC-CancelOrder outputs, effects or the initial state: order_id; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0000000000000002,
+        "earlier": "EC-CancelOrder",
+        "functional_similarity": 0.6128588645125733,
+        "implementation_similarity": 0.8244267377968492,
+        "label": "incompatible",
+        "later": "EC-EmailConfirmation",
+        "name_similarity": 0.6006172859560702,
+        "problem": "ecommerce_purchase",
+        "signed_cosine": -1.0,
+        "vector_score": 0.0,
+        "verdict": "incompatible"
+      },
+      {
+        "case": "ecom-cancel-then-ship",
+        "checks": [
+          {
+            "detail": "1 conflicting precondition(s) against EC-CancelOrder effects",
+            "name": "precondition-entailment",
+            "outcome": "fail"
+          },
+          {
+            "detail": "inputs not bound by EC-CancelOrder outputs, effects or the initial state: order_id; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0000000000000002,
+        "earlier": "EC-CancelOrder",
+        "functional_similarity": 0.799845781303282,
+        "implementation_similarity": 0.7173257220893492,
+        "label": "incompatible",
+        "later": "EC-ShipOrder",
+        "name_similarity": 0.6117084474609461,
+        "problem": "ecommerce_purchase",
+        "signed_cosine": -1.0,
+        "vector_score": 0.0,
+        "verdict": "incompatible"
+      },
+      {
+        "case": "docs-parse-summarize",
+        "checks": [
+          {
+            "detail": "all 1 preconditions established by earlier effects",
+            "name": "precondition-entailment",
+            "outcome": "pass"
+          },
+          {
+            "detail": "1 of 1 inputs bound",
+            "name": "input-output",
+            "outcome": "pass"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0000000000000002,
+        "earlier": "DOC-ParseDocument",
+        "functional_similarity": 0.912826611202784,
+        "implementation_similarity": 0.9881377515587545,
+        "label": "compatible",
+        "later": "DOC-Summarize",
+        "name_similarity": 0.3498717634835949,
+        "problem": "document_processing",
+        "signed_cosine": 1.0,
+        "vector_score": 1.0000000000000002,
+        "verdict": "compatible"
+      },
+      {
+        "case": "docs-parse-index",
+        "checks": [
+          {
+            "detail": "all 1 preconditions established by earlier effects",
+            "name": "precondition-entailment",
+            "outcome": "pass"
+          },
+          {
+            "detail": "inputs not bound by DOC-ParseDocument outputs, effects or the initial state: doc_id; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0000000000000002,
+        "earlier": "DOC-ParseDocument",
+        "functional_similarity": 0.8143473263370717,
+        "implementation_similarity": 0.8415430544715817,
+        "label": "uncertain",
+        "later": "DOC-IndexRecord",
+        "name_similarity": 0.45553987001549684,
+        "problem": "document_processing",
+        "signed_cosine": 1.0,
+        "vector_score": 1.0000000000000002,
+        "verdict": "uncertain"
+      },
+      {
+        "case": "docs-index-notify",
+        "checks": [
+          {
+            "detail": "cannot prove every precondition from DOC-IndexRecord effects alone; a state dependent or earlier written value is involved",
+            "name": "precondition-entailment",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "inputs not bound by DOC-IndexRecord outputs, effects or the initial state: doc_id; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 0.6460554876824983,
+        "earlier": "DOC-IndexRecord",
+        "functional_similarity": 0.824059558094573,
+        "implementation_similarity": 0.8148173238339237,
+        "label": "uncertain",
+        "later": "DOC-NotifyReviewer",
+        "name_similarity": 0.23982713217629867,
+        "problem": "document_processing",
+        "signed_cosine": 0.0,
+        "vector_score": 0.32302774384124916,
+        "verdict": "uncertain"
+      },
+      {
+        "case": "docs-notify-summarize",
+        "checks": [
+          {
+            "detail": "cannot prove every precondition from DOC-NotifyReviewer effects alone; a state dependent or earlier written value is involved",
+            "name": "precondition-entailment",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "inputs not bound by DOC-NotifyReviewer outputs, effects or the initial state: page_count; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 0.2912785202064017,
+        "earlier": "DOC-NotifyReviewer",
+        "functional_similarity": 0.8217185528824295,
+        "implementation_similarity": 0.8400823544128693,
+        "label": "uncertain",
+        "later": "DOC-Summarize",
+        "name_similarity": 0.19106442457264317,
+        "problem": "document_processing",
+        "signed_cosine": 0.25,
+        "vector_score": 0.18204907512900106,
+        "verdict": "uncertain"
+      }
+    ]
+  },
+  "experiment": "exp1_compatibility",
+  "metrics": {
+    "discrimination_functional_auc": 0.7777777777777778,
+    "discrimination_name_auc": 0.0,
+    "discrimination_raw_cosine_auc": 0.7777777777777778,
+    "discrimination_vector_score_auc": 1.0,
+    "functional_similarity_auc": 0.7738095238095238,
+    "name_pair_auc": 0.9846153846153847,
+    "name_pair_distinct_max": 0.6698583675770103,
+    "name_pair_distinct_mean": 0.18901332979681076,
+    "name_pair_equivalent_mean": 0.7698096804158073,
+    "name_pair_equivalent_min": 0.6368666103414946,
+    "name_pair_mechanism_max": 0.0,
+    "name_similarity_auc": 0.32142857142857145,
+    "symbolic_accuracy": 1.0,
+    "vector_score_auc": 0.9404761904761905
+  },
+  "name_pairs": [
+    {
+      "label": "equivalent",
+      "left": "register_pat",
+      "problem": "hospital_alias",
+      "right": "Pat_reg",
+      "similarity": 0.834049658909229
+    },
+    {
+      "label": "equivalent",
+      "left": "register_patient",
+      "problem": "hospital_alias",
+      "right": "Pat_reg",
+      "similarity": 0.6926684572746835
+    },
+    {
+      "label": "equivalent",
+      "left": "register_patient",
+      "problem": "hospital_alias",
+      "right": "register_pat",
+      "similarity": 0.8606262914956846
+    },
+    {
+      "label": "distinct",
+      "left": "Pat_reg",
+      "problem": "hospital_alias",
+      "right": "Pat_lookup",
+      "similarity": 0.49999999999999994
+    },
+    {
+      "label": "distinct",
+      "left": "Pat_reg",
+      "problem": "hospital_alias",
+      "right": "Pat_verify",
+      "similarity": 0.537940958507007
+    },
+    {
+      "label": "distinct",
+      "left": "register_pat",
+      "problem": "hospital_alias",
+      "right": "process_payment",
+      "similarity": 0.0
+    },
+    {
+      "label": "mechanism",
+      "left": "place_order",
+      "problem": "ecommerce_purchase",
+      "right": "checkout_form",
+      "similarity": 0.0
+    },
+    {
+      "label": "distinct",
+      "left": "add_to_cart",
+      "problem": "ecommerce_purchase",
+      "right": "place_order",
+      "similarity": 0.37134730168090097
+    },
+    {
+      "label": "distinct",
+      "left": "pay_order",
+      "problem": "ecommerce_purchase",
+      "right": "place_order",
+      "similarity": 0.6698583675770103
+    },
+    {
+      "label": "distinct",
+      "left": "browse_catalog",
+      "problem": "ecommerce_purchase",
+      "right": "add_to_cart",
+      "similarity": 0.0
+    },
+    {
+      "label": "distinct",
+      "left": "compute_totals",
+      "problem": "ecommerce_purchase",
+      "right": "loyalty_points",
+      "similarity": 0.0
+    },
+    {
+      "label": "distinct",
+      "left": "email_confirmation",
+      "problem": "ecommerce_purchase",
+      "right": "checkout_form",
+      "similarity": 0.0
+    },
+    {
+      "label": "equivalent",
+      "left": "upload_document",
+      "problem": "document_processing",
+      "right": "upload_form",
+      "similarity": 0.6368666103414946
+    },
+    {
+      "label": "equivalent",
+      "left": "on_document_received",
+      "problem": "document_processing",
+      "right": "upload_document",
+      "similarity": 0.8248373840579447
+    },
+    {
+      "label": "mechanism",
+      "left": "parse_document",
+      "problem": "document_processing",
+      "right": "estimate_pages",
+      "similarity": 0.0
+    },
+    {
+      "label": "distinct",
+      "left": "summarize",
+      "problem": "document_processing",
+      "right": "parse_document",
+      "similarity": 0.0
+    },
+    {
+      "label": "distinct",
+      "left": "archive_file",
+      "problem": "document_processing",
+      "right": "notify_reviewer",
+      "similarity": 0.0
+    },
+    {
+      "label": "distinct",
+      "left": "index_record",
+      "problem": "document_processing",
+      "right": "summarize",
+      "similarity": 0.0
+    }
+  ],
+  "noise_floor": {
+    "decoy_cosine_max": 0.7984127848519507,
+    "decoy_cosine_mean": 0.7090177810504442,
+    "decoy_name_sim_max": 0.3685596529863748,
+    "decoy_name_sim_mean": 0.052486296378023566
+  },
+  "pattern": {
+    "cosine_create_cancel": 0.7145797863258193,
+    "cosine_create_payment": 0.7185654101638791,
+    "cosine_payment_cancel": 0.7737077977129467,
+    "pairs": [
+      {
+        "checks": [
+          {
+            "detail": "all 1 preconditions established by earlier effects",
+            "name": "precondition-entailment",
+            "outcome": "pass"
+          },
+          {
+            "detail": "1 of 1 inputs bound",
+            "name": "input-output",
+            "outcome": "pass"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0000000000000002,
+        "earlier": "PAT-CreateOrder",
+        "functional_similarity": 0.8398675077215972,
+        "implementation_similarity": 0.9834607885639848,
+        "later": "PAT-MakePayment",
+        "signed_cosine": 1.0,
+        "vector_score": 1.0000000000000002,
+        "verdict": "compatible"
+      },
+      {
+        "checks": [
+          {
+            "detail": "1 conflicting precondition(s) against PAT-CreateOrder effects",
+            "name": "precondition-entailment",
+            "outcome": "fail"
+          },
+          {
+            "detail": "1 of 1 inputs bound",
+            "name": "input-output",
+            "outcome": "pass"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0000000000000002,
+        "earlier": "PAT-CreateOrder",
+        "functional_similarity": 0.6708343444439904,
+        "implementation_similarity": 0.9762055412233518,
+        "later": "PAT-CancelCart",
+        "signed_cosine": -1.0,
+        "vector_score": 0.0,
+        "verdict": "incompatible"
+      },
+      {
+        "checks": [
+          {
+            "detail": "later capability has no preconditions",
+            "name": "precondition-entailment",
+            "outcome": "pass"
+          },
+          {
+            "detail": "inputs not bound by PAT-CancelCart outputs, effects or the initial state: customer_id; an earlier capability in the pipeline can bind them",
+            "name": "input-output",
+            "outcome": "unknown"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-time",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-money",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-energy",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "cost-resource",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no cap supplied for this context",
+            "name": "risk",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no reliability floor supplied",
+            "name": "reliability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no weekday supplied; window evaluation A(t) skipped",
+            "name": "availability",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no resource inventory supplied",
+            "name": "resources",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no role inventory supplied",
+            "name": "roles",
+            "outcome": "skip"
+          },
+          {
+            "detail": "no model constraints supplied",
+            "name": "constraints",
+            "outcome": "skip"
+          }
+        ],
+        "coverage": 1.0,
+        "earlier": "PAT-CancelCart",
+        "functional_similarity": 0.6708343444439904,
+        "implementation_similarity": 0.9762055412233518,
+        "later": "PAT-CreateOrder",
+        "signed_cosine": 0.0,
+        "vector_score": 0.5,
+        "verdict": "uncertain"
+      }
+    ],
+    "sheet": "experiments/specs/order_pattern.yaml"
+  }
+}

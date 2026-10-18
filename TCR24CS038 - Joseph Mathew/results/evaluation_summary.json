@@ -1,0 +1,249 @@
+{
+  "experiments": {
+    "exp1": {
+      "score_c1_c2": 1.0,
+      "score_c1_c3": -1.0,
+      "score_c2_c1": 0.0,
+      "sim_c1_c2": 0.12579931618554518,
+      "sim_c1_c3": 0.26249999999999996,
+      "pairwise_matrix": [
+        [
+          0.0,
+          1.0,
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.3,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          -0.6,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "matrix_labels": [
+        "CreateOrder",
+        "MakePayment",
+        "CancelCart",
+        "SendNotification",
+        "ReserveInventory"
+      ]
+    },
+    "exp2": {
+      "overall_sim": 0.9907386506164184,
+      "mae": 0.013167521834965869,
+      "associativity_diff": 1.1102230246251565e-16,
+      "compound_reliability": 0.9653489999999999,
+      "cumulative_cost": 0.165,
+      "cumulative_time_ms": 560.0
+    },
+    "exp3": [
+      {
+        "pair": "API vs DB",
+        "functional_sim": 1.0000000000000002,
+        "mechanism_sim": 0.2222222222222222,
+        "overall_sim": 0.6352832992813382,
+        "euclidean_dist": 3.8270056057372357
+      },
+      {
+        "pair": "API vs GUI",
+        "functional_sim": 1.0000000000000002,
+        "mechanism_sim": 0.6666666666666666,
+        "overall_sim": 0.8291362908632952,
+        "euclidean_dist": 2.621418211372993
+      },
+      {
+        "pair": "DB vs GUI",
+        "functional_sim": 1.0000000000000002,
+        "mechanism_sim": 0.0,
+        "overall_sim": 0.5010106005574703,
+        "euclidean_dist": 4.464242029661666
+      }
+    ],
+    "exp4": [
+      {
+        "name": "CreateOrder",
+        "type": "API",
+        "relevance": 0.5773502691896258,
+        "category": "HIGHLY_USEFUL"
+      },
+      {
+        "name": "MakePayment",
+        "type": "SERVICE",
+        "relevance": 0.5773502691896258,
+        "category": "HIGHLY_USEFUL"
+      },
+      {
+        "name": "SendNotification",
+        "type": "EVENT",
+        "relevance": 0.5773502691896258,
+        "category": "HIGHLY_USEFUL"
+      },
+      {
+        "name": "CreateOrder_Database",
+        "type": "DATABASE",
+        "relevance": 0.5773502691896258,
+        "category": "HIGHLY_USEFUL"
+      },
+      {
+        "name": "CreateOrder_GUI",
+        "type": "GUI",
+        "relevance": 0.5773502691896258,
+        "category": "HIGHLY_USEFUL"
+      },
+      {
+        "name": "MakePayment_PremiumGateway",
+        "type": "SERVICE",
+        "relevance": 0.5773502691896258,
+        "category": "HIGHLY_USEFUL"
+      },
+      {
+        "name": "MakePayment_BudgetGateway",
+        "type": "SERVICE",
+        "relevance": 0.5773502691896258,
+        "category": "HIGHLY_USEFUL"
+      },
+      {
+        "name": "CancelCart",
+        "type": "API",
+        "relevance": 0.0,
+        "category": "IRRELEVANT"
+      },
+      {
+        "name": "ReserveInventory",
+        "type": "FUNCTION",
+        "relevance": 0.0,
+        "category": "IRRELEVANT"
+      },
+      {
+        "name": "QueryWeather",
+        "type": "API",
+        "relevance": 0.0,
+        "category": "IRRELEVANT"
+      },
+      {
+        "name": "CompressLogFiles",
+        "type": "FILE",
+        "relevance": 0.0,
+        "category": "IRRELEVANT"
+      }
+    ],
+    "exp5": {
+      "f_sim_prem": 1.0,
+      "f_sim_budg": 1.0,
+      "candidates": [
+        {
+          "name": "Standard Stripe",
+          "cost": 0.15,
+          "latency_ms": 350.0,
+          "reliability": 0.98,
+          "availability": 1.0
+        },
+        {
+          "name": "Premium SLA Gateway",
+          "cost": 0.45,
+          "latency_ms": 180.0,
+          "reliability": 0.9995,
+          "availability": 1.0
+        },
+        {
+          "name": "Budget Gateway",
+          "cost": 0.02,
+          "latency_ms": 800.0,
+          "reliability": 0.92,
+          "availability": 0.9
+        }
+      ]
+    }
+  },
+  "evaluation_criteria": [
+    {
+      "criterion": "1. Capability Representation",
+      "passed": true,
+      "total_capabilities": 11,
+      "min_pairwise_distance": 2.621418211372993,
+      "max_pairwise_cosine": 0.8291362908632952,
+      "zero_collision_guarantee": true
+    },
+    {
+      "criterion": "2. State Relationship",
+      "passed": true,
+      "state_delta_alignment": 1.0000000000000002,
+      "captured_variables": [
+        "Order.exists",
+        "Order.status",
+        "Cart.locked"
+      ]
+    },
+    {
+      "criterion": "3. Precondition-Effect Compatibility",
+      "passed": true,
+      "composable_pair_score": 1.0,
+      "incompatible_pair_score": -1.0,
+      "separation_margin": 2.0
+    },
+    {
+      "criterion": "4. Input-Output Compatibility",
+      "passed": true,
+      "valid_dataflow_score": 1.0,
+      "invalid_dataflow_score": 0.0
+    },
+    {
+      "criterion": "5. Composition",
+      "passed": true,
+      "homomorphism_cosine": 0.9907386506164184,
+      "mean_absolute_error": 0.013167521834965869,
+      "composite_name": "((CreateOrder >> MakePayment) >> SendNotification)"
+    },
+    {
+      "criterion": "6. Goal Relevance",
+      "passed": true,
+      "useful_relevance": 0.5773502691896258,
+      "irrelevant_relevance": 0.0,
+      "discrimination_ratio": 5773.5026918962585
+    },
+    {
+      "criterion": "7. Operational Properties",
+      "passed": true,
+      "functional_invariance": 1.0,
+      "operational_subspace_distance": 0.6396924580936652
+    },
+    {
+      "criterion": "8. Consistency",
+      "passed": true,
+      "cloud_domain_chain_score": 1.0,
+      "cloud_pipeline_composition_sim": 0.9818507217370542,
+      "secondary_domain": "CloudDevOpsPipeline"
+    },
+    {
+      "criterion": "9. Efficiency",
+      "passed": true,
+      "encodings_per_second": 24608.77914012569,
+      "average_latency_microseconds": 40.63590454064648,
+      "vector_dimension": 90,
+      "storage_bytes_per_vector": 720
+    }
+  ]
+}

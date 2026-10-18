@@ -1,0 +1,498 @@
+{
+  "capabilities": {
+    "CreateOrder": {
+      "id": "CreateOrder",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        "Cart.exists=True",
+        "Cart.item_count>0",
+        "User.authenticated=True"
+      ],
+      "effects": {
+        "Order.exists": true,
+        "Order.status": "CREATED",
+        "Cart.locked": true
+      },
+      "constraints": [
+        "quantity>0"
+      ],
+      "resources": [
+        "Database",
+        "Authentication token"
+      ],
+      "cost": {
+        "time": 100.0,
+        "money": 0.0,
+        "resource": 2.0,
+        "risk": 0.05,
+        "energy": 1.0
+      },
+      "reliability": 0.99,
+      "availability": 1.0,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/orders"
+      },
+      "composed_of": []
+    },
+    "MakePayment": {
+      "id": "MakePayment",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "payment_amount",
+          "type": "decimal",
+          "domain": ">0",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        "Order.exists=True"
+      ],
+      "effects": {
+        "Payment.status": "SUCCESS",
+        "Order.status": "PAID"
+      },
+      "constraints": [
+        "payment_amount<=transaction_limit"
+      ],
+      "resources": [
+        "Payment gateway",
+        "Network"
+      ],
+      "cost": {
+        "time": 250.0,
+        "money": 0.01,
+        "resource": 1.0,
+        "risk": 0.1,
+        "energy": 1.5
+      },
+      "reliability": 0.97,
+      "availability": 1.0,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/payments"
+      },
+      "composed_of": []
+    },
+    "CancelCart": {
+      "id": "CancelCart",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [],
+      "preconditions": [
+        "Order.exists=False"
+      ],
+      "effects": {
+        "Cart.exists": false
+      },
+      "constraints": [],
+      "resources": [
+        "Database"
+      ],
+      "cost": {
+        "time": 50.0,
+        "money": 0.0,
+        "resource": 0.5,
+        "risk": 0.02,
+        "energy": 0.5
+      },
+      "reliability": 0.995,
+      "availability": 1.0,
+      "mechanism": {
+        "method": "DELETE",
+        "endpoint": "/cart"
+      },
+      "composed_of": []
+    },
+    "SendNotification": {
+      "id": "SendNotification",
+      "type": "EVENT",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "notification_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        "Payment.status=SUCCESS"
+      ],
+      "effects": {
+        "Notification.sent": true
+      },
+      "constraints": [],
+      "resources": [
+        "Network"
+      ],
+      "cost": {
+        "time": 30.0,
+        "money": 0.0,
+        "resource": 0.2,
+        "risk": 0.01,
+        "energy": 0.2
+      },
+      "reliability": 0.995,
+      "availability": 1.0,
+      "mechanism": {
+        "trigger": "OrderCreated",
+        "handler": "SendNotification"
+      },
+      "composed_of": []
+    },
+    "CreateOrder_API": {
+      "id": "CreateOrder",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        "Cart.exists=True",
+        "Cart.item_count>0",
+        "User.authenticated=True"
+      ],
+      "effects": {
+        "Order.exists": true,
+        "Order.status": "CREATED",
+        "Cart.locked": true
+      },
+      "constraints": [
+        "quantity>0"
+      ],
+      "resources": [
+        "Database",
+        "Authentication token"
+      ],
+      "cost": {
+        "time": 100.0,
+        "money": 0.0,
+        "resource": 2.0,
+        "risk": 0.05,
+        "energy": 1.0
+      },
+      "reliability": 0.99,
+      "availability": 1.0,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/orders"
+      },
+      "composed_of": []
+    },
+    "CreateOrder_DB": {
+      "id": "CreateOrder_DB",
+      "type": "DATABASE",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        "Cart.exists=True",
+        "Cart.item_count>0",
+        "User.authenticated=True"
+      ],
+      "effects": {
+        "Order.exists": true,
+        "Order.status": "CREATED",
+        "Cart.locked": true
+      },
+      "constraints": [
+        "quantity>0"
+      ],
+      "resources": [
+        "Database"
+      ],
+      "cost": {
+        "time": 40.0,
+        "money": 0.0,
+        "resource": 1.0,
+        "risk": 0.03,
+        "energy": 0.6
+      },
+      "reliability": 0.995,
+      "availability": 1.0,
+      "mechanism": {
+        "operation": "INSERT",
+        "table": "orders"
+      },
+      "composed_of": []
+    },
+    "CreateOrder_GUI": {
+      "id": "CreateOrder_GUI",
+      "type": "GUI",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        "Cart.exists=True",
+        "Cart.item_count>0",
+        "User.authenticated=True"
+      ],
+      "effects": {
+        "Order.exists": true,
+        "Order.status": "CREATED",
+        "Cart.locked": true
+      },
+      "constraints": [
+        "quantity>0"
+      ],
+      "resources": [
+        "Database",
+        "Authentication token"
+      ],
+      "cost": {
+        "time": 1200.0,
+        "money": 0.0,
+        "resource": 0.5,
+        "risk": 0.08,
+        "energy": 0.3
+      },
+      "reliability": 0.98,
+      "availability": 1.0,
+      "mechanism": {
+        "action": "CLICK",
+        "component": "checkout_button"
+      },
+      "composed_of": []
+    },
+    "GetWeatherForecast": {
+      "id": "GetWeatherForecast",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "city",
+          "type": "string",
+          "domain": "valid city names",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "forecast",
+          "type": "json",
+          "domain": "weather payload",
+          "required": true
+        }
+      ],
+      "preconditions": [],
+      "effects": {
+        "Weather.lastFetched": true
+      },
+      "constraints": [],
+      "resources": [
+        "Network"
+      ],
+      "cost": {
+        "time": 80.0,
+        "money": 0.0,
+        "resource": 0.3,
+        "risk": 0.02,
+        "energy": 0.2
+      },
+      "reliability": 0.99,
+      "availability": 1.0,
+      "mechanism": {
+        "method": "GET",
+        "endpoint": "/weather"
+      },
+      "composed_of": []
+    },
+    "LogAnalyticsEvent": {
+      "id": "LogAnalyticsEvent",
+      "type": "EVENT",
+      "inputs": [
+        {
+          "name": "event_name",
+          "type": "string",
+          "domain": "any",
+          "required": true
+        }
+      ],
+      "outputs": [],
+      "preconditions": [],
+      "effects": {
+        "Analytics.logged": true
+      },
+      "constraints": [],
+      "resources": [
+        "Network"
+      ],
+      "cost": {
+        "time": 10.0,
+        "money": 0.0,
+        "resource": 0.1,
+        "risk": 0.01,
+        "energy": 0.05
+      },
+      "reliability": 0.999,
+      "availability": 1.0,
+      "mechanism": {
+        "trigger": "AnyEvent",
+        "handler": "LogAnalyticsEvent"
+      },
+      "composed_of": []
+    },
+    "MakePayment_Degraded": {
+      "id": "MakePayment_Degraded",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "payment_amount",
+          "type": "decimal",
+          "domain": ">0",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        "Order.exists=True"
+      ],
+      "effects": {
+        "Payment.status": "SUCCESS",
+        "Order.status": "PAID"
+      },
+      "constraints": [
+        "payment_amount<=transaction_limit"
+      ],
+      "resources": [
+        "Payment gateway",
+        "Network"
+      ],
+      "cost": {
+        "time": 250.0,
+        "money": 0.01,
+        "resource": 1.0,
+        "risk": 0.45,
+        "energy": 1.5
+      },
+      "reliability": 0.55,
+      "availability": 1.0,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/payments"
+      },
+      "composed_of": []
+    }
+  },
+  "states": {
+    "initial": {
+      "User.authenticated": true,
+      "User.role": "CUSTOMER",
+      "Cart.exists": true,
+      "Cart.item_count": 3,
+      "Order.exists": false,
+      "Payment.status": "NOT_STARTED",
+      "Inventory.available": true,
+      "Notification.sent": false
+    }
+  },
+  "goals": {
+    "purchase_complete": [
+      "Order.exists=True",
+      "Payment.status=SUCCESS",
+      "Notification.sent=True"
+    ]
+  },
+  "notes": {
+    "CreateOrder, MakePayment, CancelCart, SendNotification": "base e-commerce domain from the assignment PDF",
+    "CreateOrder_API/_DB/_GUI": "alternative implementations of CreateOrder for Experiment 3",
+    "GetWeatherForecast, LogAnalyticsEvent": "goal-irrelevant capabilities for Experiment 4",
+    "MakePayment_Degraded": "operational-attribute variant of MakePayment for Experiment 5"
+  }
+}

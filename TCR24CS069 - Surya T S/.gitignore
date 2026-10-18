@@ -1,0 +1,32 @@
+# Compiled executables
+*.exe
+*.out
+*.o
+*.a
+*.lib
+
+# Build artefacts
+capability_embedding
+test_embedding
+
+# Scratch / temp
+scratch_ex3/
+*.tmp
+
+# IDE / editor
+.vscode/
+.idea/
+*.user
+.vs/
+
+# OS
+Thumbs.db
+.DS_Store
+
+
+# Assignment reference files (do not commit)
+*.zip
+*.pdf
+scratch_ex3/
+test_compiler.cpp
+

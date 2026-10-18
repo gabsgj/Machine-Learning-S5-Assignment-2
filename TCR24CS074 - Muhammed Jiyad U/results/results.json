@@ -1,0 +1,453 @@
+{
+  "environment": {
+    "python": "3.12.14",
+    "numpy": "2.3.5",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39"
+  },
+  "results": [
+    {
+      "domain": "commerce",
+      "states": 96,
+      "capabilities": 9,
+      "dimension": 9247,
+      "bytes_float64": 73976,
+      "experiment1": {
+        "required_positive": {
+          "state_coverage": 1.0,
+          "io_compatible": true,
+          "existential": true,
+          "guaranteed": true
+        },
+        "required_negative": {
+          "state_coverage": 0.0,
+          "io_compatible": true,
+          "existential": false,
+          "guaranteed": false
+        },
+        "pair_count": 81,
+        "exact_correct": 81,
+        "cosine_baseline_correct": 46,
+        "wrong_input": {
+          "state_coverage": 1.0,
+          "io_compatible": false,
+          "existential": false,
+          "guaranteed": false
+        }
+      },
+      "experiment2": {
+        "states_checked": 96,
+        "semantic_errors": 0,
+        "associative_full_vector": true,
+        "sum_error_l2": 15.491933384829668,
+        "goal_satisfied": 1.0,
+        "constituent_cosines": [
+          0.25000000000000006,
+          0.3535533905932738,
+          0.3535533905932738
+        ],
+        "quality": {
+          "time_ms": 300.0,
+          "resource_cost": 3.0,
+          "money": 0.7,
+          "energy": 0.30000000000000004,
+          "risk": 0.02970100000000009
+        },
+        "reliability": 0.9702989999999999,
+        "external_inputs": [
+          {
+            "name": "request",
+            "type": "ID",
+            "domain": [
+              "valid"
+            ],
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "name": "order_id",
+            "type": "ID",
+            "domain": [
+              "valid"
+            ],
+            "required": true
+          },
+          {
+            "name": "payment_id",
+            "type": "ID",
+            "domain": [
+              "valid"
+            ],
+            "required": true
+          },
+          {
+            "name": "notification_id",
+            "type": "ID",
+            "domain": [
+              "valid"
+            ],
+            "required": true
+          }
+        ]
+      },
+      "experiment3": {
+        "functional_cosines": [
+          1.0,
+          1.0
+        ],
+        "full_vector_distances": [
+          2.0013245613842847,
+          2.004045907657806
+        ]
+      },
+      "experiment4": {
+        "direct_irrelevant_goal_score": 0.0,
+        "chain_goal_score": 1.0,
+        "leave_one_out_scores": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "with_irrelevant_goal_score": 1.0
+      },
+      "experiment5": {
+        "ranking": [
+          {
+            "name": "CreateOrder_DATABASE",
+            "utility": 0.94,
+            "money": 0.03,
+            "reliability": 0.97
+          },
+          {
+            "name": "CreateOrder",
+            "utility": 0.89,
+            "money": 0.1,
+            "reliability": 0.99
+          },
+          {
+            "name": "CreateOrder_GUI",
+            "utility": 0.89,
+            "money": 0.01,
+            "reliability": 0.9
+          }
+        ],
+        "gates": {
+          "all": [
+            "CreateOrder",
+            "CreateOrder_DATABASE",
+            "CreateOrder_GUI"
+          ],
+          "no_database": [
+            "CreateOrder",
+            "CreateOrder_GUI"
+          ],
+          "api_unavailable": [
+            "CreateOrder_DATABASE",
+            "CreateOrder_GUI"
+          ]
+        }
+      },
+      "applicability_errors": 0,
+      "timing": {
+        "encode_ms_mean_100": 0.21022703999960868,
+        "compose_ms_mean_30": 0.17407926666616427
+      }
+    },
+    {
+      "domain": "document",
+      "states": 96,
+      "capabilities": 9,
+      "dimension": 9247,
+      "bytes_float64": 73976,
+      "experiment1": {
+        "required_positive": {
+          "state_coverage": 1.0,
+          "io_compatible": true,
+          "existential": true,
+          "guaranteed": true
+        },
+        "required_negative": {
+          "state_coverage": 0.0,
+          "io_compatible": true,
+          "existential": false,
+          "guaranteed": false
+        },
+        "pair_count": 81,
+        "exact_correct": 81,
+        "cosine_baseline_correct": 46,
+        "wrong_input": {
+          "state_coverage": 1.0,
+          "io_compatible": false,
+          "existential": false,
+          "guaranteed": false
+        }
+      },
+      "experiment2": {
+        "states_checked": 96,
+        "semantic_errors": 0,
+        "associative_full_vector": true,
+        "sum_error_l2": 12.649110640673518,
+        "goal_satisfied": 1.0,
+        "constituent_cosines": [
+          0.24999999999999994,
+          0.20412414523193148,
+          0.20412414523193148
+        ],
+        "quality": {
+          "time_ms": 300.0,
+          "resource_cost": 3.0,
+          "money": 0.7,
+          "energy": 0.30000000000000004,
+          "risk": 0.02970100000000009
+        },
+        "reliability": 0.9702989999999999,
+        "external_inputs": [
+          {
+            "name": "request",
+            "type": "ID",
+            "domain": [
+              "valid"
+            ],
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "name": "document_id",
+            "type": "ID",
+            "domain": [
+              "valid"
+            ],
+            "required": true
+          },
+          {
+            "name": "signature_id",
+            "type": "ID",
+            "domain": [
+              "valid"
+            ],
+            "required": true
+          },
+          {
+            "name": "archive_id",
+            "type": "ID",
+            "domain": [
+              "valid"
+            ],
+            "required": true
+          }
+        ]
+      },
+      "experiment3": {
+        "functional_cosines": [
+          0.9999999999999998,
+          0.9999999999999998
+        ],
+        "full_vector_distances": [
+          2.0013245613842847,
+          2.004045907657806
+        ]
+      },
+      "experiment4": {
+        "direct_irrelevant_goal_score": 0.0,
+        "chain_goal_score": 1.0,
+        "leave_one_out_scores": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "with_irrelevant_goal_score": 1.0
+      },
+      "experiment5": {
+        "ranking": [
+          {
+            "name": "CreateDocument_DATABASE",
+            "utility": 0.94,
+            "money": 0.03,
+            "reliability": 0.97
+          },
+          {
+            "name": "CreateDocument",
+            "utility": 0.89,
+            "money": 0.1,
+            "reliability": 0.99
+          },
+          {
+            "name": "CreateDocument_GUI",
+            "utility": 0.89,
+            "money": 0.01,
+            "reliability": 0.9
+          }
+        ],
+        "gates": {
+          "all": [
+            "CreateDocument",
+            "CreateDocument_DATABASE",
+            "CreateDocument_GUI"
+          ],
+          "no_database": [
+            "CreateDocument",
+            "CreateDocument_GUI"
+          ],
+          "api_unavailable": [
+            "CreateDocument_DATABASE",
+            "CreateDocument_GUI"
+          ]
+        }
+      },
+      "applicability_errors": 0,
+      "timing": {
+        "encode_ms_mean_100": 0.1745057599998745,
+        "compose_ms_mean_30": 0.19987520000010287
+      }
+    },
+    {
+      "domain": "data",
+      "states": 96,
+      "capabilities": 9,
+      "dimension": 9247,
+      "bytes_float64": 73976,
+      "experiment1": {
+        "required_positive": {
+          "state_coverage": 1.0,
+          "io_compatible": true,
+          "existential": true,
+          "guaranteed": true
+        },
+        "required_negative": {
+          "state_coverage": 0.0,
+          "io_compatible": true,
+          "existential": false,
+          "guaranteed": false
+        },
+        "pair_count": 81,
+        "exact_correct": 81,
+        "cosine_baseline_correct": 46,
+        "wrong_input": {
+          "state_coverage": 1.0,
+          "io_compatible": false,
+          "existential": false,
+          "guaranteed": false
+        }
+      },
+      "experiment2": {
+        "states_checked": 96,
+        "semantic_errors": 0,
+        "associative_full_vector": true,
+        "sum_error_l2": 12.649110640673518,
+        "goal_satisfied": 1.0,
+        "constituent_cosines": [
+          0.24999999999999994,
+          0.20412414523193148,
+          0.20412414523193148
+        ],
+        "quality": {
+          "time_ms": 300.0,
+          "resource_cost": 3.0,
+          "money": 0.7,
+          "energy": 0.30000000000000004,
+          "risk": 0.02970100000000009
+        },
+        "reliability": 0.9702989999999999,
+        "external_inputs": [
+          {
+            "name": "request",
+            "type": "ID",
+            "domain": [
+              "valid"
+            ],
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "name": "extract_id",
+            "type": "ID",
+            "domain": [
+              "valid"
+            ],
+            "required": true
+          },
+          {
+            "name": "transform_id",
+            "type": "ID",
+            "domain": [
+              "valid"
+            ],
+            "required": true
+          },
+          {
+            "name": "publish_id",
+            "type": "ID",
+            "domain": [
+              "valid"
+            ],
+            "required": true
+          }
+        ]
+      },
+      "experiment3": {
+        "functional_cosines": [
+          0.9999999999999998,
+          0.9999999999999998
+        ],
+        "full_vector_distances": [
+          2.0013245613842847,
+          2.004045907657806
+        ]
+      },
+      "experiment4": {
+        "direct_irrelevant_goal_score": 0.0,
+        "chain_goal_score": 1.0,
+        "leave_one_out_scores": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "with_irrelevant_goal_score": 1.0
+      },
+      "experiment5": {
+        "ranking": [
+          {
+            "name": "CreateExtract_DATABASE",
+            "utility": 0.94,
+            "money": 0.03,
+            "reliability": 0.97
+          },
+          {
+            "name": "CreateExtract",
+            "utility": 0.89,
+            "money": 0.1,
+            "reliability": 0.99
+          },
+          {
+            "name": "CreateExtract_GUI",
+            "utility": 0.89,
+            "money": 0.01,
+            "reliability": 0.9
+          }
+        ],
+        "gates": {
+          "all": [
+            "CreateExtract",
+            "CreateExtract_DATABASE",
+            "CreateExtract_GUI"
+          ],
+          "no_database": [
+            "CreateExtract",
+            "CreateExtract_GUI"
+          ],
+          "api_unavailable": [
+            "CreateExtract_DATABASE",
+            "CreateExtract_GUI"
+          ]
+        }
+      },
+      "applicability_errors": 0,
+      "timing": {
+        "encode_ms_mean_100": 0.18204833000027065,
+        "compose_ms_mean_30": 0.16895186666564163
+      }
+    }
+  ]
+}

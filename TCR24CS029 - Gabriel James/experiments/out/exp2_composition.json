@@ -1,0 +1,41 @@
+{
+  "composite_three": {
+    "effects": "Order.exists SET true",
+    "id": "PAT-CreateOrder+PAT-MakePayment+PAT-CancelCart",
+    "inputs": "customer_id",
+    "money": 0.5,
+    "outputs": "cancelled, order_id, payment_reference",
+    "preconditions": "Order.exists = true; Order.exists = false",
+    "reliability": 0.960498,
+    "risk": 0.049303000000000076,
+    "time_ms": 410.0
+  },
+  "composite_two": {
+    "effects": "Order.exists SET true",
+    "id": "PAT-CreateOrder+PAT-MakePayment",
+    "inputs": "customer_id",
+    "money": 0.5,
+    "outputs": "order_id, payment_reference",
+    "preconditions": "Order.exists = true",
+    "reliability": 0.9702,
+    "risk": 0.039700000000000034,
+    "time_ms": 320.0
+  },
+  "experiment": "exp2_composition",
+  "pattern": {
+    "sheet": "experiments/specs/order_pattern.yaml"
+  },
+  "relations": {
+    "algebraic_vs_reencoded": 0.9660318117790541,
+    "associativity_cosine": 0.9999999999999998,
+    "to_c1": 0.8631640000610311,
+    "to_c2": 0.8263886957772517,
+    "to_c3": 0.706935825710661
+  },
+  "validity": {
+    "adjacent_c1_c2": "compatible",
+    "adjacent_c2_c3": "uncertain",
+    "self_check_three": "incompatible",
+    "self_check_two": "uncertain"
+  }
+}

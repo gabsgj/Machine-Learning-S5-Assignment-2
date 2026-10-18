@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}New invoice{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Generate invoice</h1>
+  <form id="invoice_form" data-capability-endpoint="/api/generate_invoice" data-result-target="result_output">
+    <label for="patient_mrn_input">Patient MRN</label>
+    <input type="text" id="patient_mrn_input" name="patient_mrn" required placeholder="MRN-1001">
+    <label for="amount_input">Amount</label>
+    <input type="number" id="amount_input" name="amount" step="0.01" min="0.01" max="100000" required placeholder="42.50">
+    <label for="description_input">Description (optional)</label>
+    <input type="text" id="description_input" name="description" placeholder="Consultation fee">
+    <button type="submit" id="submit_button">Generate invoice</button>
+  </form>
+  <pre id="result_output" class="result" aria-live="polite"></pre>
+</section>
+{% endblock %}

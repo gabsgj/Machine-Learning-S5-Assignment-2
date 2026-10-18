@@ -1,0 +1,18 @@
+# Build directories and executables
+build/
+bin/
+*.o
+capability_app
+run_experiments
+
+# LaTeX auxiliary build files
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+
+# System & IDE files
+.DS_Store
+.vscode/
+.idea/

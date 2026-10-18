@@ -1,0 +1,490 @@
+{
+  "vocabulary_version": "1.0",
+  "description": "Typed state variable vocabulary shared by the dataset applications and the capability specification sheets. Each entry names a state variable, its type, its domain and the application domain it belongs to. The hospital, e-commerce, documents and compliance vocabularies are used by the experiments so that consistency across problems can be measured; a variable name may appear in two domains when both genuinely use the same fact, for example Notification.sent.",
+  "domains": {
+    "ecommerce": {
+      "variables": [
+        {
+          "name": "User.authenticated",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "User.role",
+          "type": "enumerated",
+          "domain": [
+            "CUSTOMER",
+            "ADMIN",
+            "GUEST"
+          ],
+          "kind": "status"
+        },
+        {
+          "name": "Cart.exists",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Cart.item_count",
+          "type": "integer",
+          "domain": [
+            0,
+            1000
+          ],
+          "kind": "counter"
+        },
+        {
+          "name": "Cart.locked",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Order.exists",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Order.status",
+          "type": "enumerated",
+          "domain": [
+            "NOT_STARTED",
+            "CREATED",
+            "PAID",
+            "CANCELLED",
+            "FULFILLED"
+          ],
+          "kind": "status"
+        },
+        {
+          "name": "Payment.status",
+          "type": "enumerated",
+          "domain": [
+            "NOT_STARTED",
+            "PENDING",
+            "SUCCESS",
+            "FAILED",
+            "REFUNDED"
+          ],
+          "kind": "status"
+        },
+        {
+          "name": "Inventory.available",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Inventory.quantity",
+          "type": "integer",
+          "domain": [
+            0,
+            100000
+          ],
+          "kind": "resource"
+        },
+        {
+          "name": "Notification.sent",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Transaction.amount",
+          "type": "real",
+          "domain": [
+            0.0,
+            1000000.0
+          ],
+          "kind": "value"
+        },
+        {
+          "name": "Shipment.created",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        }
+      ]
+    },
+    "hospital": {
+      "variables": [
+        {
+          "name": "Patient.registered",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Patient.admitted",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Patient.verified",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Patient.allergy_flagged",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Ticket.open",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Ticket.priority",
+          "type": "enumerated",
+          "domain": [
+            "LOW",
+            "NORMAL",
+            "HIGH",
+            "EMERGENCY"
+          ],
+          "kind": "status"
+        },
+        {
+          "name": "Ticket.triaged",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Queue.length",
+          "type": "integer",
+          "domain": [
+            0,
+            10000
+          ],
+          "kind": "counter"
+        },
+        {
+          "name": "Encounter.active",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Encounter.closed",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Vitals.recorded",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Vitals.temperature_c",
+          "type": "real",
+          "domain": [
+            25.0,
+            45.0
+          ],
+          "kind": "value"
+        },
+        {
+          "name": "Vitals.heart_rate",
+          "type": "integer",
+          "domain": [
+            20,
+            300
+          ],
+          "kind": "value"
+        },
+        {
+          "name": "Prescription.issued",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Prescription.count",
+          "type": "integer",
+          "domain": [
+            0,
+            1000
+          ],
+          "kind": "counter"
+        },
+        {
+          "name": "Stock.available",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Stock.quantity",
+          "type": "integer",
+          "domain": [
+            0,
+            100000
+          ],
+          "kind": "resource"
+        },
+        {
+          "name": "Drug.dispensed",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Invoice.generated",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Invoice.paid",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Invoice.amount",
+          "type": "real",
+          "domain": [
+            0.0,
+            1000000.0
+          ],
+          "kind": "value"
+        },
+        {
+          "name": "Lab.ordered",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Sample.received",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Lab.resulted",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Notification.sent",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Staff.authenticated",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Ward.bed_available",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        }
+      ]
+    },
+    "documents": {
+      "variables": [
+        {
+          "name": "Document.uploaded",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Document.parsed",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Document.page_count",
+          "type": "integer",
+          "domain": [
+            0,
+            100000
+          ],
+          "kind": "counter"
+        },
+        {
+          "name": "Index.updated",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Summary.generated",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Message.queued",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Archive.written",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        }
+      ]
+    },
+    "compliance": {
+      "variables": [
+        {
+          "name": "Audit.open",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Finding.recorded",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Finding.approved",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        },
+        {
+          "name": "Report.exported",
+          "type": "boolean",
+          "domain": [
+            false,
+            true
+          ],
+          "kind": "flag"
+        }
+      ]
+    }
+  }
+}

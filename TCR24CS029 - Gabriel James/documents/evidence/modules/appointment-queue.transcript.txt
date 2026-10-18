@@ -1,0 +1,109 @@
+TRANSCRIPT appointment-queue live run
+database: documents/evidence/modules/appointment-queue.db
+server log: documents/evidence/modules/appointment-queue.server.log
+python: 3.12.14
+
+$ GET /health
+  (module health)
+  http status: 200
+  response: {"database": "../../documents/evidence/modules/appointment-queue.db", "module": "appointment-queue", "port": 5002, "status": "ok"}
+
+$ GET /spec
+  http status: 200
+  capability ids: ["AQ-CreateTicket", "AQ-CallNext", "AQ-UpdateTriage", "AQ-Cancel", "AQ-Form"]
+  state variables: ["Ticket.open", "Ticket.triaged", "Queue.length"]
+
+$ GET /state
+  (state before any capability call)
+  http status: 200
+  response: {"module": "appointment-queue", "state": {"Queue.length": 0, "Ticket.open": false, "Ticket.triaged": false}, "status": "ok"}
+
+$ GET /ui/
+  (UI page)
+  http status: 200
+  response (2940 bytes of HTML): <!doctype html>
+
+$ GET /ui/tickets
+  (UI page)
+  http status: 200
+  response (1771 bytes of HTML): <!doctype html>
+
+$ GET /ui/tickets/new
+  (UI page)
+  http status: 200
+  response (1906 bytes of HTML): <!doctype html>
+
+$ GET /ui/capabilities
+  (UI page)
+  http status: 200
+  response (10141 bytes of HTML): <!doctype html>
+
+$ POST /api/create_ticket
+  (create an emergency ticket)
+  request body: {"patient_mrn": "MRN-3002", "priority": "EMERGENCY", "reason": "Chest pain"}
+  http status: 200
+  response: {"capability": "AQ-CreateTicket", "effects": [{"op": "SET", "value": true, "variable": "Ticket.open"}, {"op": "INCREMENT", "value": 1, "variable": "Queue.length"}], "outputs": {"ticket_id": "TKT-0FBBDA5A", "ticket_no": 1}, "state": {"Queue.length": 1, "Ticket.open": true, "Ticket.triaged": false}, "status": "ok", "trace": ["AQ-CreateTicket executed"]}
+
+$ POST /api/update_triage
+  (triage the waiting ticket)
+  request body: {"notes": "Triaged on arrival", "priority": "EMERGENCY", "ticket_id": "TKT-0FBBDA5A"}
+  http status: 200
+  response: {"capability": "AQ-UpdateTriage", "effects": [{"op": "SET", "value": true, "variable": "Ticket.triaged"}], "outputs": {"priority": "EMERGENCY", "ticket_id": "TKT-0FBBDA5A", "updated": true}, "state": {"Queue.length": 1, "Ticket.open": true, "Ticket.triaged": true}, "status": "ok", "trace": ["AQ-UpdateTriage executed"]}
+
+$ POST /api/create_ticket
+  (create a routine ticket)
+  request body: {"patient_mrn": "MRN-3001", "priority": "NORMAL", "reason": "Fever"}
+  http status: 200
+  response: {"capability": "AQ-CreateTicket", "effects": [{"op": "SET", "value": true, "variable": "Ticket.open"}, {"op": "INCREMENT", "value": 1, "variable": "Queue.length"}], "outputs": {"ticket_id": "TKT-9CAAD5E9", "ticket_no": 2}, "state": {"Queue.length": 2, "Ticket.open": true, "Ticket.triaged": true}, "status": "ok", "trace": ["AQ-CreateTicket executed"]}
+
+$ POST /api/call_next_ticket
+  (call the highest priority ticket)
+  request body: {"desk": "Desk 1"}
+  http status: 200
+  response: {"capability": "AQ-CallNext", "effects": [{"op": "SET", "value": false, "variable": "Ticket.open"}, {"op": "DECREMENT", "value": 1, "variable": "Queue.length"}], "outputs": {"called_at": "2026-10-18T15:32:54+00:00", "patient_mrn": "MRN-3002", "priority": "EMERGENCY", "ticket_id": "TKT-0FBBDA5A"}, "state": {"Queue.length": 1, "Ticket.open": true, "Ticket.triaged": false}, "status": "ok", "trace": ["AQ-CallNext executed"]}
+
+$ POST /api/cancel_ticket
+  (cancel an already called ticket is rejected)
+  request body: {"reason": "Left without being seen", "ticket_id": "TKT-0FBBDA5A"}
+  http status: 409
+  response: {"capability": "AQ-Cancel", "error": "ticket \"TKT-0FBBDA5A\" is already closed", "status": "error"}
+
+$ POST /api/create_ticket
+  (create a low priority ticket)
+  request body: {"patient_mrn": "MRN-3003", "priority": "LOW", "reason": "Follow up"}
+  http status: 200
+  response: {"capability": "AQ-CreateTicket", "effects": [{"op": "SET", "value": true, "variable": "Ticket.open"}, {"op": "INCREMENT", "value": 1, "variable": "Queue.length"}], "outputs": {"ticket_id": "TKT-74713FC6", "ticket_no": 3}, "state": {"Queue.length": 2, "Ticket.open": true, "Ticket.triaged": false}, "status": "ok", "trace": ["AQ-CreateTicket executed"]}
+
+$ POST /api/cancel_ticket
+  (cancel the low priority ticket)
+  request body: {"reason": "Left without being seen", "ticket_id": "TKT-74713FC6"}
+  http status: 200
+  response: {"capability": "AQ-Cancel", "effects": [{"op": "SET", "value": false, "variable": "Ticket.open"}, {"op": "DECREMENT", "value": 1, "variable": "Queue.length"}], "outputs": {"cancelled": true, "closed_at": "2026-10-18T15:32:54+00:00"}, "state": {"Queue.length": 1, "Ticket.open": true, "Ticket.triaged": false}, "status": "ok", "trace": ["AQ-Cancel executed"]}
+
+$ POST /api/call_next_ticket
+  (call the remaining ticket)
+  request body: {"desk": "Desk 2"}
+  http status: 200
+  response: {"capability": "AQ-CallNext", "effects": [{"op": "SET", "value": false, "variable": "Ticket.open"}, {"op": "DECREMENT", "value": 1, "variable": "Queue.length"}], "outputs": {"called_at": "2026-10-18T15:32:54+00:00", "patient_mrn": "MRN-3001", "priority": "NORMAL", "ticket_id": "TKT-9CAAD5E9"}, "state": {"Queue.length": 0, "Ticket.open": false, "Ticket.triaged": false}, "status": "ok", "trace": ["AQ-CallNext executed"]}
+
+$ POST /api/call_next_ticket
+  (calling next on an empty queue is rejected)
+  request body: {}
+  http status: 409
+  response: {"capability": "AQ-CallNext", "error": "the queue is empty: no open ticket to call", "status": "error"}
+
+$ GET /state
+  (state snapshot after the calls)
+  http status: 200
+  response: {"module": "appointment-queue", "state": {"Queue.length": 0, "Ticket.open": false, "Ticket.triaged": false}, "status": "ok"}
+
+$ POST /ui/tickets/new
+  (GUI capability form submission)
+  request body: {"patient_mrn": "MRN-3004", "priority": "LOW", "reason": "Dressing change"}
+  http status: 200
+  response: {"capability": "AQ-Form", "effects": [{"op": "SET", "value": true, "variable": "Ticket.open"}, {"op": "INCREMENT", "value": 1, "variable": "Queue.length"}], "outputs": {"ticket_id": "TKT-295FAB60", "ticket_no": 4}, "state": {"Queue.length": 1, "Ticket.open": true, "Ticket.triaged": false}, "status": "ok", "trace": ["AQ-Form submitted through /ui/tickets/new"]}
+
+$ GET /ui/tickets/TKT-295FAB60
+  (UI detail page)
+  http status: 200
+  response (2779 bytes of HTML): <!doctype html>

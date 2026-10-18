@@ -1,0 +1,578 @@
+{
+  "application": {
+    "name": "Online Course Enrollment System",
+    "formal_model": "A = (S, C, S_I, G, R, K)",
+    "description": "A formally specified system for selecting, paying for, and enrolling a student in an online course."
+  },
+  "capabilities": [
+    {
+      "name": "SelectCourse",
+      "type": "FUNCTION",
+      "inputs": [
+        {
+          "name": "course_id",
+          "type": "COURSE_ID",
+          "domain": "valid course IDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "selected_course",
+          "type": "COURSE_ID",
+          "domain": "valid course IDs"
+        }
+      ],
+      "preconditions": {
+        "Student.registered": true,
+        "Course.seats_available": true
+      },
+      "effects": {
+        "Course.selected": true
+      },
+      "constraints": [
+        "course_id is valid",
+        "course is open for enrollment"
+      ],
+      "resources": [
+        "Course database"
+      ],
+      "cost": {
+        "time_ms": 20,
+        "resource": 1,
+        "money": 0.0,
+        "risk": 0.01,
+        "energy": 1
+      },
+      "reliability": 0.99,
+      "availability": 1,
+      "mechanism": {
+        "type": "FUNCTION",
+        "function": "select_course"
+      }
+    },
+    {
+      "name": "MakePayment",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "student_id",
+          "type": "STUDENT_ID",
+          "domain": "valid student IDs",
+          "required": true
+        },
+        {
+          "name": "amount",
+          "type": "MONEY",
+          "domain": "positive amount",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_id",
+          "type": "PAYMENT_ID",
+          "domain": "valid payment IDs"
+        }
+      ],
+      "preconditions": {
+        "Course.selected": true,
+        "Payment.status": "NOT_PAID"
+      },
+      "effects": {
+        "Payment.status": "SUCCESS"
+      },
+      "constraints": [
+        "amount > 0",
+        "amount <= transaction_limit"
+      ],
+      "resources": [
+        "Payment gateway",
+        "Network"
+      ],
+      "cost": {
+        "time_ms": 800,
+        "resource": 3,
+        "money": 0.01,
+        "risk": 0.05,
+        "energy": 2
+      },
+      "reliability": 0.97,
+      "availability": 1,
+      "mechanism": {
+        "type": "API",
+        "method": "POST",
+        "endpoint": "/payments"
+      }
+    },
+    {
+      "name": "EnrollStudent",
+      "type": "DATABASE",
+      "inputs": [
+        {
+          "name": "student_id",
+          "type": "STUDENT_ID",
+          "domain": "valid student IDs",
+          "required": true
+        },
+        {
+          "name": "course_id",
+          "type": "COURSE_ID",
+          "domain": "valid course IDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "enrollment_id",
+          "type": "ENROLLMENT_ID",
+          "domain": "valid enrollment IDs"
+        }
+      ],
+      "preconditions": {
+        "Payment.status": "SUCCESS",
+        "Course.selected": true
+      },
+      "effects": {
+        "Enrollment.status": "ENROLLED"
+      },
+      "constraints": [
+        "student is not already enrolled"
+      ],
+      "resources": [
+        "Enrollment database"
+      ],
+      "cost": {
+        "time_ms": 50,
+        "resource": 1,
+        "money": 0.0,
+        "risk": 0.01,
+        "energy": 1
+      },
+      "reliability": 0.995,
+      "availability": 1,
+      "mechanism": {
+        "type": "DATABASE",
+        "operation": "INSERT",
+        "table": "enrollments"
+      }
+    },
+    {
+      "name": "SendNotification",
+      "type": "MESSAGE",
+      "inputs": [
+        {
+          "name": "student_id",
+          "type": "STUDENT_ID",
+          "domain": "valid student IDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "notification_id",
+          "type": "NOTIFICATION_ID",
+          "domain": "valid notification IDs"
+        }
+      ],
+      "preconditions": {
+        "Enrollment.status": "ENROLLED"
+      },
+      "effects": {
+        "Notification.sent": true
+      },
+      "constraints": [
+        "student contact exists"
+      ],
+      "resources": [
+        "Notification service",
+        "Network"
+      ],
+      "cost": {
+        "time_ms": 100,
+        "resource": 1,
+        "money": 0.001,
+        "risk": 0.02,
+        "energy": 1
+      },
+      "reliability": 0.98,
+      "availability": 1,
+      "mechanism": {
+        "type": "MESSAGE",
+        "event": "EnrollmentCreated",
+        "handler": "SendNotification"
+      }
+    },
+    {
+      "name": "CancelCourse",
+      "type": "FUNCTION",
+      "inputs": [
+        {
+          "name": "course_id",
+          "type": "COURSE_ID",
+          "domain": "valid course IDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cancelled",
+          "type": "BOOLEAN",
+          "domain": "{true,false}"
+        }
+      ],
+      "preconditions": {
+        "Payment.status": "FAILED",
+        "Course.selected": true
+      },
+      "effects": {
+        "Course.selected": false
+      },
+      "constraints": [
+        "course is selected"
+      ],
+      "resources": [
+        "Course database"
+      ],
+      "cost": {
+        "time_ms": 30,
+        "resource": 1,
+        "money": 0.0,
+        "risk": 0.01,
+        "energy": 1
+      },
+      "reliability": 0.99,
+      "availability": 1,
+      "mechanism": {
+        "type": "FUNCTION",
+        "function": "cancel_course"
+      }
+    },
+    {
+      "name": "ManualEnrollStudent",
+      "type": "GUI",
+      "inputs": [
+        {
+          "name": "student_id",
+          "type": "STUDENT_ID",
+          "domain": "valid student IDs",
+          "required": true
+        },
+        {
+          "name": "course_id",
+          "type": "COURSE_ID",
+          "domain": "valid course IDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "enrollment_id",
+          "type": "ENROLLMENT_ID",
+          "domain": "valid enrollment IDs"
+        }
+      ],
+      "preconditions": {
+        "Payment.status": "SUCCESS",
+        "Course.selected": true
+      },
+      "effects": {
+        "Enrollment.status": "ENROLLED"
+      },
+      "constraints": [
+        "administrator login required"
+      ],
+      "resources": [
+        "Administrator",
+        "GUI"
+      ],
+      "cost": {
+        "time_ms": 5000,
+        "resource": 5,
+        "money": 0.0,
+        "risk": 0.03,
+        "energy": 3
+      },
+      "reliability": 0.99,
+      "availability": 1,
+      "mechanism": {
+        "type": "GUI",
+        "action": "CLICK",
+        "component": "enroll_button"
+      }
+    },
+    {
+      "name": "ViewCourseDetails",
+      "type": "GUI",
+      "inputs": [
+        {
+          "name": "course_id",
+          "type": "COURSE_ID",
+          "domain": "valid course IDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "course_details",
+          "type": "COURSE_DETAILS",
+          "domain": "course information"
+        }
+      ],
+      "preconditions": {
+        "Student.registered": true
+      },
+      "effects": {
+        "Course.details_viewed": true
+      },
+      "constraints": [],
+      "resources": [
+        "Course database",
+        "GUI"
+      ],
+      "cost": {
+        "time_ms": 100,
+        "resource": 1,
+        "money": 0.0,
+        "risk": 0.0,
+        "energy": 1
+      },
+      "reliability": 0.999,
+      "availability": 1,
+      "mechanism": {
+        "type": "GUI",
+        "action": "CLICK",
+        "component": "course_card"
+      }
+    },
+    {
+      "name": "ScholarshipVerification",
+      "type": "SERVICE",
+      "inputs": [
+        {
+          "name": "student_id",
+          "type": "STUDENT_ID",
+          "domain": "valid student IDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "eligibility",
+          "type": "BOOLEAN",
+          "domain": "{true,false}"
+        }
+      ],
+      "preconditions": {
+        "Student.registered": true
+      },
+      "effects": {
+        "Scholarship.verified": true
+      },
+      "constraints": [
+        "scholarship documents available"
+      ],
+      "resources": [
+        "Scholarship service",
+        "Network"
+      ],
+      "cost": {
+        "time_ms": 1200,
+        "resource": 3,
+        "money": 0.02,
+        "risk": 0.04,
+        "energy": 2
+      },
+      "reliability": 0.96,
+      "availability": 1,
+      "mechanism": {
+        "type": "SERVICE",
+        "service": "verify_scholarship"
+      }
+    },
+    {
+      "name": "ApplyDiscount",
+      "type": "DATABASE",
+      "inputs": [
+        {
+          "name": "student_id",
+          "type": "STUDENT_ID",
+          "domain": "valid student IDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "discounted_amount",
+          "type": "MONEY",
+          "domain": "non-negative amount"
+        }
+      ],
+      "preconditions": {
+        "Scholarship.verified": true,
+        "Course.selected": true
+      },
+      "effects": {
+        "Payment.amount_reduced": true
+      },
+      "constraints": [
+        "verified scholarship is active"
+      ],
+      "resources": [
+        "Student database"
+      ],
+      "cost": {
+        "time_ms": 40,
+        "resource": 1,
+        "money": 0.0,
+        "risk": 0.01,
+        "energy": 1
+      },
+      "reliability": 0.995,
+      "availability": 1,
+      "mechanism": {
+        "type": "DATABASE",
+        "operation": "UPDATE",
+        "table": "fees"
+      }
+    }
+  ],
+  "problems": [
+    {
+      "id": "problem_1_regular_enrollment",
+      "title": "Regular Course Enrollment",
+      "initial_state": {
+        "Student.registered": true,
+        "Course.selected": false,
+        "Course.seats_available": true,
+        "Payment.status": "NOT_PAID",
+        "Enrollment.status": "NOT_ENROLLED",
+        "Notification.sent": false
+      },
+      "goal": {
+        "Payment.status": "SUCCESS",
+        "Enrollment.status": "ENROLLED",
+        "Notification.sent": true
+      },
+      "composition": [
+        "SelectCourse",
+        "MakePayment",
+        "EnrollStudent",
+        "SendNotification"
+      ],
+      "resources": [
+        "Course database",
+        "Payment gateway",
+        "Network",
+        "Enrollment database",
+        "Notification service"
+      ],
+      "constraints": [
+        "student must be registered",
+        "course must have an available seat"
+      ]
+    },
+    {
+      "id": "problem_2_scholarship_enrollment",
+      "title": "Scholarship Course Enrollment",
+      "initial_state": {
+        "Student.registered": true,
+        "Course.selected": false,
+        "Course.seats_available": true,
+        "Scholarship.verified": false,
+        "Payment.status": "NOT_PAID",
+        "Enrollment.status": "NOT_ENROLLED",
+        "Notification.sent": false
+      },
+      "goal": {
+        "Scholarship.verified": true,
+        "Payment.status": "SUCCESS",
+        "Enrollment.status": "ENROLLED",
+        "Notification.sent": true
+      },
+      "composition": [
+        "SelectCourse",
+        "ScholarshipVerification",
+        "ApplyDiscount",
+        "MakePayment",
+        "EnrollStudent",
+        "SendNotification"
+      ],
+      "resources": [
+        "Course database",
+        "Scholarship service",
+        "Network",
+        "Student database",
+        "Payment gateway",
+        "Enrollment database",
+        "Notification service"
+      ],
+      "constraints": [
+        "scholarship documents must exist",
+        "course must have an available seat"
+      ]
+    },
+    {
+      "id": "problem_3_manual_enrollment",
+      "title": "Manual Administrative Enrollment",
+      "initial_state": {
+        "Student.registered": true,
+        "Course.selected": false,
+        "Course.seats_available": true,
+        "Payment.status": "NOT_PAID",
+        "Enrollment.status": "NOT_ENROLLED",
+        "Notification.sent": false,
+        "Administrator.logged_in": true
+      },
+      "goal": {
+        "Payment.status": "SUCCESS",
+        "Enrollment.status": "ENROLLED",
+        "Notification.sent": true
+      },
+      "composition": [
+        "SelectCourse",
+        "MakePayment",
+        "ManualEnrollStudent",
+        "SendNotification"
+      ],
+      "resources": [
+        "Course database",
+        "Payment gateway",
+        "Network",
+        "Administrator",
+        "GUI",
+        "Notification service"
+      ],
+      "constraints": [
+        "administrator login required for manual enrollment"
+      ]
+    },
+    {
+      "id": "problem_4_alternative_analysis",
+      "title": "Alternative Implementation Analysis",
+      "initial_state": {
+        "Student.registered": true,
+        "Course.selected": true,
+        "Payment.status": "SUCCESS",
+        "Enrollment.status": "NOT_ENROLLED",
+        "Notification.sent": false
+      },
+      "goal": {
+        "Enrollment.status": "ENROLLED",
+        "Notification.sent": true
+      },
+      "composition": [
+        "EnrollStudent",
+        "SendNotification"
+      ],
+      "resources": [
+        "Enrollment database",
+        "Notification service",
+        "Network"
+      ],
+      "constraints": [
+        "student is not already enrolled"
+      ]
+    }
+  ]
+}

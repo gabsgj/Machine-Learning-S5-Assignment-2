@@ -1,0 +1,4 @@
+first,second,cosine_similarity
+CreateOrder,CreateOrderDatabase,0.6966566019394554
+CreateOrder,CreateOrderGUI,0.653665486118549
+CreateOrderDatabase,CreateOrderGUI,0.685716849550558

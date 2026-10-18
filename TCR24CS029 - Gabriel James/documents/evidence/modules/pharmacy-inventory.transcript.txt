@@ -1,0 +1,86 @@
+TRANSCRIPT pharmacy-inventory live run
+database: documents/evidence/modules/pharmacy-inventory.db
+server log: documents/evidence/modules/pharmacy-inventory.server.log
+python: 3.12.14
+
+$ GET /health
+  (module health)
+  http status: 200
+  response: {"database": "../../documents/evidence/modules/pharmacy-inventory.db", "module": "pharmacy-inventory", "port": 5004, "status": "ok"}
+
+$ GET /spec
+  http status: 200
+  capability ids: ["PH-RegisterDrug", "PH-CheckStock", "PH-DispenseDrug", "PH-Replenish", "PH-Form"]
+  state variables: ["Stock.available", "Stock.quantity", "Drug.dispensed"]
+
+$ GET /state
+  (state before any capability call)
+  http status: 200
+  response: {"module": "pharmacy-inventory", "state": {"Drug.dispensed": false, "Stock.available": false, "Stock.quantity": 0}, "status": "ok"}
+
+$ GET /ui/
+  (UI page)
+  http status: 200
+  response (2922 bytes of HTML): <!doctype html>
+
+$ GET /ui/drugs
+  (UI page)
+  http status: 200
+  response (2620 bytes of HTML): <!doctype html>
+
+$ GET /ui/dispense
+  (UI page)
+  http status: 200
+  response (1752 bytes of HTML): <!doctype html>
+
+$ GET /ui/capabilities
+  (UI page)
+  http status: 200
+  response (9599 bytes of HTML): <!doctype html>
+
+$ POST /api/register_drug
+  (register a drug)
+  request body: {"initial_quantity": 100, "name": "Amoxicillin 500 mg", "sku": "AMOX-500", "unit_price": 0.35}
+  http status: 200
+  response: {"capability": "PH-RegisterDrug", "effects": [], "outputs": {"name": "Amoxicillin 500 mg", "on_hand": 100, "sku": "AMOX-500"}, "state": {"Drug.dispensed": false, "Stock.available": true, "Stock.quantity": 100}, "status": "ok", "trace": ["PH-RegisterDrug executed"]}
+
+$ POST /api/register_drug
+  (registering the same SKU again is rejected)
+  request body: {"name": "Copy", "sku": "AMOX-500", "unit_price": 1.0}
+  http status: 409
+  response: {"capability": "PH-RegisterDrug", "error": "drug \"AMOX-500\" is already in the catalogue", "status": "error"}
+
+$ POST /api/check_stock
+  (check the stock level)
+  request body: {"sku": "AMOX-500"}
+  http status: 200
+  response: {"capability": "PH-CheckStock", "effects": [], "outputs": {"available": true, "name": "Amoxicillin 500 mg", "on_hand": 100, "sku": "AMOX-500", "unit_price": 0.35}, "state": {"Drug.dispensed": false, "Stock.available": true, "Stock.quantity": 100}, "status": "ok", "trace": ["PH-CheckStock executed"]}
+
+$ POST /api/dispense_drug
+  (dispense ten units)
+  request body: {"patient_mrn": "MRN-5001", "quantity": 10, "sku": "AMOX-500"}
+  http status: 200
+  response: {"capability": "PH-DispenseDrug", "effects": [{"op": "SET", "value": true, "variable": "Drug.dispensed"}], "outputs": {"dispensed": true, "dispensed_at": "2026-10-18T15:32:55+00:00", "remaining": 90}, "state": {"Drug.dispensed": true, "Stock.available": true, "Stock.quantity": 90}, "status": "ok", "trace": ["PH-DispenseDrug executed"]}
+
+$ POST /api/dispense_drug
+  (dispensing more than is on hand is rejected)
+  request body: {"quantity": 95, "sku": "AMOX-500"}
+  http status: 409
+  response: {"capability": "PH-DispenseDrug", "error": "insufficient stock for \"AMOX-500\": 90 on hand, 95 requested", "status": "error"}
+
+$ POST /api/replenish_stock
+  (replenish fifty units)
+  request body: {"quantity": 50, "sku": "AMOX-500"}
+  http status: 200
+  response: {"capability": "PH-Replenish", "effects": [{"op": "SET", "value": true, "variable": "Stock.available"}], "outputs": {"on_hand": 140, "sku": "AMOX-500"}, "state": {"Drug.dispensed": true, "Stock.available": true, "Stock.quantity": 140}, "status": "ok", "trace": ["PH-Replenish executed"]}
+
+$ GET /state
+  (state snapshot after the calls)
+  http status: 200
+  response: {"module": "pharmacy-inventory", "state": {"Drug.dispensed": true, "Stock.available": true, "Stock.quantity": 140}, "status": "ok"}
+
+$ POST /ui/dispense
+  (GUI capability form submission)
+  request body: {"patient_mrn": "MRN-5002", "quantity": 5, "sku": "AMOX-500"}
+  http status: 200
+  response: {"capability": "PH-Form", "effects": [{"op": "SET", "value": true, "variable": "Drug.dispensed"}], "outputs": {"dispensed": true, "dispensed_at": "2026-10-18T15:32:55+00:00", "remaining": 135}, "state": {"Drug.dispensed": true, "Stock.available": true, "Stock.quantity": 135}, "status": "ok", "trace": ["PH-Form submitted through /ui/dispense"]}

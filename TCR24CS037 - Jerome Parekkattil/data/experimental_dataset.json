@@ -1,0 +1,435 @@
+{
+  "capabilities": [
+    {
+      "id": "C1",
+      "name": "CreateOrder",
+      "type": "API",
+      "mechanism": "POST /orders",
+      "inputs": [
+        "cart_id:UUID"
+      ],
+      "outputs": [
+        "order_id:UUID"
+      ],
+      "preconditions": [
+        "CartExists=true",
+        "CartItemCount>0",
+        "InventoryAvailable=true"
+      ],
+      "effects": [
+        "OrderExists=true",
+        "OrderStatus=CREATED",
+        "CartLocked=true"
+      ],
+      "constraints": [
+        "quantity>0"
+      ],
+      "resources": [
+        "Database",
+        "AuthenticationToken"
+      ],
+      "execution_time_ms": 100,
+      "money_cost": 0.01,
+      "resource_cost": 2,
+      "risk": 0.1,
+      "reliability": 0.99,
+      "availability": 1
+    },
+    {
+      "id": "C2",
+      "name": "MakePayment",
+      "type": "API",
+      "mechanism": "POST /payments",
+      "inputs": [
+        "order_id:UUID",
+        "payment_method:TOKEN"
+      ],
+      "outputs": [
+        "payment_id:UUID"
+      ],
+      "preconditions": [
+        "OrderExists=true",
+        "OrderStatus=CREATED"
+      ],
+      "effects": [
+        "PaymentStatus=SUCCESS"
+      ],
+      "constraints": [
+        "payment_amount<=transaction_limit"
+      ],
+      "resources": [
+        "PaymentGateway",
+        "Network"
+      ],
+      "execution_time_ms": 250,
+      "money_cost": 0.02,
+      "resource_cost": 3,
+      "risk": 0.2,
+      "reliability": 0.97,
+      "availability": 1
+    },
+    {
+      "id": "C3",
+      "name": "CancelCart",
+      "type": "API",
+      "mechanism": "POST /cart/cancel",
+      "inputs": [
+        "cart_id:UUID"
+      ],
+      "outputs": [
+        "cancelled_cart_id:UUID"
+      ],
+      "preconditions": [
+        "OrderExists=false"
+      ],
+      "effects": [
+        "CartStatus=CANCELLED"
+      ],
+      "constraints": [
+        "quantity>0"
+      ],
+      "resources": [
+        "Database",
+        "Network"
+      ],
+      "execution_time_ms": 120,
+      "money_cost": 0.01,
+      "resource_cost": 2,
+      "risk": 0.05,
+      "reliability": 0.98,
+      "availability": 1
+    },
+    {
+      "id": "C4",
+      "name": "SendNotification",
+      "type": "EVENT",
+      "mechanism": "OrderCreated->SendNotification",
+      "inputs": [
+        "order_id:UUID"
+      ],
+      "outputs": [
+        "notification_id:UUID"
+      ],
+      "preconditions": [
+        "OrderExists=true"
+      ],
+      "effects": [
+        "NotificationSent=true"
+      ],
+      "constraints": [
+        "user.role in {CUSTOMER,ADMIN}"
+      ],
+      "resources": [
+        "ExternalService",
+        "Network"
+      ],
+      "execution_time_ms": 80,
+      "money_cost": 0.005,
+      "resource_cost": 1,
+      "risk": 0.1,
+      "reliability": 0.95,
+      "availability": 1
+    },
+    {
+      "id": "C5",
+      "name": "UpdateInventory",
+      "type": "DATABASE",
+      "mechanism": "UPDATE inventory",
+      "inputs": [
+        "order_id:UUID"
+      ],
+      "outputs": [
+        "inventory_txn_id:UUID"
+      ],
+      "preconditions": [
+        "OrderExists=true",
+        "InventoryAvailable=true"
+      ],
+      "effects": [
+        "InventoryAvailable=false"
+      ],
+      "constraints": [
+        "quantity<=inventory_available"
+      ],
+      "resources": [
+        "Database"
+      ],
+      "execution_time_ms": 60,
+      "money_cost": 0.0,
+      "resource_cost": 1,
+      "risk": 0.1,
+      "reliability": 0.995,
+      "availability": 1
+    },
+    {
+      "id": "C6",
+      "name": "CreateOrderDB",
+      "type": "DATABASE",
+      "mechanism": "INSERT orders",
+      "inputs": [
+        "cart_id:UUID"
+      ],
+      "outputs": [
+        "order_id:UUID"
+      ],
+      "preconditions": [
+        "CartExists=true",
+        "CartItemCount>0",
+        "InventoryAvailable=true"
+      ],
+      "effects": [
+        "OrderExists=true",
+        "OrderStatus=CREATED"
+      ],
+      "constraints": [
+        "quantity>0"
+      ],
+      "resources": [
+        "Database"
+      ],
+      "execution_time_ms": 20,
+      "money_cost": 0.0,
+      "resource_cost": 1,
+      "risk": 0.08,
+      "reliability": 0.999,
+      "availability": 1
+    },
+    {
+      "id": "C7",
+      "name": "CreateOrderGUI",
+      "type": "GUI",
+      "mechanism": "CLICK submit_button",
+      "inputs": [
+        "cart_id:UUID"
+      ],
+      "outputs": [
+        "order_id:UUID"
+      ],
+      "preconditions": [
+        "CartExists=true",
+        "CartItemCount>0",
+        "InventoryAvailable=true"
+      ],
+      "effects": [
+        "OrderExists=true",
+        "OrderStatus=CREATED"
+      ],
+      "constraints": [
+        "quantity>0"
+      ],
+      "resources": [
+        "Database",
+        "AuthenticationToken"
+      ],
+      "execution_time_ms": 500,
+      "money_cost": 0.0,
+      "resource_cost": 2,
+      "risk": 0.05,
+      "reliability": 0.96,
+      "availability": 1
+    },
+    {
+      "id": "C8",
+      "name": "ArchiveOrder",
+      "type": "DATABASE",
+      "mechanism": "INSERT archive_orders",
+      "inputs": [
+        "order_id:UUID"
+      ],
+      "outputs": [
+        "archive_id:UUID"
+      ],
+      "preconditions": [
+        "OrderExists=true",
+        "PaymentStatus=SUCCESS"
+      ],
+      "effects": [
+        "OrderArchived=true"
+      ],
+      "constraints": [
+        "retention_days>=30"
+      ],
+      "resources": [
+        "Database"
+      ],
+      "execution_time_ms": 40,
+      "money_cost": 0.0,
+      "resource_cost": 1,
+      "risk": 0.03,
+      "reliability": 0.999,
+      "availability": 1
+    },
+    {
+      "id": "C9",
+      "name": "RefundPayment",
+      "type": "API",
+      "mechanism": "POST /refunds",
+      "inputs": [
+        "payment_id:UUID"
+      ],
+      "outputs": [
+        "refund_id:UUID"
+      ],
+      "preconditions": [
+        "PaymentStatus=SUCCESS"
+      ],
+      "effects": [
+        "PaymentStatus=REFUNDED"
+      ],
+      "constraints": [
+        "refund_amount<=paid_amount"
+      ],
+      "resources": [
+        "PaymentGateway",
+        "Network"
+      ],
+      "execution_time_ms": 220,
+      "money_cost": 0.02,
+      "resource_cost": 3,
+      "risk": 0.15,
+      "reliability": 0.97,
+      "availability": 1
+    },
+    {
+      "id": "C10",
+      "name": "ReserveInventory",
+      "type": "SERVICE",
+      "mechanism": "inventory.reserve",
+      "inputs": [
+        "sku:STRING",
+        "quantity:INT"
+      ],
+      "outputs": [
+        "reservation_id:UUID"
+      ],
+      "preconditions": [
+        "InventoryAvailable=true"
+      ],
+      "effects": [
+        "InventoryReserved=true"
+      ],
+      "constraints": [
+        "quantity<=inventory_available"
+      ],
+      "resources": [
+        "ExternalService",
+        "Network"
+      ],
+      "execution_time_ms": 150,
+      "money_cost": 0.01,
+      "resource_cost": 2,
+      "risk": 0.1,
+      "reliability": 0.96,
+      "availability": 1
+    }
+  ],
+  "states": [
+    {
+      "state_id": "S0",
+      "User.authenticated": "true",
+      "User.role": "CUSTOMER",
+      "Cart.exists": "true",
+      "Cart.item_count": "3",
+      "Order.exists": "false",
+      "Payment.status": "NOT_STARTED",
+      "Inventory.available": "true",
+      "Notification.sent": "false"
+    },
+    {
+      "state_id": "S1",
+      "User.authenticated": "true",
+      "User.role": "CUSTOMER",
+      "Cart.exists": "true",
+      "Cart.item_count": "3",
+      "Order.exists": "true",
+      "Payment.status": "NOT_STARTED",
+      "Inventory.available": "true",
+      "Notification.sent": "false"
+    },
+    {
+      "state_id": "S2",
+      "User.authenticated": "true",
+      "User.role": "CUSTOMER",
+      "Cart.exists": "true",
+      "Cart.item_count": "3",
+      "Order.exists": "true",
+      "Payment.status": "SUCCESS",
+      "Inventory.available": "true",
+      "Notification.sent": "false"
+    }
+  ],
+  "goals": [
+    {
+      "goal_id": "G1",
+      "conditions": [
+        "Order.exists=true",
+        "Payment.status=SUCCESS",
+        "Notification.sent=true"
+      ]
+    },
+    {
+      "goal_id": "G2",
+      "conditions": [
+        "Order.exists=true",
+        "Payment.status=SUCCESS"
+      ]
+    },
+    {
+      "goal_id": "G3",
+      "conditions": [
+        "Order.exists=false",
+        "Cart.status=CANCELLED"
+      ]
+    }
+  ],
+  "compatibility_pairs": [
+    {
+      "source": "C1",
+      "target": "C2",
+      "label": 1,
+      "rationale": "CreateOrder effect OrderExists=true / OrderStatus=CREATED satisfies MakePayment preconditions."
+    },
+    {
+      "source": "C1",
+      "target": "C3",
+      "label": 0,
+      "rationale": "CreateOrder does not satisfy CancelCart's OrderExists=false precondition."
+    },
+    {
+      "source": "C1",
+      "target": "C4",
+      "label": 1,
+      "rationale": "CreateOrder produces OrderExists=true, satisfying SendNotification."
+    },
+    {
+      "source": "C2",
+      "target": "C8",
+      "label": 1,
+      "rationale": "MakePayment produces PaymentStatus=SUCCESS, satisfying ArchiveOrder."
+    },
+    {
+      "source": "C2",
+      "target": "C9",
+      "label": 1,
+      "rationale": "MakePayment produces PaymentStatus=SUCCESS, satisfying RefundPayment."
+    },
+    {
+      "source": "C1",
+      "target": "C8",
+      "label": 0,
+      "rationale": "CreateOrder does not satisfy ArchiveOrder's PaymentStatus=SUCCESS."
+    },
+    {
+      "source": "C3",
+      "target": "C2",
+      "label": 0,
+      "rationale": "CancelCart does not produce the order/payment conditions required by MakePayment."
+    },
+    {
+      "source": "C10",
+      "target": "C2",
+      "label": 0,
+      "rationale": "ReserveInventory does not create an order."
+    }
+  ]
+}

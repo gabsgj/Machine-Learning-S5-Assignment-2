@@ -1,0 +1,332 @@
+{
+  "application": {
+    "initial_state": {
+      "User.authenticated": true,
+      "User.role": "CUSTOMER",
+      "Cart.exists": true,
+      "Cart.item_count": 3,
+      "Order.exists": false,
+      "Payment.status": "NOT_STARTED",
+      "Inventory.available": true,
+      "Notification.sent": false
+    },
+    "goal": {
+      "Order.exists": true,
+      "Payment.status": "SUCCESS",
+      "Notification.sent": true
+    }
+  },
+  "capabilities": [
+    {
+      "name": "C1_CreateOrder",
+      "type": "API",
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/orders"
+      },
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [],
+      "effects": [
+        "Order.exists=true",
+        "Order.status=CREATED"
+      ],
+      "constraints": [
+        "quantity>0"
+      ],
+      "resources": [
+        "Database",
+        "Network",
+        "Authentication token"
+      ],
+      "cost": {
+        "time": 0.1,
+        "resource": 2,
+        "money": 0.01,
+        "risk": 0.1,
+        "energy": 1
+      },
+      "reliability": 0.99,
+      "availability": 1
+    },
+    {
+      "name": "C2_MakePayment",
+      "type": "API",
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/payments"
+      },
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_status",
+          "type": "STATUS",
+          "domain": "SUCCESS|FAILED"
+        }
+      ],
+      "preconditions": [
+        "Order.exists=true"
+      ],
+      "effects": [
+        "Payment.status=SUCCESS"
+      ],
+      "constraints": [
+        "payment_amount<=transaction_limit"
+      ],
+      "resources": [
+        "Payment gateway",
+        "Network"
+      ],
+      "cost": {
+        "time": 0.2,
+        "resource": 3,
+        "money": 0.02,
+        "risk": 0.2,
+        "energy": 1
+      },
+      "reliability": 0.98,
+      "availability": 1
+    },
+    {
+      "name": "C3_CancelCart",
+      "type": "API",
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/cart/cancel"
+      },
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cancel_status",
+          "type": "STATUS",
+          "domain": "CANCELLED"
+        }
+      ],
+      "preconditions": [
+        "Order.exists=false"
+      ],
+      "effects": [
+        "Cart.cancelled=true"
+      ],
+      "constraints": [
+        "quantity>0"
+      ],
+      "resources": [
+        "Database",
+        "Network"
+      ],
+      "cost": {
+        "time": 0.08,
+        "resource": 1,
+        "money": 0,
+        "risk": 0.05,
+        "energy": 0.5
+      },
+      "reliability": 0.995,
+      "availability": 1
+    },
+    {
+      "name": "C3_SendNotification",
+      "type": "EVENT",
+      "mechanism": {
+        "trigger": "OrderCreated",
+        "handler": "SendNotification"
+      },
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "notification_status",
+          "type": "STATUS",
+          "domain": "SENT"
+        }
+      ],
+      "preconditions": [
+        "Order.exists=true",
+        "Payment.status=SUCCESS"
+      ],
+      "effects": [
+        "Notification.sent=true"
+      ],
+      "constraints": [],
+      "resources": [
+        "External service",
+        "Network"
+      ],
+      "cost": {
+        "time": 0.05,
+        "resource": 1,
+        "money": 0.01,
+        "risk": 0.05,
+        "energy": 0.5
+      },
+      "reliability": 0.97,
+      "availability": 1
+    },
+    {
+      "name": "CreateOrderDB",
+      "type": "DATABASE",
+      "mechanism": {
+        "operation": "INSERT",
+        "table": "orders"
+      },
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [],
+      "effects": [
+        "Order.exists=true",
+        "Order.status=CREATED"
+      ],
+      "constraints": [
+        "quantity>0"
+      ],
+      "resources": [
+        "Database"
+      ],
+      "cost": {
+        "time": 0.04,
+        "resource": 1,
+        "money": 0,
+        "risk": 0.03,
+        "energy": 0.3
+      },
+      "reliability": 0.995,
+      "availability": 1
+    },
+    {
+      "name": "CreateOrderGUI",
+      "type": "GUI",
+      "mechanism": {
+        "action": "CLICK",
+        "component": "submit_button"
+      },
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [],
+      "effects": [
+        "Order.exists=true",
+        "Order.status=CREATED"
+      ],
+      "constraints": [
+        "quantity>0"
+      ],
+      "resources": [
+        "Authentication token",
+        "Network"
+      ],
+      "cost": {
+        "time": 0.3,
+        "resource": 2,
+        "money": 0,
+        "risk": 0.08,
+        "energy": 1.2
+      },
+      "reliability": 0.96,
+      "availability": 1
+    },
+    {
+      "name": "UpdateInventory",
+      "type": "DATABASE",
+      "mechanism": {
+        "operation": "UPDATE",
+        "table": "inventory"
+      },
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "inventory_status",
+          "type": "STATUS",
+          "domain": "UPDATED"
+        }
+      ],
+      "preconditions": [
+        "Order.exists=true",
+        "Inventory.available=true"
+      ],
+      "effects": [
+        "Inventory.reserved=true"
+      ],
+      "constraints": [
+        "quantity<=inventory_available"
+      ],
+      "resources": [
+        "Database"
+      ],
+      "cost": {
+        "time": 0.06,
+        "resource": 1,
+        "money": 0,
+        "risk": 0.04,
+        "energy": 0.4
+      },
+      "reliability": 0.99,
+      "availability": 1
+    }
+  ]
+}

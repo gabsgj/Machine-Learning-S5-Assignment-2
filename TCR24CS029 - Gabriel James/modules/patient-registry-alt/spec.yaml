@@ -1,0 +1,282 @@
+# Formal capability specification sheet, YAML rendering.
+# Generated from spec.json by the careweave_cli spec-yaml command; the two files are
+# always equivalent, and the round trip is proved by the command and by the test suite.
+capabilities:
+  - availability: true
+    constraints: []
+    description: Create a patient registration record in the legacy registration vocabulary.
+    effects:
+      - op: SET
+        value: true
+        variable: Patient.registered
+    id: PA-Register
+    inputs:
+      - domain: external patient number
+        name: pat_no
+        required: true
+        type: string
+      - domain: patient name text
+        name: pat_name
+        required: true
+        type: string
+    mechanism:
+      endpoint: /api/pat_reg
+      kind: API
+      method: POST
+    name: Pat_reg
+    outputs:
+      - domain: assigned registration key
+        name: pat_reg
+        type: string
+      - domain: external patient number
+        name: pat_no
+        type: string
+      - domain: ISO 8601 timestamp
+        name: registered_at
+        type: string
+    preconditions: []
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.02
+      time_ms: 120.0
+    reliability: 0.99
+    resources:
+      - alt_registry_db
+    roles:
+      - clerk
+    type: API
+  - availability: true
+    constraints: []
+    description: Read one patient registration record by its registration key.
+    effects: []
+    id: PA-Lookup
+    inputs:
+      - domain: registration key
+        name: pat_reg
+        required: true
+        type: string
+    mechanism:
+      endpoint: /api/pat_lookup
+      kind: API
+      method: POST
+    name: Pat_lookup
+    outputs:
+      - domain: registration key
+        name: pat_reg
+        type: string
+      - domain: external patient number
+        name: pat_no
+        type: string
+      - domain: patient name text
+        name: pat_name
+        type: string
+      - domain:
+          - "false"
+          - "true"
+        name: verified
+        type: boolean
+    preconditions: []
+    quality:
+      energy: 0.0005
+      money: 0.0
+      resource: 0.01
+      risk: 0.005
+      time_ms: 40.0
+    reliability: 0.995
+    resources:
+      - alt_registry_db
+    roles:
+      - clerk
+      - nurse
+    type: API
+  - availability: true
+    constraints: []
+    description: Mark one patient registration as verified; the transition is one way.
+    effects:
+      - op: SET
+        value: true
+        variable: Patient.verified
+    id: PA-Verify
+    inputs:
+      - domain: registration key
+        name: pat_reg
+        required: true
+        type: string
+    mechanism:
+      endpoint: /api/pat_verify
+      kind: API
+      method: POST
+    name: Pat_verify
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: verified
+        type: boolean
+      - domain: registration key
+        name: pat_reg
+        type: string
+      - domain: ISO 8601 timestamp
+        name: verified_at
+        type: string
+    preconditions:
+      - op: =
+        value: true
+        variable: Patient.registered
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.01
+      risk: 0.02
+      time_ms: 60.0
+    reliability: 0.99
+    resources:
+      - alt_registry_db
+    roles:
+      - clerk
+    type: API
+  - availability: true
+    constraints: []
+    description: "Direct single row insert into the pat_rows table of the module database, executed by the adapter SQLite transport instead of HTTP."
+    effects:
+      - op: SET
+        value: true
+        variable: Patient.registered
+    id: PA-RowWrite
+    inputs:
+      - domain: external patient number
+        name: pat_no
+        required: true
+        type: string
+      - domain: patient name text
+        name: pat_name
+        required: true
+        type: string
+    mechanism:
+      kind: DATABASE
+      operation: insert
+      table: pat_rows
+    name: Pat_row_write
+    outputs:
+      - domain:
+          - "1"
+          - "1000000"
+        name: row_id
+        type: integer
+    preconditions: []
+    quality:
+      energy: 0.0005
+      money: 0.0
+      resource: 0.005
+      risk: 0.01
+      time_ms: 20.0
+    reliability: 0.999
+    resources:
+      - alt_registry_db
+    roles:
+      - clerk
+    type: DATABASE
+  - availability: true
+    constraints: []
+    description: Registration screen that submits a new patient registration record.
+    effects:
+      - op: SET
+        value: true
+        variable: Patient.registered
+    id: PA-Form
+    inputs:
+      - domain: external patient number
+        name: pat_no
+        required: true
+        type: string
+      - domain: patient name text
+        name: pat_name
+        required: true
+        type: string
+    mechanism:
+      action: SUBMIT
+      component: pat_reg_form
+      kind: GUI
+      page: /ui/pat_reg/new
+    name: Pat_reg_form
+    outputs:
+      - domain: assigned registration key
+        name: pat_reg
+        type: string
+    preconditions: []
+    quality:
+      energy: 0.002
+      money: 0.0
+      resource: 0.02
+      risk: 0.02
+      time_ms: 240.0
+    reliability: 0.97
+    resources:
+      - alt_registry_db
+    roles:
+      - clerk
+    type: GUI
+
+constraints:
+  - enforced_by: db.py UNIQUE(patients.pat_no) and services.registry.register_pat
+    expression: one patient number identifies one registration
+    id: K-Pat-No-Unique
+    kind: domain
+  - enforced_by: services.registry.verify_pat transition check
+    expression: verification never returns to unverified
+    id: K-One-Way-Verification
+    kind: state
+  - enforced_by: services.registry input names and the screens
+    expression: "the registration vocabulary is pat_reg, pat_no, pat_name"
+    id: K-Vocabulary
+    kind: domain
+
+goal:
+  - op: =
+    value: true
+    variable: Patient.registered
+  - op: =
+    value: true
+    variable: Patient.verified
+
+initial_state:
+  Patient.registered: false
+  Patient.verified: false
+
+module:
+  base_url: "http://127.0.0.1:5007"
+  database_file: data/patient_registry_alt.db
+  description: "Alternate patient registry with the legacy registration vocabulary pat_reg, pat_no, pat_name and one direct database row write capability."
+  domain: hospital
+  health: /health
+  language: python
+  module_id: patient-registry-alt
+  port: 5007
+  ui: /ui/
+  version: 1.0.0
+
+resources:
+  - available: true
+    details: SQLite database in WAL mode owned by this module; the adapter SQLite transport writes the pat_rows table
+    id: alt_registry_db
+    kind: database
+  - available: true
+    details: Loopback HTTP interface used by the gateway and the dashboard
+    id: network
+    kind: network
+
+spec_version: "1.0"
+
+state_schema:
+  - domain:
+      - "false"
+      - "true"
+    name: Patient.registered
+    type: boolean
+  - domain:
+      - "false"
+      - "true"
+    name: Patient.verified
+    type: boolean

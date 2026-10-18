@@ -1,0 +1,310 @@
+{
+  "application_domain": "University Course Registration System",
+  "formal_model": "A = (S, C, S_I, G, R, K)",
+  "state_vocabulary": [
+    "student_authenticated",
+    "student_exists",
+    "student_eligible",
+    "course_exists",
+    "course_available",
+    "registration_open",
+    "enrollment_exists",
+    "payment_completed",
+    "notification_sent",
+    "registration_confirmed",
+    "registration_report_generated"
+  ],
+  "initial_state": {
+    "student_authenticated": true,
+    "student_exists": true,
+    "student_eligible": false,
+    "course_exists": true,
+    "course_available": true,
+    "registration_open": true,
+    "enrollment_exists": false,
+    "payment_completed": false,
+    "notification_sent": false,
+    "registration_confirmed": false,
+    "registration_report_generated": false
+  },
+  "primary_goal": {
+    "enrollment_exists": 1,
+    "payment_completed": 1,
+    "notification_sent": 1,
+    "registration_confirmed": 1
+  },
+  "input_vocabulary": [
+    "student_id",
+    "course_id",
+    "enrollment_id",
+    "payment_details",
+    "registration_details"
+  ],
+  "output_vocabulary": [
+    "eligibility_status",
+    "availability_status",
+    "enrollment_id",
+    "payment_receipt",
+    "notification_id",
+    "confirmation_id",
+    "drop_confirmation",
+    "registration_report"
+  ],
+  "resource_vocabulary": [
+    "StudentDatabase",
+    "CourseDatabase",
+    "RegistrationDatabase",
+    "AuthenticationService",
+    "PaymentGateway",
+    "Network",
+    "NotificationService",
+    "FileSystem"
+  ],
+  "constraint_vocabulary": [
+    "authentication_required",
+    "registration_period_required",
+    "positive_payment",
+    "valid_student",
+    "valid_course"
+  ],
+  "capability_types": [
+    "API",
+    "DATABASE",
+    "FUNCTION",
+    "SERVICE",
+    "COMPUTATION",
+    "GUI"
+  ],
+  "mechanisms": [
+    "Local Function / Logic",
+    "SQL / Database Query",
+    "POST /registration",
+    "POST /payment",
+    "GET /courses/{id}/availability",
+    "NotificationService",
+    "DELETE /registration",
+    "ReportGenerator"
+  ],
+  "capabilities": [
+    {
+      "id": "C1",
+      "name": "CheckEligibility",
+      "type": "FUNCTION",
+      "inputs": ["student_id"],
+      "outputs": ["eligibility_status"],
+      "preconditions": {
+        "student_exists": 1,
+        "student_authenticated": 1
+      },
+      "effects": {
+        "student_eligible": 1
+      },
+      "resources": ["StudentDatabase"],
+      "constraints": ["authentication_required", "valid_student"],
+      "mechanism": "EligibilityFunction",
+      "cost": 5.0,
+      "reliability": 0.99,
+      "availability": 1.0
+    },
+    {
+      "id": "C2",
+      "name": "CheckCourseAvailability",
+      "type": "DATABASE",
+      "inputs": ["course_id"],
+      "outputs": ["availability_status"],
+      "preconditions": {
+        "course_exists": 1,
+        "registration_open": 1
+      },
+      "effects": {
+        "course_available": 1
+      },
+      "resources": ["CourseDatabase"],
+      "constraints": ["registration_period_required", "valid_course"],
+      "mechanism": "DatabaseQuery",
+      "cost": 3.0,
+      "reliability": 0.995,
+      "availability": 1.0
+    },
+    {
+      "id": "C3",
+      "name": "RegisterCourse",
+      "type": "API",
+      "inputs": ["student_id", "course_id"],
+      "outputs": ["enrollment_id"],
+      "preconditions": {
+        "student_authenticated": 1,
+        "student_eligible": 1,
+        "course_available": 1,
+        "registration_open": 1
+      },
+      "effects": {
+        "enrollment_exists": 1
+      },
+      "resources": ["RegistrationDatabase", "AuthenticationService"],
+      "constraints": ["authentication_required", "registration_period_required", "valid_student", "valid_course"],
+      "mechanism": "POST /registration",
+      "cost": 10.0,
+      "reliability": 0.99,
+      "availability": 1.0
+    },
+    {
+      "id": "C4",
+      "name": "MakePayment",
+      "type": "API",
+      "inputs": ["enrollment_id", "payment_details"],
+      "outputs": ["payment_receipt"],
+      "preconditions": {
+        "enrollment_exists": 1
+      },
+      "effects": {
+        "payment_completed": 1
+      },
+      "resources": ["PaymentGateway", "Network"],
+      "constraints": ["positive_payment"],
+      "mechanism": "POST /payment",
+      "cost": 15.0,
+      "reliability": 0.98,
+      "availability": 1.0
+    },
+    {
+      "id": "C5",
+      "name": "SendNotification",
+      "type": "SERVICE",
+      "inputs": ["student_id", "registration_details"],
+      "outputs": ["notification_id"],
+      "preconditions": {
+        "enrollment_exists": 1,
+        "payment_completed": 1
+      },
+      "effects": {
+        "notification_sent": 1
+      },
+      "resources": ["NotificationService", "Network"],
+      "constraints": ["valid_student"],
+      "mechanism": "NotificationService",
+      "cost": 4.0,
+      "reliability": 0.97,
+      "availability": 1.0
+    },
+    {
+      "id": "C6",
+      "name": "ConfirmRegistration",
+      "type": "FUNCTION",
+      "inputs": ["enrollment_id"],
+      "outputs": ["confirmation_id"],
+      "preconditions": {
+        "enrollment_exists": 1,
+        "payment_completed": 1
+      },
+      "effects": {
+        "registration_confirmed": 1
+      },
+      "resources": ["RegistrationDatabase"],
+      "constraints": ["valid_student"],
+      "mechanism": "ConfirmationFunction",
+      "cost": 2.0,
+      "reliability": 0.995,
+      "availability": 1.0
+    },
+    {
+      "id": "C7",
+      "name": "DropCourse",
+      "type": "API",
+      "inputs": ["enrollment_id"],
+      "outputs": ["drop_confirmation"],
+      "preconditions": {
+        "enrollment_exists": 1,
+        "payment_completed": -1
+      },
+      "effects": {
+        "enrollment_exists": -1
+      },
+      "resources": ["RegistrationDatabase"],
+      "constraints": ["valid_student"],
+      "mechanism": "DELETE /registration",
+      "cost": 8.0,
+      "reliability": 0.99,
+      "availability": 1.0
+    },
+    {
+      "id": "C8",
+      "name": "GenerateRegistrationReport",
+      "type": "COMPUTATION",
+      "inputs": ["enrollment_id"],
+      "outputs": ["registration_report"],
+      "preconditions": {
+        "enrollment_exists": 1
+      },
+      "effects": {
+        "registration_report_generated": 1
+      },
+      "resources": ["FileSystem"],
+      "constraints": [],
+      "mechanism": "ReportGenerator",
+      "cost": 20.0,
+      "reliability": 0.95,
+      "availability": 1.0
+    },
+    {
+      "id": "C9",
+      "name": "CheckCourseAvailability_API",
+      "type": "API",
+      "inputs": ["course_id"],
+      "outputs": ["availability_status"],
+      "preconditions": {
+        "course_exists": 1,
+        "registration_open": 1
+      },
+      "effects": {
+        "course_available": 1
+      },
+      "resources": ["CourseDatabase", "Network"],
+      "constraints": ["registration_period_required", "valid_course"],
+      "mechanism": "GET /courses/{id}/availability",
+      "cost": 3.0,
+      "reliability": 0.995,
+      "availability": 1.0
+    },
+    {
+      "id": "C10",
+      "name": "CheckCourseAvailability_DATABASE",
+      "type": "DATABASE",
+      "inputs": ["course_id"],
+      "outputs": ["availability_status"],
+      "preconditions": {
+        "course_exists": 1,
+        "registration_open": 1
+      },
+      "effects": {
+        "course_available": 1
+      },
+      "resources": ["CourseDatabase"],
+      "constraints": ["registration_period_required", "valid_course"],
+      "mechanism": "SELECT availability FROM courses",
+      "cost": 3.0,
+      "reliability": 0.995,
+      "availability": 1.0
+    },
+    {
+      "id": "C11",
+      "name": "CheckCourseAvailability_FUNCTION",
+      "type": "FUNCTION",
+      "inputs": ["course_id"],
+      "outputs": ["availability_status"],
+      "preconditions": {
+        "course_exists": 1,
+        "registration_open": 1
+      },
+      "effects": {
+        "course_available": 1
+      },
+      "resources": ["CourseDatabase"],
+      "constraints": ["registration_period_required", "valid_course"],
+      "mechanism": "localAvailabilityFunction",
+      "cost": 3.0,
+      "reliability": 0.995,
+      "availability": 1.0
+    }
+  ]
+}

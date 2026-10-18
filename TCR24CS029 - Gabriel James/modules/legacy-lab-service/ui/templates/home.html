@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Legacy Lab home{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1 id="module_title">Legacy Laboratory Service</h1>
+  <p id="module_description">{{ spec.module.description }}</p>
+  <ul class="facts">
+    <li>Module id: <code id="module_id">{{ spec.module.module_id }}</code></li>
+    <li>Version: <code>{{ spec.module.version }}</code></li>
+    <li>Test codes in catalogue: <code id="count_test_codes">{{ counts.test_codes }}</code></li>
+    <li>Orders recorded: <code id="count_orders">{{ counts.orders }}</code></li>
+    <li>Samples received: <code id="count_received">{{ counts.received }}</code></li>
+    <li>Results entered: <code id="count_resulted">{{ counts.resulted }}</code></li>
+  </ul>
+  <p>
+    <a class="button" id="new_order_link" href="{{ url_for('ui.order_new') }}">Order a test</a>
+    <a class="button secondary" id="orders_link" href="{{ url_for('ui.orders') }}">Open the order list</a>
+  </p>
+</section>
+
+<section class="panel">
+  <h2>Capabilities</h2>
+  <table id="capability_table" class="grid">
+    <thead>
+      <tr><th>Id</th><th>Name</th><th>Type</th><th>Mechanism</th><th>Reliability</th></tr>
+    </thead>
+    <tbody>
+      {% for capability in spec.capabilities %}
+      <tr>
+        <td><code>{{ capability.id }}</code></td>
+        <td>{{ capability.name }}</td>
+        <td>{{ capability.type }}</td>
+        <td>
+          {% if capability.mechanism.endpoint %}<code>{{ capability.mechanism.method }} {{ capability.mechanism.endpoint }}</code>
+          {% elif capability.mechanism.page %}<code>{{ capability.mechanism.page }}</code>
+          {% else %}<code>{{ capability.mechanism.kind }}</code>{% endif %}
+        </td>
+        <td>{{ capability.reliability }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

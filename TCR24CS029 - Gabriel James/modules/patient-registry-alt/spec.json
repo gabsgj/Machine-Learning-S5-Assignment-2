@@ -1,0 +1,188 @@
+{
+  "spec_version": "1.0",
+  "module": {
+    "module_id": "patient-registry-alt",
+    "version": "1.0.0",
+    "domain": "hospital",
+    "port": 5007,
+    "base_url": "http://127.0.0.1:5007",
+    "health": "/health",
+    "description": "Alternate patient registry with the legacy registration vocabulary pat_reg, pat_no, pat_name and one direct database row write capability.",
+    "language": "python",
+    "database_file": "data/patient_registry_alt.db",
+    "ui": "/ui/"
+  },
+  "state_schema": [
+    {"name": "Patient.registered", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Patient.verified", "type": "boolean", "domain": [false, true], "kind": "flag"}
+  ],
+  "initial_state": {
+    "Patient.registered": false,
+    "Patient.verified": false
+  },
+  "resources": [
+    {
+      "id": "alt_registry_db",
+      "kind": "database",
+      "available": true,
+      "details": "SQLite database in WAL mode owned by this module; the adapter SQLite transport writes the pat_rows table"
+    },
+    {
+      "id": "network",
+      "kind": "network",
+      "available": true,
+      "details": "Loopback HTTP interface used by the gateway and the dashboard"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "K-Pat-No-Unique",
+      "kind": "domain",
+      "expression": "one patient number identifies one registration",
+      "enforced_by": "db.py UNIQUE(patients.pat_no) and services.registry.register_pat"
+    },
+    {
+      "id": "K-One-Way-Verification",
+      "kind": "state",
+      "expression": "verification never returns to unverified",
+      "enforced_by": "services.registry.verify_pat transition check"
+    },
+    {
+      "id": "K-Vocabulary",
+      "kind": "domain",
+      "expression": "the registration vocabulary is pat_reg, pat_no, pat_name",
+      "enforced_by": "services.registry input names and the screens"
+    }
+  ],
+  "goal": [
+    {"variable": "Patient.registered", "op": "=", "value": true},
+    {"variable": "Patient.verified", "op": "=", "value": true}
+  ],
+  "capabilities": [
+    {
+      "id": "PA-Register",
+      "name": "Pat_reg",
+      "type": "API",
+      "description": "Create a patient registration record in the legacy registration vocabulary.",
+      "inputs": [
+        {"name": "pat_no", "type": "string", "domain": "external patient number", "required": true},
+        {"name": "pat_name", "type": "string", "domain": "patient name text", "required": true}
+      ],
+      "outputs": [
+        {"name": "pat_reg", "type": "string", "domain": "assigned registration key"},
+        {"name": "pat_no", "type": "string", "domain": "external patient number"},
+        {"name": "registered_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [],
+      "effects": [
+        {"variable": "Patient.registered", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["alt_registry_db"],
+      "quality": {"time_ms": 120, "money": 0, "resource": 0.02, "risk": 0.02, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/pat_reg"},
+      "roles": ["clerk"]
+    },
+    {
+      "id": "PA-Lookup",
+      "name": "Pat_lookup",
+      "type": "API",
+      "description": "Read one patient registration record by its registration key.",
+      "inputs": [
+        {"name": "pat_reg", "type": "string", "domain": "registration key", "required": true}
+      ],
+      "outputs": [
+        {"name": "pat_reg", "type": "string", "domain": "registration key"},
+        {"name": "pat_no", "type": "string", "domain": "external patient number"},
+        {"name": "pat_name", "type": "string", "domain": "patient name text"},
+        {"name": "verified", "type": "boolean", "domain": [false, true]}
+      ],
+      "preconditions": [],
+      "effects": [],
+      "constraints": [],
+      "resources": ["alt_registry_db"],
+      "quality": {"time_ms": 40, "money": 0, "resource": 0.01, "risk": 0.005, "energy": 0.0005},
+      "reliability": 0.995,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/pat_lookup"},
+      "roles": ["clerk", "nurse"]
+    },
+    {
+      "id": "PA-Verify",
+      "name": "Pat_verify",
+      "type": "API",
+      "description": "Mark one patient registration as verified; the transition is one way.",
+      "inputs": [
+        {"name": "pat_reg", "type": "string", "domain": "registration key", "required": true}
+      ],
+      "outputs": [
+        {"name": "verified", "type": "boolean", "domain": [false, true]},
+        {"name": "pat_reg", "type": "string", "domain": "registration key"},
+        {"name": "verified_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Patient.registered", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Patient.verified", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["alt_registry_db"],
+      "quality": {"time_ms": 60, "money": 0, "resource": 0.01, "risk": 0.02, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/pat_verify"},
+      "roles": ["clerk"]
+    },
+    {
+      "id": "PA-RowWrite",
+      "name": "Pat_row_write",
+      "type": "DATABASE",
+      "description": "Direct single row insert into the pat_rows table of the module database, executed by the adapter SQLite transport instead of HTTP.",
+      "inputs": [
+        {"name": "pat_no", "type": "string", "domain": "external patient number", "required": true},
+        {"name": "pat_name", "type": "string", "domain": "patient name text", "required": true}
+      ],
+      "outputs": [
+        {"name": "row_id", "type": "integer", "domain": [1, 1000000]}
+      ],
+      "preconditions": [],
+      "effects": [
+        {"variable": "Patient.registered", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["alt_registry_db"],
+      "quality": {"time_ms": 20, "money": 0, "resource": 0.005, "risk": 0.01, "energy": 0.0005},
+      "reliability": 0.999,
+      "availability": {"always": true},
+      "mechanism": {"kind": "DATABASE", "operation": "insert", "table": "pat_rows"},
+      "roles": ["clerk"]
+    },
+    {
+      "id": "PA-Form",
+      "name": "Pat_reg_form",
+      "type": "GUI",
+      "description": "Registration screen that submits a new patient registration record.",
+      "inputs": [
+        {"name": "pat_no", "type": "string", "domain": "external patient number", "required": true},
+        {"name": "pat_name", "type": "string", "domain": "patient name text", "required": true}
+      ],
+      "outputs": [
+        {"name": "pat_reg", "type": "string", "domain": "assigned registration key"}
+      ],
+      "preconditions": [],
+      "effects": [
+        {"variable": "Patient.registered", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["alt_registry_db"],
+      "quality": {"time_ms": 240, "money": 0, "resource": 0.02, "risk": 0.02, "energy": 0.002},
+      "reliability": 0.97,
+      "availability": {"always": true},
+      "mechanism": {"kind": "GUI", "action": "SUBMIT", "component": "pat_reg_form", "page": "/ui/pat_reg/new"},
+      "roles": ["clerk"]
+    }
+  ]
+}

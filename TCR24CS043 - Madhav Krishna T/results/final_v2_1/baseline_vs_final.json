@@ -1,0 +1,48 @@
+{
+  "baseline_model": "SCE-128-v1.1",
+  "final_model": "SCE-128-v2.1",
+  "comparison": {
+    "compatibility_proxy_auc": {
+      "baseline": 0.9,
+      "final": 0.9
+    },
+    "purchase_7step_composition_consistency": {
+      "baseline": 0.5282938480377197,
+      "final": 0.792862057685852
+    },
+    "mean_composition_consistency": {
+      "baseline": 0.6879830434918404,
+      "final": 0.831615322166019
+    },
+    "alternative_implementation_overall_gap": {
+      "baseline": 0.020706895324918873,
+      "final": 0.05694317559975881
+    },
+    "alternative_implementation_functional_mean": {
+      "baseline": 1.0000001192092896,
+      "final": 0.7999730755885442
+    },
+    "goal_relevance_auc": {
+      "baseline": 0.8472222222222222,
+      "final": 0.9722222222222222
+    },
+    "goal_relevance_precision_at_5": {
+      "baseline": 0.8,
+      "final": 1.0
+    },
+    "mean_operational_block_cosine": {
+      "baseline": 0.7723864838480949,
+      "final": 0.771357499063015
+    },
+    "mean_non_operational_cosine": {
+      "baseline": 1.0000001192092896,
+      "final": 0.9999999867545234
+    }
+  },
+  "notes": [
+    "Compatibility-proxy AUC is unchanged; the final model does not claim an improvement in this metric.",
+    "The seven-step purchase-chain composition result uses the corrected leakage-free learned-composition evaluation.",
+    "Goal relevance is a hybrid embedding + symbolic reachability score.",
+    "Alternative-implementation functional similarity is lower in v2.1; the final gain is in overall separation rather than preservation of exact functional cosine."
+  ]
+}

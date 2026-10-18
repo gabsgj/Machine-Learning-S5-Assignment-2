@@ -1,0 +1,9 @@
+id,name,role,relevance_score
+C1,CreateOrder,Useful: establishes Order.exists=true,0.3333
+C2,MakePayment,Useful: establishes Payment.status=SUCCESS,0.3333
+C4,SendNotification,Useful: establishes Notification.sent=true,0.3333
+C7,ShipOrder,Irrelevant: establishes Order.status=COMPLETED,0.0
+C8,ArchiveOrder,Irrelevant: establishes Order.archived=true,0.0
+C9,RefundPayment,Contradictory/Irrelevant: sets Payment.status=REFUNDED,0.0
+C5,CheckInventory,Irrelevant: establishes Inventory.available=true,0.0
+C3,CancelCart,Contradictory: establishes Cart.status=CANCELLED,0.0

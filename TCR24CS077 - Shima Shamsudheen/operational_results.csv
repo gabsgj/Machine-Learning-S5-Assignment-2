@@ -1,0 +1,9 @@
+Capability,Cost,Reliability,Availability,Risk,Resources
+CreateOrder,2.0,0.99,1,0.05,"Database, AuthToken"
+MakePayment,5.0,0.95,1,0.2,"PaymentGateway, Network"
+SendNotification,1.0,0.98,1,0.02,Network
+CancelCart,1.0,0.97,1,0.01,-
+UpdateInventory,3.0,0.96,1,0.08,Database
+GenerateReport,4.0,0.9,1,0.03,FileSystem
+SendMarketingEmail,1.5,0.9,1,0.3,Network
+CreateOrder -> MakePayment -> SendNotification,8.0,0.92169,1,0.2552,"AuthToken, Database, Network, PaymentGateway"

@@ -1,0 +1,413 @@
+# Application specification sheet: patient registration under two vocabularies.
+#
+# The same registration fact is offered twice: once in the canonical registry vocabulary
+# (patient_mrn, full_name to patient_id) and once in the legacy registration vocabulary
+# (pat_no, pat_name to pat_reg), plus a direct database row write. This is the application the
+# alias resolution experiment uses: a client requirement called register_pat must resolve to the
+# legacy capability named Pat_reg, not to the canonical register_patient.
+spec_version: "1.0"
+
+module:
+  module_id: app-hospital-alias-resolution
+  version: "1.0"
+  domain: hospital
+  port: 5103
+  base_url: "http://127.0.0.1:5103"
+  health: /health
+  description: Patient registry offered under the canonical and the legacy vocabulary, with a direct row write.
+  language: specification
+
+state_schema:
+  - name: Patient.registered
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Patient.verified
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+
+initial_state:
+  Patient.registered: false
+  Patient.verified: false
+
+resources:
+  - id: registry_db
+    kind: database
+    available: true
+    details: Patients table and the legacy pat_rows table
+  - id: identity_check
+    kind: external_service
+    available: true
+    details: Identity verification service used at registration
+  - id: registry_clock
+    kind: clock
+    available: true
+    details: Timestamps of registration and verification
+  - id: clerk_token
+    kind: authentication_token
+    available: true
+    details: Desk session token of the clerk
+
+constraints:
+  - id: K-One-Key-One-Patient
+    kind: domain
+    expression: one patient number identifies exactly one registration
+    enforced_by: registry_db unique index and AR-RegisterPatient
+  - id: K-One-Way-Verification
+    kind: state
+    expression: Patient.verified never returns to false
+    enforced_by: verification transition check of AR-VerifyPat
+  - id: K-Vocabulary-Mirror
+    kind: dependency
+    expression: the record created by Pat_reg must be readable by the canonical lookup and the other way round
+    enforced_by: shared registry_db identity column
+
+goal:
+  - variable: Patient.registered
+    op: "="
+    value: true
+  - variable: Patient.verified
+    op: "="
+    value: true
+
+capabilities:
+  - id: AR-RegisterPatient
+    name: register_patient
+    type: API
+    description: Create a patient registration record in the canonical registry vocabulary.
+    inputs:
+      - name: patient_mrn
+        type: string
+        domain: medical record number
+        required: true
+      - name: full_name
+        type: string
+        domain: patient name text
+        required: true
+    outputs:
+      - name: patient_id
+        type: string
+        domain: generated patient identifier
+    preconditions: []
+    effects:
+      - variable: Patient.registered
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - registry_db
+      - clerk_token
+    quality:
+      time_ms: 120
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/register_patient
+    roles:
+      - clerk
+
+  - id: AR-PatReg
+    name: Pat_reg
+    type: API
+    description: Create a patient registration record in the legacy registration vocabulary.
+    inputs:
+      - name: pat_no
+        type: string
+        domain: external patient number
+        required: true
+      - name: pat_name
+        type: string
+        domain: patient name text
+        required: true
+    outputs:
+      - name: pat_reg
+        type: string
+        domain: assigned registration key
+    preconditions: []
+    effects:
+      - variable: Patient.registered
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - registry_db
+      - clerk_token
+    quality:
+      time_ms: 120
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/pat_reg
+    roles:
+      - clerk
+
+  - id: AR-LookupPatient
+    name: lookup_patient
+    type: API
+    description: Read one patient registration record by its canonical identifier.
+    inputs:
+      - name: patient_id
+        type: string
+        domain: patient identifier
+        required: true
+    outputs:
+      - name: patient_mrn
+        type: string
+        domain: medical record number
+      - name: full_name
+        type: string
+        domain: patient name text
+    preconditions:
+      - variable: Patient.registered
+        op: "="
+        value: true
+    effects: []
+    constraints: []
+    resources:
+      - registry_db
+    quality:
+      time_ms: 40
+      money: 0
+      resource: 0.01
+      risk: 0.005
+      energy: 0.0005
+    reliability: 0.995
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/lookup_patient
+    roles:
+      - clerk
+      - nurse
+
+  - id: AR-LookupPat
+    name: Pat_lookup
+    type: API
+    description: Read one patient registration record by its legacy registration key.
+    inputs:
+      - name: pat_reg
+        type: string
+        domain: registration key
+        required: true
+    outputs:
+      - name: pat_no
+        type: string
+        domain: external patient number
+      - name: pat_name
+        type: string
+        domain: patient name text
+    preconditions:
+      - variable: Patient.registered
+        op: "="
+        value: true
+    effects: []
+    constraints: []
+    resources:
+      - registry_db
+    quality:
+      time_ms: 40
+      money: 0
+      resource: 0.01
+      risk: 0.005
+      energy: 0.0005
+    reliability: 0.995
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/pat_lookup
+    roles:
+      - clerk
+      - nurse
+
+  - id: AR-VerifyPat
+    name: Pat_verify
+    type: API
+    description: Mark one legacy registration as verified against the identity service.
+    inputs:
+      - name: pat_reg
+        type: string
+        domain: registration key
+        required: true
+    outputs:
+      - name: verified
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Patient.registered
+        op: "="
+        value: true
+    effects:
+      - variable: Patient.verified
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - registry_db
+      - identity_check
+    quality:
+      time_ms: 60
+      money: 0
+      resource: 0.01
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/pat_verify
+    roles:
+      - clerk
+
+  - id: AR-PatRowWrite
+    name: Pat_row_write
+    type: DATABASE
+    description: Direct single row insert into the legacy patient row table, executed by the adapter transport.
+    inputs:
+      - name: pat_no
+        type: string
+        domain: external patient number
+        required: true
+      - name: pat_name
+        type: string
+        domain: patient name text
+        required: true
+    outputs:
+      - name: row_id
+        type: integer
+        domain:
+          - 1
+          - 1000000
+    preconditions: []
+    effects:
+      - variable: Patient.registered
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - registry_db
+    quality:
+      time_ms: 20
+      money: 0
+      resource: 0.005
+      risk: 0.01
+      energy: 0.0005
+    reliability: 0.999
+    availability:
+      always: true
+    mechanism:
+      kind: DATABASE
+      operation: insert
+      table: pat_rows
+    roles:
+      - clerk
+
+  - id: AR-RegistrationForm
+    name: registration_form
+    type: GUI
+    description: Canonical registration screen of the front desk.
+    inputs:
+      - name: patient_mrn
+        type: string
+        domain: medical record number
+        required: true
+      - name: full_name
+        type: string
+        domain: patient name text
+        required: true
+    outputs:
+      - name: patient_id
+        type: string
+        domain: generated patient identifier
+    preconditions: []
+    effects:
+      - variable: Patient.registered
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - registry_db
+    quality:
+      time_ms: 260
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.002
+    reliability: 0.97
+    availability:
+      always: true
+    mechanism:
+      kind: GUI
+      action: SUBMIT
+      component: registration_form
+      page: /ui/registration/new
+    roles:
+      - clerk
+
+  - id: AR-PatRegForm
+    name: pat_reg_form
+    type: GUI
+    description: Legacy registration screen still offered by the older desk application.
+    inputs:
+      - name: pat_no
+        type: string
+        domain: external patient number
+        required: true
+      - name: pat_name
+        type: string
+        domain: patient name text
+        required: true
+    outputs:
+      - name: pat_reg
+        type: string
+        domain: assigned registration key
+    preconditions: []
+    effects:
+      - variable: Patient.registered
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - registry_db
+    quality:
+      time_ms: 260
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.002
+    reliability: 0.97
+    availability:
+      always: true
+    mechanism:
+      kind: GUI
+      action: SUBMIT
+      component: pat_reg_form
+      page: /ui/pat_reg/new
+    roles:
+      - clerk

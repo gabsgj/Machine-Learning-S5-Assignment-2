@@ -1,0 +1,82 @@
+# Client requirement sheet: export the report of an audit.
+#
+# The third requirement example, used by the adapter synthesis experiment: the requirement is
+# satisfied by the FILE capability AUD-ExportReport of the compliance audit application, and the
+# adapter is synthesized without renaming any field.
+spec_version: "1.0"
+
+module:
+  module_id: requirement-export-audit-report
+  version: "1.0"
+  domain: generic
+  port: 5203
+  base_url: "http://127.0.0.1:5203"
+  health: /health
+  description: Client requirement for writing an audit report file to disk.
+  language: specification
+
+state_schema:
+  - name: Report.exported
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+
+initial_state:
+  Report.exported: false
+
+resources:
+  - id: requirement_dir
+    kind: file_system
+    available: true
+    details: Placeholder directory of the requirement, bound only when a candidate is selected
+
+constraints:
+  - id: K-Required-Inputs
+    kind: input
+    expression: audit_id is mandatory
+    enforced_by: requirement definition
+
+goal:
+  - variable: Report.exported
+    op: "="
+    value: true
+
+capabilities:
+  - id: REQ-ExportAuditReport
+    name: export_audit_report
+    type: FILE
+    description: Write the report of one audit to disk as a JSON file.
+    inputs:
+      - name: audit_id
+        type: string
+        domain: audit identifier
+        required: true
+    outputs:
+      - name: report_path
+        type: string
+        domain: path of the written report
+    preconditions: []
+    effects:
+      - variable: Report.exported
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - requirement_dir
+    quality:
+      time_ms: 50
+      money: 0
+      resource: 0.01
+      risk: 0.005
+      energy: 0.0005
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: FILE
+      path: data/exports/audit_report.json
+      format: json
+    roles:
+      - auditor

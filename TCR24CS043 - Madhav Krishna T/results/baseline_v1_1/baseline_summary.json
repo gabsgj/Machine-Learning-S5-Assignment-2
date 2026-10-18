@@ -1,0 +1,20 @@
+{
+  "model": "SCE-128-v1.1",
+  "purpose": "Frozen pre-improvement baseline used for comparison with SCE-128-v2.1",
+  "metrics": {
+    "compatibility_proxy_auc": 0.9,
+    "purchase_7step_composition_consistency": 0.5282938480377197,
+    "mean_composition_consistency": 0.6879830434918404,
+    "alternative_implementation_overall_gap": 0.020706895324918873,
+    "alternative_implementation_functional_mean": 1.0000001192092896,
+    "goal_relevance_auc": 0.8472222222222222,
+    "goal_relevance_precision_at_5": 0.8,
+    "mean_operational_block_cosine": 0.7723864838480949,
+    "mean_non_operational_cosine": 1.0000001192092896
+  },
+  "notes": [
+    "Baseline values are frozen from the verified v1.1 evaluation stage.",
+    "Composition v1.1 is the deterministic vector-composition baseline.",
+    "Goal relevance in the later final model is hybrid; baseline comparison is retained only as the historical benchmark."
+  ]
+}

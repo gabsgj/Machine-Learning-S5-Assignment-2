@@ -1,0 +1,180 @@
+{
+  "exp1_compatibility": {
+    "comp_c1_c2": 0.7,
+    "comp_c1_c3": -1.0,
+    "pe_c1_c2": 1.0,
+    "pe_c1_c3": -1.0,
+    "comp_matrix": [
+      [
+        0.0,
+        0.7,
+        -1.0,
+        0.0,
+        0.06585543037894578
+      ],
+      [
+        0.0,
+        0.0,
+        0.06953248229854647,
+        0.8678196900599907,
+        0.06953248229854647
+      ],
+      [
+        -1.0,
+        0.15,
+        0.15,
+        0.15,
+        -1.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.13464729795715147,
+        0.03646455652683266,
+        0.13464729795715147
+      ],
+      [
+        0.15020165208541006,
+        0.0,
+        0.0994311700513809,
+        0.0,
+        0.0994311700513809
+      ]
+    ],
+    "sim_matrix": [
+      [
+        0.9999999999999998,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "labels": [
+      "C1:CreateOrder",
+      "C2:MakePayment",
+      "C3:CancelCart",
+      "C4:Notify",
+      "C5:CheckInv"
+    ],
+    "figure_path": "figures\\exp1_compatibility_matrix.png"
+  },
+  "exp2_composition": {
+    "assoc_norm_diff": 0.5062788276066762,
+    "fidelity_diff": 0.0,
+    "c123_latency_ms": 550.0,
+    "c123_reliability": 0.9722343999999999,
+    "c123_preconditions": {
+      "Cart.exists": true,
+      "User.authenticated": true
+    },
+    "c123_effects": {
+      "Order.exists": true,
+      "Order.status": "CREATED",
+      "Payment.status": "SUCCESS",
+      "Notification.sent": true
+    },
+    "figure_path": "figures\\exp2_composition_trajectory.png"
+  },
+  "exp3_alternatives": {
+    "sim_func_api_db": 0.9999999999999998,
+    "sim_func_api_gui": 0.9999999999999998,
+    "sim_impl_api_db": -0.19567528882401644,
+    "sim_impl_api_gui": 0.039580227260530655,
+    "figure_path": "figures\\exp3_alternative_implementations.png"
+  },
+  "exp4_irrelevance": {
+    "labels": [
+      "CompositePurchase",
+      "CreateOrder_API",
+      "MakePayment",
+      "SendNotification",
+      "CheckInventory",
+      "BrowseCatalogRecommendations",
+      "UpdateUserAvatar",
+      "GenerateTaxAuditReport",
+      "ResetOrderState"
+    ],
+    "scores": [
+      0.8660254037844387,
+      0.40824829046386296,
+      0.5773502691896258,
+      0.5773502691896258,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      -1.0000000000000002
+    ],
+    "figure_path": "figures\\exp4_goal_relevance_ranking.png"
+  },
+  "exp5_operational": {
+    "candidate_names": [
+      "CreateOrder_API",
+      "CreateOrder_DB",
+      "CreateOrder_GUI",
+      "MakePayment",
+      "CancelCart",
+      "SendNotification",
+      "CheckInventory",
+      "Comp_OrderPay_API",
+      "Comp_OrderPay_DB",
+      "Comp_OrderPay_GUI"
+    ],
+    "pareto_mask": [
+      false,
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "frontier_names": [
+      "CreateOrder_DB",
+      "CancelCart"
+    ],
+    "figure_path": "figures\\exp5_operational_pareto_frontier.png"
+  },
+  "benchmarks": {
+    "num_runs": 2000,
+    "total_vector_dim": 111,
+    "avg_encode_latency_us": 106.27,
+    "encode_throughput_ops_sec": 9410.1,
+    "avg_compose_latency_us": 74.24,
+    "compose_throughput_ops_sec": 13469.9,
+    "raw_vector_bytes": 888,
+    "total_object_bytes": 984
+  }
+}

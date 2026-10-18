@@ -1,0 +1,234 @@
+{
+  "spec_version": "1.0",
+  "module": {
+    "module_id": "patient-registry",
+    "version": "1.0.0",
+    "domain": "hospital",
+    "port": 5001,
+    "base_url": "http://127.0.0.1:5001",
+    "health": "/health",
+    "description": "Patient registry: registration, admission, discharge, allergy flagging and lookup.",
+    "language": "python",
+    "database_file": "data/patient_registry.db",
+    "ui": "/ui/"
+  },
+  "state_schema": [
+    {"name": "Patient.registered", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Patient.admitted", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Patient.allergy_flagged", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Ward.bed_available", "type": "boolean", "domain": [false, true], "kind": "flag"}
+  ],
+  "initial_state": {
+    "Patient.registered": false,
+    "Patient.admitted": false,
+    "Patient.allergy_flagged": false,
+    "Ward.bed_available": true
+  },
+  "resources": [
+    {
+      "id": "registry_db",
+      "kind": "database",
+      "available": true,
+      "details": "SQLite database in WAL mode owned by this module"
+    },
+    {
+      "id": "network",
+      "kind": "network",
+      "available": true,
+      "details": "Loopback HTTP interface used by the gateway and the dashboard"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "K-MRN-Unique",
+      "kind": "domain",
+      "expression": "one medical record number identifies at most one patient",
+      "enforced_by": "db.py UNIQUE(patients.mrn) and services.registry.register_patient"
+    },
+    {
+      "id": "K-Admit-Requires-Registration",
+      "kind": "state",
+      "expression": "Patient.admitted = true implies Patient.registered = true",
+      "enforced_by": "services.registry.admit_patient"
+    },
+    {
+      "id": "K-No-Overbooking",
+      "kind": "resource",
+      "expression": "active admissions < 8",
+      "enforced_by": "services.registry.admit_patient"
+    },
+    {
+      "id": "K-Severity-Domain",
+      "kind": "input",
+      "expression": "severity in [MILD, MODERATE, SEVERE]",
+      "enforced_by": "services.validation.require_enum"
+    }
+  ],
+  "goal": [
+    {"variable": "Patient.registered", "op": "=", "value": true}
+  ],
+  "capabilities": [
+    {
+      "id": "PR-Register",
+      "name": "register_patient",
+      "type": "API",
+      "description": "Register a new patient under a unique medical record number.",
+      "inputs": [
+        {"name": "mrn", "type": "string", "domain": "clinic unique medical record number", "required": true},
+        {"name": "full_name", "type": "string", "domain": "non empty patient name", "required": true},
+        {"name": "date_of_birth", "type": "string", "domain": "ISO 8601 date", "required": false}
+      ],
+      "outputs": [
+        {"name": "patient_id", "type": "string", "domain": "generated registry identifier"},
+        {"name": "mrn", "type": "string", "domain": "echoed medical record number"},
+        {"name": "created_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [],
+      "effects": [
+        {"variable": "Patient.registered", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["registry_db"],
+      "quality": {"time_ms": 120, "money": 0, "resource": 0.02, "risk": 0.02, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/register_patient"},
+      "roles": ["clerk"]
+    },
+    {
+      "id": "PR-Admit",
+      "name": "admit_patient",
+      "type": "API",
+      "description": "Admit a registered patient to a ward, subject to bed availability.",
+      "inputs": [
+        {"name": "patient_id", "type": "string", "domain": "registered patient identifier", "required": true},
+        {"name": "ward", "type": "string", "domain": "ward name", "required": true},
+        {"name": "expected_stay_days", "type": "integer", "domain": [1, 365], "required": false}
+      ],
+      "outputs": [
+        {"name": "admission_id", "type": "string", "domain": "generated admission identifier"},
+        {"name": "admitted_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Patient.registered", "op": "=", "value": true},
+        {"variable": "Ward.bed_available", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Patient.admitted", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["registry_db"],
+      "quality": {"time_ms": 150, "money": 0, "resource": 0.03, "risk": 0.03, "energy": 0.002},
+      "reliability": 0.98,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/admit_patient"},
+      "roles": ["clerk", "nurse"]
+    },
+    {
+      "id": "PR-Discharge",
+      "name": "discharge_patient",
+      "type": "API",
+      "description": "Discharge an active admission and free the bed.",
+      "inputs": [
+        {"name": "admission_id", "type": "string", "domain": "active admission identifier", "required": true}
+      ],
+      "outputs": [
+        {"name": "discharged", "type": "boolean", "domain": [false, true]},
+        {"name": "discharged_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Patient.admitted", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Patient.admitted", "op": "SET", "value": false}
+      ],
+      "constraints": [],
+      "resources": ["registry_db"],
+      "quality": {"time_ms": 100, "money": 0, "resource": 0.02, "risk": 0.02, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/discharge_patient"},
+      "roles": ["clerk", "nurse"]
+    },
+    {
+      "id": "PR-FlagAllergy",
+      "name": "flag_allergy",
+      "type": "API",
+      "description": "Record one allergy for a registered patient with a severity grade.",
+      "inputs": [
+        {"name": "patient_id", "type": "string", "domain": "registered patient identifier", "required": true},
+        {"name": "allergen", "type": "string", "domain": "substance name", "required": true},
+        {"name": "severity", "type": "enumerated", "domain": ["MILD", "MODERATE", "SEVERE"], "required": true}
+      ],
+      "outputs": [
+        {"name": "flagged", "type": "boolean", "domain": [false, true]},
+        {"name": "allergy_id", "type": "string", "domain": "generated allergy identifier"}
+      ],
+      "preconditions": [
+        {"variable": "Patient.registered", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Patient.allergy_flagged", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["registry_db"],
+      "quality": {"time_ms": 90, "money": 0, "resource": 0.02, "risk": 0.05, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/flag_allergy"},
+      "roles": ["clerk", "nurse", "physician"]
+    },
+    {
+      "id": "PR-Lookup",
+      "name": "lookup_patient",
+      "type": "API",
+      "description": "Look a registered patient up by identifier or medical record number.",
+      "inputs": [
+        {"name": "patient_id", "type": "string", "domain": "registered patient identifier", "required": false},
+        {"name": "mrn", "type": "string", "domain": "medical record number", "required": false}
+      ],
+      "outputs": [
+        {"name": "patient_id", "type": "string", "domain": "registered patient identifier"},
+        {"name": "mrn", "type": "string", "domain": "medical record number"},
+        {"name": "full_name", "type": "string", "domain": "non empty patient name"},
+        {"name": "admitted", "type": "boolean", "domain": [false, true]},
+        {"name": "allergy_count", "type": "integer", "domain": [0, 1000]}
+      ],
+      "preconditions": [
+        {"variable": "Patient.registered", "op": "=", "value": true}
+      ],
+      "effects": [],
+      "constraints": [],
+      "resources": ["registry_db"],
+      "quality": {"time_ms": 40, "money": 0, "resource": 0.01, "risk": 0.005, "energy": 0.0005},
+      "reliability": 0.995,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/lookup_patient"},
+      "roles": ["clerk", "nurse", "physician"]
+    },
+    {
+      "id": "PR-Form",
+      "name": "register_patient_form",
+      "type": "GUI",
+      "description": "Registration form screen that submits a new patient record.",
+      "inputs": [
+        {"name": "mrn", "type": "string", "domain": "clinic unique medical record number", "required": true},
+        {"name": "full_name", "type": "string", "domain": "non empty patient name", "required": true}
+      ],
+      "outputs": [
+        {"name": "patient_id", "type": "string", "domain": "generated registry identifier"}
+      ],
+      "preconditions": [],
+      "effects": [
+        {"variable": "Patient.registered", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["registry_db"],
+      "quality": {"time_ms": 260, "money": 0, "resource": 0.03, "risk": 0.02, "energy": 0.002},
+      "reliability": 0.97,
+      "availability": {"always": true},
+      "mechanism": {"kind": "GUI", "action": "SUBMIT", "component": "patient_form", "page": "/ui/patients/new"},
+      "roles": ["clerk"]
+    }
+  ]
+}

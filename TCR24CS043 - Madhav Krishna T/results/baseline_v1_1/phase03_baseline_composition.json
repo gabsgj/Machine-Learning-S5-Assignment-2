@@ -1,0 +1,274 @@
+{
+  "experiment": "Experiment 2 - Capability Composition",
+  "model": "SCE-128-v1.1",
+  "dataset": "expanded_application.json",
+  "chain_count": 2,
+  "overall": {
+    "mean_nontrivial_vector_consistency": 0.6879830434918404,
+    "min_nontrivial_vector_consistency": 0.5282938480377197,
+    "mean_formal_goal_alignment": 0.9733161449432373,
+    "final_goal_alignment_mean": 0.9744265079498291
+  },
+  "chains": [
+    {
+      "chain_id": "purchase_success_chain",
+      "chain_length": 7,
+      "final_composite_id": "C1__C2__C3__C4__C5__C6__C7",
+      "final_composite_name": "AddToCartThenCheckInventoryThenReserveInventoryThenCreateOrderThenMakePaymentThenVerifyPaymentThenSendNotification",
+      "links": [
+        {
+          "from": "C1",
+          "to": "C2",
+          "formal_score": 0.8768292138352991,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 1.0,
+          "effect_precondition_vector": 0.5091460691764951,
+          "output_input_vector": 1.0,
+          "conflict": 0.0,
+          "compatible": true
+        },
+        {
+          "from": "C1__C2",
+          "to": "C3",
+          "formal_score": 0.9875000268220901,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 1.0,
+          "effect_precondition_vector": 1.0000001192092896,
+          "output_input_vector": 1.0000000596046448,
+          "conflict": 0.0,
+          "compatible": true
+        },
+        {
+          "from": "C1__C2__C3",
+          "to": "C4",
+          "formal_score": 0.987500015894572,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 1.0,
+          "effect_precondition_vector": 1.0000000794728596,
+          "output_input_vector": 1.0,
+          "conflict": 0.0,
+          "compatible": true
+        },
+        {
+          "from": "C1__C2__C3__C4",
+          "to": "C5",
+          "formal_score": 0.8835073870420457,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 0.5,
+          "effect_precondition_vector": 1.0000000596046448,
+          "output_input_vector": 0.7701475024223328,
+          "conflict": 0.0,
+          "compatible": true
+        },
+        {
+          "from": "C1__C2__C3__C4__C5",
+          "to": "C6",
+          "formal_score": 0.9700000029802323,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 1.0,
+          "effect_precondition_vector": 1.0,
+          "output_input_vector": 1.0000000596046448,
+          "conflict": 0.0,
+          "compatible": true
+        },
+        {
+          "from": "C1__C2__C3__C4__C5__C6",
+          "to": "C7",
+          "formal_score": 0.9583333333333334,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 1.0,
+          "effect_precondition_vector": 1.0,
+          "output_input_vector": 1.0,
+          "conflict": 0.0,
+          "compatible": true
+        }
+      ],
+      "prefixes": [
+        {
+          "length": 1,
+          "capabilities": [
+            "C1"
+          ],
+          "formal_composite_id": "C1",
+          "formal_composite_name": "AddToCart",
+          "vector_consistency": 1.0000001192092896,
+          "formal_goal_alignment": 0.961663007736206,
+          "formal_reliability": 0.995,
+          "formal_execution_time_ms": 60
+        },
+        {
+          "length": 2,
+          "capabilities": [
+            "C1",
+            "C2"
+          ],
+          "formal_composite_id": "C1__C2",
+          "formal_composite_name": "AddToCartThenCheckInventory",
+          "vector_consistency": 0.7336001396179199,
+          "formal_goal_alignment": 0.9693164825439453,
+          "formal_reliability": 0.98505,
+          "formal_execution_time_ms": 150
+        },
+        {
+          "length": 3,
+          "capabilities": [
+            "C1",
+            "C2",
+            "C3"
+          ],
+          "formal_composite_id": "C1__C2__C3",
+          "formal_composite_name": "AddToCartThenCheckInventoryThenReserveInventory",
+          "vector_consistency": 0.8115295171737671,
+          "formal_goal_alignment": 0.9752337336540222,
+          "formal_reliability": 0.97027425,
+          "formal_execution_time_ms": 280
+        },
+        {
+          "length": 4,
+          "capabilities": [
+            "C1",
+            "C2",
+            "C3",
+            "C4"
+          ],
+          "formal_composite_id": "C1__C2__C3__C4",
+          "formal_composite_name": "AddToCartThenCheckInventoryThenReserveInventoryThenCreateOrder",
+          "vector_consistency": 0.7138522267341614,
+          "formal_goal_alignment": 0.975650429725647,
+          "formal_reliability": 0.9605715075,
+          "formal_execution_time_ms": 380
+        },
+        {
+          "length": 5,
+          "capabilities": [
+            "C1",
+            "C2",
+            "C3",
+            "C4",
+            "C5"
+          ],
+          "formal_composite_id": "C1__C2__C3__C4__C5",
+          "formal_composite_name": "AddToCartThenCheckInventoryThenReserveInventoryThenCreateOrderThenMakePayment",
+          "vector_consistency": 0.6562661528587341,
+          "formal_goal_alignment": 0.9807552099227905,
+          "formal_reliability": 0.9413600773499999,
+          "formal_execution_time_ms": 630
+        },
+        {
+          "length": 6,
+          "capabilities": [
+            "C1",
+            "C2",
+            "C3",
+            "C4",
+            "C5",
+            "C6"
+          ],
+          "formal_composite_id": "C1__C2__C3__C4__C5__C6",
+          "formal_composite_name": "AddToCartThenCheckInventoryThenReserveInventoryThenCreateOrderThenMakePaymentThenVerifyPayment",
+          "vector_consistency": 0.6755821108818054,
+          "formal_goal_alignment": 0.9790010452270508,
+          "formal_reliability": 0.9338291967311999,
+          "formal_execution_time_ms": 740
+        },
+        {
+          "length": 7,
+          "capabilities": [
+            "C1",
+            "C2",
+            "C3",
+            "C4",
+            "C5",
+            "C6",
+            "C7"
+          ],
+          "formal_composite_id": "C1__C2__C3__C4__C5__C6__C7",
+          "formal_composite_name": "AddToCartThenCheckInventoryThenReserveInventoryThenCreateOrderThenMakePaymentThenVerifyPaymentThenSendNotification",
+          "vector_consistency": 0.5282938480377197,
+          "formal_goal_alignment": 0.9826284646987915,
+          "formal_reliability": 0.9291600507475439,
+          "formal_execution_time_ms": 820
+        }
+      ],
+      "final_vector_consistency": 0.5282938480377197,
+      "final_goal_alignment": 0.9826284646987915,
+      "final_reliability": 0.9291600507475439,
+      "final_execution_time_ms": 820
+    },
+    {
+      "chain_id": "cancel_and_release_chain",
+      "chain_length": 3,
+      "final_composite_id": "C4__C9__C10",
+      "final_composite_name": "CreateOrderThenCancelOrderThenReleaseInventory",
+      "links": [
+        {
+          "from": "C4",
+          "to": "C9",
+          "formal_score": 1.0000000119209291,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 1.0,
+          "effect_precondition_vector": 1.0000000596046448,
+          "output_input_vector": 1.0,
+          "conflict": 0.0,
+          "compatible": true
+        },
+        {
+          "from": "C4__C9",
+          "to": "C10",
+          "formal_score": 0.8918956547975541,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 0.5,
+          "effect_precondition_vector": 1.0000000596046448,
+          "output_input_vector": 0.8379128575325012,
+          "conflict": 0.0,
+          "compatible": true
+        }
+      ],
+      "prefixes": [
+        {
+          "length": 1,
+          "capabilities": [
+            "C4"
+          ],
+          "formal_composite_id": "C4",
+          "formal_composite_name": "CreateOrder",
+          "vector_consistency": 1.0,
+          "formal_goal_alignment": 0.9659520983695984,
+          "formal_reliability": 0.99,
+          "formal_execution_time_ms": 100
+        },
+        {
+          "length": 2,
+          "capabilities": [
+            "C4",
+            "C9"
+          ],
+          "formal_composite_id": "C4__C9",
+          "formal_composite_name": "CreateOrderThenCancelOrder",
+          "vector_consistency": 0.6929835677146912,
+          "formal_goal_alignment": 0.9767364263534546,
+          "formal_reliability": 0.97515,
+          "formal_execution_time_ms": 220
+        },
+        {
+          "length": 3,
+          "capabilities": [
+            "C4",
+            "C9",
+            "C10"
+          ],
+          "formal_composite_id": "C4__C9__C10",
+          "formal_composite_name": "CreateOrderThenCancelOrderThenReleaseInventory",
+          "vector_consistency": 0.6917567849159241,
+          "formal_goal_alignment": 0.9662245512008667,
+          "formal_reliability": 0.9653984999999999,
+          "formal_execution_time_ms": 320
+        }
+      ],
+      "final_vector_consistency": 0.6917567849159241,
+      "final_goal_alignment": 0.9662245512008667,
+      "final_reliability": 0.9653984999999999,
+      "final_execution_time_ms": 320
+    }
+  ]
+}

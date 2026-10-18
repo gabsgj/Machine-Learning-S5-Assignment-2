@@ -1,0 +1,51 @@
+{
+    "test_name": "composition_test",
+    "dimension": 3,
+    "capability_1": {
+        "id": "C1",
+        "preconditions": [
+            0.8,
+            0.2,
+            0.0
+        ],
+        "effects": [
+            0.5,
+            0.9,
+            0.0
+        ],
+        "cost": 15.0,
+        "reliability": 0.95,
+        "availability": 0.90
+    },
+    "capability_2": {
+        "id": "C2",
+        "preconditions": [
+            0.0,
+            0.4,
+            0.6
+        ],
+        "effects": [
+            0.0,
+            0.0,
+            1.0
+        ],
+        "cost": 5.0,
+        "reliability": 0.98,
+        "availability": 0.99
+    },
+    "expected_composite": {
+        "preconditions": [
+            0.8,
+            0.2,
+            0.6
+        ],
+        "effects": [
+            0.5,
+            0.9,
+            1.0
+        ],
+        "cost": 20.0,
+        "reliability": 0.931,
+        "availability": 0.90
+    }
+}

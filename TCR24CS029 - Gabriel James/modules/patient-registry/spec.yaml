@@ -1,0 +1,380 @@
+# Formal capability specification sheet, YAML rendering.
+# Generated from spec.json by the careweave_cli spec-yaml command; the two files are
+# always equivalent, and the round trip is proved by the command and by the test suite.
+capabilities:
+  - availability: true
+    constraints: []
+    description: Register a new patient under a unique medical record number.
+    effects:
+      - op: SET
+        value: true
+        variable: Patient.registered
+    id: PR-Register
+    inputs:
+      - domain: clinic unique medical record number
+        name: mrn
+        required: true
+        type: string
+      - domain: non empty patient name
+        name: full_name
+        required: true
+        type: string
+      - domain: ISO 8601 date
+        name: date_of_birth
+        required: false
+        type: string
+    mechanism:
+      endpoint: /api/register_patient
+      kind: API
+      method: POST
+    name: register_patient
+    outputs:
+      - domain: generated registry identifier
+        name: patient_id
+        type: string
+      - domain: echoed medical record number
+        name: mrn
+        type: string
+      - domain: ISO 8601 timestamp
+        name: created_at
+        type: string
+    preconditions: []
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.02
+      time_ms: 120.0
+    reliability: 0.99
+    resources:
+      - registry_db
+    roles:
+      - clerk
+    type: API
+  - availability: true
+    constraints: []
+    description: "Admit a registered patient to a ward, subject to bed availability."
+    effects:
+      - op: SET
+        value: true
+        variable: Patient.admitted
+    id: PR-Admit
+    inputs:
+      - domain: registered patient identifier
+        name: patient_id
+        required: true
+        type: string
+      - domain: ward name
+        name: ward
+        required: true
+        type: string
+      - domain:
+          - "1"
+          - "365"
+        name: expected_stay_days
+        required: false
+        type: integer
+    mechanism:
+      endpoint: /api/admit_patient
+      kind: API
+      method: POST
+    name: admit_patient
+    outputs:
+      - domain: generated admission identifier
+        name: admission_id
+        type: string
+      - domain: ISO 8601 timestamp
+        name: admitted_at
+        type: string
+    preconditions:
+      - op: =
+        value: true
+        variable: Patient.registered
+      - op: =
+        value: true
+        variable: Ward.bed_available
+    quality:
+      energy: 0.002
+      money: 0.0
+      resource: 0.03
+      risk: 0.03
+      time_ms: 150.0
+    reliability: 0.98
+    resources:
+      - registry_db
+    roles:
+      - clerk
+      - nurse
+    type: API
+  - availability: true
+    constraints: []
+    description: Discharge an active admission and free the bed.
+    effects:
+      - op: SET
+        value: false
+        variable: Patient.admitted
+    id: PR-Discharge
+    inputs:
+      - domain: active admission identifier
+        name: admission_id
+        required: true
+        type: string
+    mechanism:
+      endpoint: /api/discharge_patient
+      kind: API
+      method: POST
+    name: discharge_patient
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: discharged
+        type: boolean
+      - domain: ISO 8601 timestamp
+        name: discharged_at
+        type: string
+    preconditions:
+      - op: =
+        value: true
+        variable: Patient.admitted
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.02
+      time_ms: 100.0
+    reliability: 0.99
+    resources:
+      - registry_db
+    roles:
+      - clerk
+      - nurse
+    type: API
+  - availability: true
+    constraints: []
+    description: Record one allergy for a registered patient with a severity grade.
+    effects:
+      - op: SET
+        value: true
+        variable: Patient.allergy_flagged
+    id: PR-FlagAllergy
+    inputs:
+      - domain: registered patient identifier
+        name: patient_id
+        required: true
+        type: string
+      - domain: substance name
+        name: allergen
+        required: true
+        type: string
+      - domain:
+          - MILD
+          - MODERATE
+          - SEVERE
+        name: severity
+        required: true
+        type: enumerated
+    mechanism:
+      endpoint: /api/flag_allergy
+      kind: API
+      method: POST
+    name: flag_allergy
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: flagged
+        type: boolean
+      - domain: generated allergy identifier
+        name: allergy_id
+        type: string
+    preconditions:
+      - op: =
+        value: true
+        variable: Patient.registered
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.05
+      time_ms: 90.0
+    reliability: 0.99
+    resources:
+      - registry_db
+    roles:
+      - clerk
+      - nurse
+      - physician
+    type: API
+  - availability: true
+    constraints: []
+    description: Look a registered patient up by identifier or medical record number.
+    effects: []
+    id: PR-Lookup
+    inputs:
+      - domain: registered patient identifier
+        name: patient_id
+        required: false
+        type: string
+      - domain: medical record number
+        name: mrn
+        required: false
+        type: string
+    mechanism:
+      endpoint: /api/lookup_patient
+      kind: API
+      method: POST
+    name: lookup_patient
+    outputs:
+      - domain: registered patient identifier
+        name: patient_id
+        type: string
+      - domain: medical record number
+        name: mrn
+        type: string
+      - domain: non empty patient name
+        name: full_name
+        type: string
+      - domain:
+          - "false"
+          - "true"
+        name: admitted
+        type: boolean
+      - domain:
+          - "0"
+          - "1000"
+        name: allergy_count
+        type: integer
+    preconditions:
+      - op: =
+        value: true
+        variable: Patient.registered
+    quality:
+      energy: 0.0005
+      money: 0.0
+      resource: 0.01
+      risk: 0.005
+      time_ms: 40.0
+    reliability: 0.995
+    resources:
+      - registry_db
+    roles:
+      - clerk
+      - nurse
+      - physician
+    type: API
+  - availability: true
+    constraints: []
+    description: Registration form screen that submits a new patient record.
+    effects:
+      - op: SET
+        value: true
+        variable: Patient.registered
+    id: PR-Form
+    inputs:
+      - domain: clinic unique medical record number
+        name: mrn
+        required: true
+        type: string
+      - domain: non empty patient name
+        name: full_name
+        required: true
+        type: string
+    mechanism:
+      action: SUBMIT
+      component: patient_form
+      kind: GUI
+      page: /ui/patients/new
+    name: register_patient_form
+    outputs:
+      - domain: generated registry identifier
+        name: patient_id
+        type: string
+    preconditions: []
+    quality:
+      energy: 0.002
+      money: 0.0
+      resource: 0.03
+      risk: 0.02
+      time_ms: 260.0
+    reliability: 0.97
+    resources:
+      - registry_db
+    roles:
+      - clerk
+    type: GUI
+
+constraints:
+  - enforced_by: db.py UNIQUE(patients.mrn) and services.registry.register_patient
+    expression: one medical record number identifies at most one patient
+    id: K-MRN-Unique
+    kind: domain
+  - enforced_by: services.registry.admit_patient
+    expression: Patient.admitted = true implies Patient.registered = true
+    id: K-Admit-Requires-Registration
+    kind: state
+  - enforced_by: services.registry.admit_patient
+    expression: active admissions < 8
+    id: K-No-Overbooking
+    kind: resource
+  - enforced_by: services.validation.require_enum
+    expression: "severity in [MILD, MODERATE, SEVERE]"
+    id: K-Severity-Domain
+    kind: input
+
+goal:
+  - op: =
+    value: true
+    variable: Patient.registered
+
+initial_state:
+  Patient.admitted: false
+  Patient.allergy_flagged: false
+  Patient.registered: false
+  Ward.bed_available: true
+
+module:
+  base_url: "http://127.0.0.1:5001"
+  database_file: data/patient_registry.db
+  description: "Patient registry: registration, admission, discharge, allergy flagging and lookup."
+  domain: hospital
+  health: /health
+  language: python
+  module_id: patient-registry
+  port: 5001
+  ui: /ui/
+  version: 1.0.0
+
+resources:
+  - available: true
+    details: SQLite database in WAL mode owned by this module
+    id: registry_db
+    kind: database
+  - available: true
+    details: Loopback HTTP interface used by the gateway and the dashboard
+    id: network
+    kind: network
+
+spec_version: "1.0"
+
+state_schema:
+  - domain:
+      - "false"
+      - "true"
+    name: Patient.registered
+    type: boolean
+  - domain:
+      - "false"
+      - "true"
+    name: Patient.admitted
+    type: boolean
+  - domain:
+      - "false"
+      - "true"
+    name: Patient.allergy_flagged
+    type: boolean
+  - domain:
+      - "false"
+      - "true"
+    name: Ward.bed_available
+    type: boolean

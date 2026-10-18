@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Dispense{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Dispense drug</h1>
+  <p id="capability_hint">
+    Submits the GUI capability <code id="capability_id">PH-Form</code>, the same code path as
+    the API capability <code id="api_capability_id">PH-DispenseDrug</code>.
+  </p>
+  <form id="dispense_form" data-capability-endpoint="/ui/dispense" data-result-target="result_output">
+    <label for="sku_select">Drug</label>
+    <select id="sku_select" name="sku" required>
+      {% for drug in drugs %}
+      <option value="{{ drug.sku }}">{{ drug.sku }} &middot; {{ drug.name }} ({{ drug.on_hand }} on hand)</option>
+      {% else %}
+      <option value="">No drugs registered</option>
+      {% endfor %}
+    </select>
+    <label for="quantity_input">Quantity</label>
+    <input type="number" id="quantity_input" name="quantity" min="1" max="1000" required placeholder="10">
+    <label for="patient_mrn_input">Patient MRN (optional)</label>
+    <input type="text" id="patient_mrn_input" name="patient_mrn" placeholder="MRN-1001">
+    <button type="submit" id="submit_button">Dispense</button>
+  </form>
+  <pre id="result_output" class="result" aria-live="polite"></pre>
+</section>
+{% endblock %}

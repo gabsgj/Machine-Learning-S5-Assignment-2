@@ -1,0 +1,261 @@
+{
+  "problem_id": "hospital-alias-registration",
+  "domain": "hospital",
+  "description": "Registration is offered in two vocabularies in the same application, plus a direct row write and a screen. The resolver must select by the vocabulary of the requirement, report near ties instead of guessing, and refuse unrelated applications.",
+  "pool": [
+    "specs/app/ecommerce_purchase.yaml",
+    "specs/app/hospital_clinic_visit.yaml",
+    "specs/app/hospital_alias_resolution.yaml",
+    "specs/app/document_processing.yaml",
+    "specs/app/compliance_audit.yaml"
+  ],
+  "required_mappings": [
+    {
+      "case_id": "alias-register-pat-legacy",
+      "requirement_spec": "specs/app/requirements/register_pat.yaml",
+      "candidate_specs": [
+        "specs/app/hospital_alias_resolution.yaml"
+      ],
+      "expectation": "resolved_by_kind",
+      "expected_capability_ids": [
+        "AR-PatReg"
+      ],
+      "notes": "The acceptance case. Measured: AR-PatReg 0.8346 over AR-PatRegForm 0.7854, margin 0.0492, inside the ambiguity margin; the requirement asks for an API delivery and exactly one candidate in the margin offers it, so the tie is resolved by the delivery kind instead of being reported as ambiguous."
+    },
+    {
+      "case_id": "alias-register-patient-canonical",
+      "requirement_spec": "specs/app/requirements/register_patient.yaml",
+      "candidate_specs": [
+        "specs/app/hospital_alias_resolution.yaml"
+      ],
+      "expectation": "selected",
+      "expected_capability_ids": [
+        "AR-RegisterPatient"
+      ],
+      "notes": "Measured: 0.9426, margin 0.2698 over Pat_reg. The canonical requirement must not resolve to the legacy capability."
+    },
+    {
+      "case_id": "clinic-register-patient",
+      "requirement_spec": "specs/app/requirements/register_patient.yaml",
+      "candidate_specs": [
+        "specs/app/hospital_clinic_visit.yaml"
+      ],
+      "expectation": "selected",
+      "expected_capability_ids": [
+        "CV-RegisterPatient"
+      ],
+      "notes": "Measured: 0.9789, margin 0.2252."
+    },
+    {
+      "case_id": "clinic-register-pat-best-effort",
+      "requirement_spec": "specs/app/requirements/register_pat.yaml",
+      "candidate_specs": [
+        "specs/app/hospital_clinic_visit.yaml"
+      ],
+      "expectation": "best_effort",
+      "expected_capability_ids": [
+        "CV-RegisterPatient"
+      ],
+      "notes": "No legacy vocabulary in this application, so the canonical registration is the closest sensible answer. Measured: 0.7909, margin 0.2163; the contract binds through renames (pat_no to patient_mrn 0.6106, pat_name to full_name 0.5321, pat_reg from patient_id 0.4774) and the extra optional input date_of_birth stays unbound."
+    }
+  ],
+  "negative_cases": [
+    {
+      "case_id": "no-registration-in-other-applications",
+      "requirement_spec": "specs/app/requirements/register_pat.yaml",
+      "candidate_specs": [
+        "specs/app/ecommerce_purchase.yaml",
+        "specs/app/document_processing.yaml",
+        "specs/app/compliance_audit.yaml"
+      ],
+      "expectation": "rejected",
+      "notes": "No registration anywhere in these applications. Measured: best 0.3316, below the 0.45 threshold, so the resolver refuses to map instead of binding an unrelated capability."
+    }
+  ],
+  "full_pool_cases": [
+    {
+      "case_id": "full-pool-register-pat",
+      "requirement_spec": "specs/app/requirements/register_pat.yaml",
+      "expectation": "top1_with_ambiguity",
+      "expected_capability_ids": [
+        "AR-PatReg"
+      ],
+      "notes": "Against all 53 capabilities of the five applications: top 1 is AR-PatReg (0.8346), runner up CV-RegisterPatient (0.7909), margin 0.0437, reported ambiguous because two registration vocabularies offer the same fact in different applications. The rank is still correct."
+    },
+    {
+      "case_id": "full-pool-register-patient",
+      "requirement_spec": "specs/app/requirements/register_patient.yaml",
+      "expectation": "ambiguous",
+      "expected_capability_ids": [
+        "CV-RegisterPatient",
+        "AR-RegisterPatient"
+      ],
+      "notes": "Two applications offer register_patient with near identical contracts. Measured: CV-RegisterPatient 0.9789, AR-RegisterPatient 0.9426, margin 0.0363. An honest ambiguity that a module scope or a business rule must decide."
+    }
+  ],
+  "ambiguity_cases": [
+    {
+      "case_id": "twin-pat-reg-copy",
+      "requirement_spec": "specs/app/requirements/register_pat.yaml",
+      "candidate_specs": [
+        "specs/app/hospital_alias_resolution.yaml"
+      ],
+      "inject": {
+        "clone_capability_id": "AR-PatReg",
+        "new_capability_id": "AR-PatRegCopy",
+        "new_name": "Pat_reg_copy"
+      },
+      "expectation": "ambiguous",
+      "acceptable_capability_ids": [
+        "AR-PatReg",
+        "AR-PatRegCopy"
+      ],
+      "notes": "A copy of the legacy capability with one extra name token. The component suite pins the margin below 0.05; the selection must report the near tie and keep the original as best."
+    }
+  ],
+  "compatibility_cases": [
+    {
+      "case_id": "clinic-order-sample",
+      "app": "specs/app/hospital_clinic_visit.yaml",
+      "sequence": [
+        "CV-OrderLabTest",
+        "CV-ReceiveSample"
+      ],
+      "expectation": "compatible",
+      "expected_check": "precondition-entailment",
+      "notes": "Ordering the test establishes Lab.ordered, the sample identifier is carried by the order output and the optional sample label needs no binding."
+    },
+    {
+      "case_id": "clinic-sample-result",
+      "app": "specs/app/hospital_clinic_visit.yaml",
+      "sequence": [
+        "CV-ReceiveSample",
+        "CV-EnterResult"
+      ],
+      "expectation": "uncertain",
+      "expected_check": "input-output",
+      "notes": "The precondition Sample.received is established, but the order identifier of the result entry is not among the outputs of the sample receipt, so the engine refuses to prove the binding."
+    },
+    {
+      "case_id": "clinic-result-before-sample",
+      "app": "specs/app/hospital_clinic_visit.yaml",
+      "sequence": [
+        "CV-EnterResult",
+        "CV-ReceiveSample"
+      ],
+      "expectation": "uncertain",
+      "expected_check": "precondition-entailment",
+      "notes": "A result cannot be entered before the sample is received, but the engine checks only the pair: nothing in the pair writes Lab.ordered, so the precondition stays unprovable instead of conflicting. The live laboratory module rejects the same ordering with 409, so the runtime check is the enforcement and the static verdict is honest uncertainty."
+    },
+    {
+      "case_id": "clinic-order-result-skipping-sample",
+      "app": "specs/app/hospital_clinic_visit.yaml",
+      "sequence": [
+        "CV-OrderLabTest",
+        "CV-EnterResult"
+      ],
+      "expectation": "uncertain",
+      "expected_check": "precondition-entailment",
+      "notes": "The high similarity low compatibility pair: both steps live in the laboratory part of the vocabulary, but ordering the test does not establish that a sample was received, so the pair is not proven composable."
+    },
+    {
+      "case_id": "alias-register-verify",
+      "app": "specs/app/hospital_alias_resolution.yaml",
+      "sequence": [
+        "AR-PatReg",
+        "AR-VerifyPat"
+      ],
+      "expectation": "compatible",
+      "expected_check": "precondition-entailment",
+      "notes": "Pat_reg establishes Patient.registered and carries the pat_reg identifier the verification needs."
+    },
+    {
+      "case_id": "alias-verify-register",
+      "app": "specs/app/hospital_alias_resolution.yaml",
+      "sequence": [
+        "AR-VerifyPat",
+        "AR-PatReg"
+      ],
+      "expectation": "uncertain",
+      "expected_check": "input-output",
+      "notes": "Registration has no preconditions, but the verification does not carry pat_no or pat_name, so the mandatory inputs of the registration stay unbound."
+    }
+  ],
+  "equivalence_groups": [
+    {
+      "logical_operation": "register a patient in the legacy vocabulary",
+      "members": [
+        {
+          "app": "specs/app/hospital_alias_resolution.yaml",
+          "capability_id": "AR-PatReg",
+          "persona": "API"
+        },
+        {
+          "app": "specs/app/hospital_alias_resolution.yaml",
+          "capability_id": "AR-PatRowWrite",
+          "persona": "DATABASE"
+        },
+        {
+          "app": "specs/app/hospital_alias_resolution.yaml",
+          "capability_id": "AR-PatRegForm",
+          "persona": "GUI"
+        }
+      ],
+      "notes": "One logical registration offered as an API call, a direct row insert and a screen; the adaptation experiment synthesizes an adapter per persona and compares the logical contracts."
+    },
+    {
+      "logical_operation": "register a patient in the canonical vocabulary",
+      "members": [
+        {
+          "app": "specs/app/hospital_alias_resolution.yaml",
+          "capability_id": "AR-RegisterPatient",
+          "persona": "API"
+        },
+        {
+          "app": "specs/app/hospital_alias_resolution.yaml",
+          "capability_id": "AR-RegistrationForm",
+          "persona": "GUI"
+        }
+      ],
+      "notes": "The canonical registration as an API call and as the front desk screen."
+    }
+  ],
+  "name_pairs": [
+    {
+      "left": "register_pat",
+      "right": "Pat_reg",
+      "label": "equivalent",
+      "notes": "The vocabulary alias pair the acceptance case resolves."
+    },
+    {
+      "left": "register_patient",
+      "right": "Pat_reg",
+      "label": "equivalent",
+      "notes": "Same intent in two vocabularies; the discrimination happens through the field contract, not the name."
+    },
+    {
+      "left": "register_patient",
+      "right": "register_pat",
+      "label": "equivalent",
+      "notes": "The two registration vocabularies at name level."
+    },
+    {
+      "left": "Pat_reg",
+      "right": "Pat_lookup",
+      "label": "distinct",
+      "notes": "Write against read, same prefix."
+    },
+    {
+      "left": "Pat_reg",
+      "right": "Pat_verify",
+      "label": "distinct",
+      "notes": "Create against verify, same prefix; the compatibility case pins that they are also not interchangeable in a sequence."
+    },
+    {
+      "left": "register_pat",
+      "right": "process_payment",
+      "label": "distinct",
+      "notes": "Cross-domain sanity pair."
+    }
+  ]
+}

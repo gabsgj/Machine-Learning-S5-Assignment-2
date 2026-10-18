@@ -1,0 +1,151 @@
+{
+  "domain": "ecommerce_orders",
+  "description": "E-commerce order processing domain covering cart, payment, shipping, and cancellation workflows.",
+  "state_variables": [
+    "cart_active", "cart_empty", "order_created", "payment_pending",
+    "payment_complete", "payment_failed", "inventory_reserved", "inventory_released",
+    "order_shipped", "order_cancelled", "refund_issued", "notification_sent"
+  ],
+  "resource_vocabulary": ["database", "payment_gateway", "email_service", "inventory_system", "shipping_api"],
+  "initial_state": {
+    "cart_active": true,
+    "cart_empty": false,
+    "order_created": false,
+    "payment_pending": false,
+    "payment_complete": false,
+    "payment_failed": false,
+    "inventory_reserved": false,
+    "inventory_released": false,
+    "order_shipped": false,
+    "order_cancelled": false,
+    "refund_issued": false,
+    "notification_sent": false
+  },
+  "goal": {
+    "order_shipped": true,
+    "payment_complete": true,
+    "notification_sent": true
+  },
+  "capabilities": [
+    {
+      "name": "CreateOrder",
+      "type": "API",
+      "inputs": [
+        {"name": "cart_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "user_id", "type": "string", "domain": "UUID", "required": true}
+      ],
+      "outputs": [
+        {"name": "order_id", "type": "string", "domain": "UUID"},
+        {"name": "order_status", "type": "string", "domain": "enum"}
+      ],
+      "preconditions": {"cart_active": true, "cart_empty": false},
+      "effects": {"order_created": true, "payment_pending": true, "cart_active": false},
+      "constraints": ["cart must not be empty", "user must be authenticated"],
+      "resources": ["database", "inventory_system"],
+      "cost": {"time_ms": 200, "money": 0.01, "resource": 0.2, "risk": 0.05, "energy": 0.1},
+      "reliability": 0.98,
+      "availability": true,
+      "mechanism": {"endpoint": "/api/orders", "method": "POST", "auth": "bearer_token"}
+    },
+    {
+      "name": "MakePayment",
+      "type": "API",
+      "inputs": [
+        {"name": "order_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "payment_method", "type": "string", "domain": "enum", "required": true},
+        {"name": "amount", "type": "float", "domain": "positive_real", "required": true}
+      ],
+      "outputs": [
+        {"name": "transaction_id", "type": "string", "domain": "UUID"},
+        {"name": "receipt_url", "type": "string", "domain": "URL"}
+      ],
+      "preconditions": {"order_created": true, "payment_pending": true},
+      "effects": {"payment_complete": true, "payment_pending": false, "inventory_reserved": true},
+      "constraints": ["order must exist", "amount must be positive"],
+      "resources": ["payment_gateway", "database"],
+      "cost": {"time_ms": 800, "money": 0.25, "resource": 0.4, "risk": 0.15, "energy": 0.2},
+      "reliability": 0.95,
+      "availability": true,
+      "mechanism": {"endpoint": "/api/payments", "method": "POST", "provider": "stripe"}
+    },
+    {
+      "name": "ReserveInventory",
+      "type": "DATABASE",
+      "inputs": [
+        {"name": "order_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "items", "type": "list", "domain": "product_list", "required": true}
+      ],
+      "outputs": [
+        {"name": "reservation_id", "type": "string", "domain": "UUID"},
+        {"name": "reserved_items", "type": "list", "domain": "product_list"}
+      ],
+      "preconditions": {"order_created": true, "inventory_reserved": false},
+      "effects": {"inventory_reserved": true},
+      "constraints": ["items must be in stock"],
+      "resources": ["database", "inventory_system"],
+      "cost": {"time_ms": 100, "money": 0.005, "resource": 0.15, "risk": 0.1, "energy": 0.05},
+      "reliability": 0.99,
+      "availability": true,
+      "mechanism": {"table": "inventory_reservations", "operation": "INSERT", "lock": "row_level"}
+    },
+    {
+      "name": "ShipOrder",
+      "type": "SERVICE",
+      "inputs": [
+        {"name": "order_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "address", "type": "dict", "domain": "shipping_address", "required": true}
+      ],
+      "outputs": [
+        {"name": "tracking_number", "type": "string", "domain": "tracking_code"},
+        {"name": "estimated_delivery", "type": "string", "domain": "ISO8601"}
+      ],
+      "preconditions": {"payment_complete": true, "inventory_reserved": true},
+      "effects": {"order_shipped": true},
+      "constraints": ["payment must be complete", "inventory must be reserved"],
+      "resources": ["shipping_api", "database"],
+      "cost": {"time_ms": 1500, "money": 5.0, "resource": 0.5, "risk": 0.2, "energy": 0.3},
+      "reliability": 0.92,
+      "availability": {"start": "08:00", "end": "20:00"},
+      "mechanism": {"carrier": "fedex", "api_version": "v2", "label_format": "PDF"}
+    },
+    {
+      "name": "SendNotification",
+      "type": "MESSAGE",
+      "inputs": [
+        {"name": "order_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "user_email", "type": "string", "domain": "email", "required": true},
+        {"name": "template", "type": "string", "domain": "enum", "required": false}
+      ],
+      "outputs": [
+        {"name": "message_id", "type": "string", "domain": "UUID"}
+      ],
+      "preconditions": {"order_created": true},
+      "effects": {"notification_sent": true},
+      "constraints": ["valid email required"],
+      "resources": ["email_service"],
+      "cost": {"time_ms": 300, "money": 0.001, "resource": 0.05, "risk": 0.02, "energy": 0.05},
+      "reliability": 0.97,
+      "availability": true,
+      "mechanism": {"provider": "sendgrid", "protocol": "SMTP", "template_engine": "handlebars"}
+    },
+    {
+      "name": "CancelCart",
+      "type": "GUI",
+      "inputs": [
+        {"name": "cart_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "reason", "type": "string", "domain": "free_text", "required": false}
+      ],
+      "outputs": [
+        {"name": "cancel_status", "type": "string", "domain": "enum"}
+      ],
+      "preconditions": {"cart_active": true},
+      "effects": {"cart_active": false, "cart_empty": true},
+      "constraints": ["cart must be active to cancel"],
+      "resources": ["database"],
+      "cost": {"time_ms": 50, "money": 0.0, "resource": 0.05, "risk": 0.01, "energy": 0.02},
+      "reliability": 0.999,
+      "availability": true,
+      "mechanism": {"ui_component": "CartCancelButton", "framework": "React", "endpoint": "/ui/cart/cancel"}
+    }
+  ]
+}

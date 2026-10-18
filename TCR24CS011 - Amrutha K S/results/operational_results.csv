@@ -1,0 +1,7 @@
+capability,execution_time,total_cost_index,risk,reliability,availability
+CreateOrder,100,103.11,0.1,0.99,1
+MakePayment,250,255.22,0.2,0.98,1
+CancelCart,50,52.05,0.05,0.995,1
+SendNotification,80,82.05499999999999,0.05,0.97,1
+CreateOrderDatabase,80,82.05,0.05,0.995,1
+CreateOrderGUI,300,304.1,0.1,0.95,1

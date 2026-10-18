@@ -1,0 +1,173 @@
+{
+  "initial_state": {
+    "User.authenticated": true,
+    "User.role": "CUSTOMER",
+    "Cart.exists": true,
+    "Cart.item_count": 3,
+    "Order.exists": false,
+    "Payment.status": "NOT_STARTED",
+    "Inventory.available": true,
+    "Notification.sent": false
+  },
+  "goal": [
+    {"variable": "Order.exists", "operator": "=", "value": true},
+    {"variable": "Payment.status", "operator": "=", "value": "SUCCESS"},
+    {"variable": "Notification.sent", "operator": "=", "value": true}
+  ],
+  "capabilities": [
+    {
+      "name": "CreateOrder",
+      "capability_type": "API",
+      "inputs": [
+        {"name": "cart_id", "type": "UUID", "domain": "valid UUIDs", "required": true}
+      ],
+      "outputs": [
+        {"name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": false}
+      ],
+      "preconditions": [
+        {"variable": "Cart.exists", "operator": "=", "value": true},
+        {"variable": "Cart.item_count", "operator": ">", "value": 0},
+        {"variable": "Inventory.available", "operator": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Order.exists", "operator": "=", "value": true},
+        {"variable": "Order.status", "operator": "=", "value": "CREATED"}
+      ],
+      "constraints": [],
+      "resources": ["Database", "Authentication token", "Network"],
+      "quality": {"time_ms": 100, "resource_cost": 2, "money_cost": 0.01, "risk": 0.10, "energy": 1},
+      "reliability": 0.99,
+      "availability": 1.0,
+      "mechanism": {"method": "POST", "endpoint": "/orders"},
+      "tags": ["order", "create"]
+    },
+    {
+      "name": "MakePayment",
+      "capability_type": "SERVICE",
+      "inputs": [
+        {"name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true}
+      ],
+      "outputs": [
+        {"name": "payment_id", "type": "UUID", "domain": "valid UUIDs", "required": false}
+      ],
+      "preconditions": [
+        {"variable": "Order.exists", "operator": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Payment.status", "operator": "=", "value": "SUCCESS"}
+      ],
+      "constraints": [
+        {"variable": "payment_amount", "operator": "<=", "value": 50000}
+      ],
+      "resources": ["Payment gateway", "Network"],
+      "quality": {"time_ms": 500, "resource_cost": 3, "money_cost": 0.20, "risk": 0.15, "energy": 2},
+      "reliability": 0.97,
+      "availability": 0.99,
+      "mechanism": {"provider": "PaymentGateway"},
+      "tags": ["payment"]
+    },
+    {
+      "name": "SendNotification",
+      "capability_type": "MESSAGE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [
+        {"variable": "Payment.status", "operator": "=", "value": "SUCCESS"}
+      ],
+      "effects": [
+        {"variable": "Notification.sent", "operator": "=", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["External service", "Network"],
+      "quality": {"time_ms": 80, "resource_cost": 1, "money_cost": 0.02, "risk": 0.02, "energy": 1},
+      "reliability": 0.995,
+      "availability": 0.98,
+      "mechanism": {"event": "PaymentSucceeded"},
+      "tags": ["notification"]
+    },
+    {
+      "name": "CancelCart",
+      "capability_type": "API",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [
+        {"variable": "Order.exists", "operator": "=", "value": false}
+      ],
+      "effects": [
+        {"variable": "Cart.exists", "operator": "=", "value": false}
+      ],
+      "constraints": [],
+      "resources": ["Database", "Network"],
+      "quality": {"time_ms": 70, "resource_cost": 1, "money_cost": 0.0, "risk": 0.03, "energy": 1},
+      "reliability": 0.99,
+      "availability": 1.0,
+      "mechanism": {"method": "DELETE", "endpoint": "/cart"},
+      "tags": ["cart", "cancel"]
+    },
+    {
+      "name": "CreateOrderDB",
+      "capability_type": "DATABASE",
+      "inputs": [
+        {"name": "cart_id", "type": "UUID", "domain": "valid UUIDs", "required": true}
+      ],
+      "outputs": [
+        {"name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": false}
+      ],
+      "preconditions": [
+        {"variable": "Cart.exists", "operator": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Order.exists", "operator": "=", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["Database"],
+      "quality": {"time_ms": 30, "resource_cost": 1, "money_cost": 0.0, "risk": 0.05, "energy": 1},
+      "reliability": 0.995,
+      "availability": 1.0,
+      "mechanism": {"operation": "INSERT", "table": "orders"},
+      "tags": ["order", "create", "alternative"]
+    },
+    {
+      "name": "CreateOrderGUI",
+      "capability_type": "GUI",
+      "inputs": [
+        {"name": "cart_id", "type": "UUID", "domain": "valid UUIDs", "required": true}
+      ],
+      "outputs": [
+        {"name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": false}
+      ],
+      "preconditions": [
+        {"variable": "Cart.exists", "operator": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Order.exists", "operator": "=", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["Database", "Authentication token"],
+      "quality": {"time_ms": 800, "resource_cost": 2, "money_cost": 0.0, "risk": 0.08, "energy": 2},
+      "reliability": 0.98,
+      "availability": 0.99,
+      "mechanism": {"action": "CLICK", "component": "submit_button"},
+      "tags": ["order", "create", "alternative"]
+    },
+    {
+      "name": "UpdateProfile",
+      "capability_type": "DATABASE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [
+        {"variable": "User.authenticated", "operator": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "User.profile_updated", "operator": "=", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["Database"],
+      "quality": {"time_ms": 120, "resource_cost": 1, "money_cost": 0.0, "risk": 0.02, "energy": 1},
+      "reliability": 0.99,
+      "availability": 1.0,
+      "mechanism": {"operation": "UPDATE", "table": "users"},
+      "tags": ["profile", "irrelevant"]
+    }
+  ]
+}

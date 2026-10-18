@@ -1,0 +1,872 @@
+{
+ "exp1_minimal": [
+  [
+   "CreateOrder -> MakePayment",
+   "STRICT",
+   "+1.00",
+   "1.00",
+   "0.00",
+   "0.00",
+   "0.23"
+  ],
+  [
+   "CreateOrder -> CancelCart",
+   "CONFLICT",
+   "-1.00",
+   "0.00",
+   "1.00",
+   "0.00",
+   "0.25"
+  ],
+  [
+   "MakePayment -> CreateOrder",
+   "INDEPENDENT",
+   "+0.00",
+   "1.00",
+   "0.00",
+   "0.00",
+   "0.23"
+  ],
+  [
+   "MakePayment -> CancelCart",
+   "CONFLICT",
+   "-1.00",
+   "0.00",
+   "1.00",
+   "-0.22",
+   "0.04"
+  ]
+ ],
+ "exp1": {
+  "P1_ecommerce_checkout": {
+   "accuracy": 1.0,
+   "dist": {
+    "CONFLICT": 51,
+    "INDEPENDENT": 106,
+    "PARTIAL": 18,
+    "STRICT": 7
+   },
+   "ablation": {
+    "full": 1.0,
+    "no saturation": 0.9505494505494505,
+    "no persistence": 0.8021978021978022,
+    "no ports": 0.9835164835164835,
+    "no sat+persist+ports": 0.8021978021978022,
+    "naive <e,p> dot": 0.8021978021978022
+   },
+   "flat_vs_blocks_corr": 0.9828732299235494
+  },
+  "P2_ml_pipeline": {
+   "accuracy": 1.0,
+   "dist": {
+    "CONFLICT": 11,
+    "INDEPENDENT": 181,
+    "PARTIAL": 9,
+    "STRICT": 9
+   },
+   "ablation": {
+    "full": 1.0,
+    "no saturation": 1.0,
+    "no persistence": 0.9666666666666667,
+    "no ports": 0.9904761904761905,
+    "no sat+persist+ports": 0.9571428571428572,
+    "naive <e,p> dot": 0.9476190476190476
+   },
+   "flat_vs_blocks_corr": 0.9752224107063253
+  },
+  "P3_loan_approval": {
+   "accuracy": 1.0,
+   "dist": {
+    "CONFLICT": 15,
+    "INDEPENDENT": 127,
+    "PARTIAL": 8,
+    "STRICT": 6
+   },
+   "ablation": {
+    "full": 1.0,
+    "no saturation": 0.9615384615384616,
+    "no persistence": 0.9423076923076923,
+    "no ports": 0.9871794871794872,
+    "no sat+persist+ports": 0.9294871794871795,
+    "naive <e,p> dot": 0.9294871794871795
+   },
+   "flat_vs_blocks_corr": 0.9574789475914394
+  }
+ },
+ "exp1_auc": [
+  [
+   "P1_ecommerce_checkout",
+   "0.674",
+   "0.645",
+   "0.632",
+   "0.959",
+   "0.31"
+  ],
+  [
+   "P2_ml_pipeline",
+   "0.677",
+   "0.554",
+   "0.532",
+   "0.869",
+   "0.18"
+  ],
+  [
+   "P3_loan_approval",
+   "0.649",
+   "0.548",
+   "0.521",
+   "0.904",
+   "0.18"
+  ]
+ ],
+ "exp2_c123": {
+  "pre": [
+   "User.authenticated",
+   "Cart.exists",
+   "Cart.item_count>=1",
+   "NOT Order.exists",
+   "Inventory.available",
+   "Payment.status=NOT_STARTED"
+  ],
+  "eff": [
+   "Cart.locked",
+   "Order.exists",
+   "NOT Order.status=NONE",
+   "NOT Order.status=CREATED",
+   "Order.status=PAID",
+   "NOT Order.status=SHIPPED",
+   "NOT Order.status=CANCELLED",
+   "NOT Payment.status=NOT_STARTED",
+   "NOT Payment.status=PENDING",
+   "Payment.status=SUCCESS",
+   "NOT Payment.status=FAILED",
+   "Payment.within_limit"
+  ],
+  "qadd": [
+   248.0,
+   0.04,
+   5.0,
+   1.15,
+   0.035265584994565204,
+   0.006513167198810063
+  ]
+ },
+ "exp2_algebra": {
+  "P0_assignment_minimal": {
+   "apply": {
+    "trials": 660,
+    "applicable_trials": 456,
+    "mismatches": 0
+   },
+   "compose": {
+    "chains": 211,
+    "valid_chains": 128,
+    "trials": 7610,
+    "applicable_trials": 4443,
+    "mismatches": 0
+   },
+   "assoc": {
+    "triples": 400,
+    "valid_triples": 175,
+    "validity_agree": 400,
+    "block_equal": 400
+   },
+   "identity": {
+    "caps": 3,
+    "identity_ok": 3
+   }
+  },
+  "P1_ecommerce_checkout": {
+   "apply": {
+    "trials": 3080,
+    "applicable_trials": 1125,
+    "mismatches": 0
+   },
+   "compose": {
+    "chains": 228,
+    "valid_chains": 147,
+    "trials": 8310,
+    "applicable_trials": 1824,
+    "mismatches": 0
+   },
+   "assoc": {
+    "triples": 400,
+    "valid_triples": 206,
+    "validity_agree": 400,
+    "block_equal": 400
+   },
+   "identity": {
+    "caps": 14,
+    "identity_ok": 14
+   }
+  },
+  "P2_ml_pipeline": {
+   "apply": {
+    "trials": 3300,
+    "applicable_trials": 1718,
+    "mismatches": 0
+   },
+   "compose": {
+    "chains": 244,
+    "valid_chains": 224,
+    "trials": 9560,
+    "applicable_trials": 3646,
+    "mismatches": 0
+   },
+   "assoc": {
+    "triples": 400,
+    "valid_triples": 334,
+    "validity_agree": 400,
+    "block_equal": 400
+   },
+   "identity": {
+    "caps": 15,
+    "identity_ok": 15
+   }
+  },
+  "P3_loan_approval": {
+   "apply": {
+    "trials": 2860,
+    "applicable_trials": 1333,
+    "mismatches": 0
+   },
+   "compose": {
+    "chains": 257,
+    "valid_chains": 219,
+    "trials": 9900,
+    "applicable_trials": 3133,
+    "mismatches": 0
+   },
+   "assoc": {
+    "triples": 400,
+    "valid_triples": 277,
+    "validity_agree": 400,
+    "block_equal": 400
+   },
+   "identity": {
+    "caps": 13,
+    "identity_ok": 13
+   }
+  }
+ },
+ "exp2_pooling": {
+  "P1_ecommerce_checkout": {
+   "algebraic": 1.0,
+   "mean-pool+sign": 0.8698481561822126,
+   "sum-pool+clip": 0.8698481561822126
+  },
+  "P2_ml_pipeline": {
+   "algebraic": 1.0,
+   "mean-pool+sign": 0.8068075117370892,
+   "sum-pool+clip": 0.8068075117370892
+  },
+  "P3_loan_approval": {
+   "algebraic": 1.0,
+   "mean-pool+sign": 0.8739763421292084,
+   "sum-pool+clip": 0.8739763421292084
+  }
+ },
+ "exp2_ctx": {
+  "free": "PARTIAL",
+  "with_ctx": "STRICT"
+ },
+ "exp2_applicable_SI": [
+  "CreateOrder",
+  "CancelCart",
+  "ViewCatalog",
+  "UpdateWishlist",
+  "AuditLog"
+ ],
+ "exp2_trace": [
+  [
+   "CreateOrder",
+   true
+  ],
+  [
+   "ValidatePaymentLimit",
+   true
+  ],
+  [
+   "MakePayment_API",
+   true
+  ],
+  [
+   "SendNotification",
+   true
+  ]
+ ],
+ "exp3": {
+  "P1_ecommerce_checkout": {
+   "control_same_type_func": 0.016819019306410152,
+   "control_same_type_impl": 0.7694794037281077,
+   "control_same_type_overall": 0.2589116803397594,
+   "retrieval": {
+    "func": 1.0,
+    "impl": 0.0,
+    "overall": 1.0,
+    "text": 0.8333333333333334
+   }
+  },
+  "P2_ml_pipeline": {
+   "control_same_type_func": 0.0284023301855612,
+   "control_same_type_impl": 0.6035502575711729,
+   "control_same_type_overall": 0.24170535637814117,
+   "retrieval": {
+    "func": 1.0,
+    "impl": 0.5,
+    "overall": 1.0,
+    "text": 1.0
+   }
+  },
+  "P3_loan_approval": {
+   "control_same_type_func": 0.029146019585489943,
+   "control_same_type_impl": 0.7853553390593274,
+   "control_same_type_overall": 0.2711664257219636,
+   "retrieval": {
+    "func": 1.0,
+    "impl": 0.0,
+    "overall": 1.0,
+    "text": 1.0
+   }
+  }
+ },
+ "exp4": {
+  "P1_ecommerce_checkout/main": {
+   "oracle": [
+    "CreateOrder",
+    "MakePayment_API",
+    "MakePayment_DB",
+    "MakePayment_GUI",
+    "SendNotification",
+    "ValidatePaymentLimit"
+   ],
+   "regressed": [
+    "CreateOrder",
+    "ValidatePaymentLimit",
+    "MakePayment_API",
+    "MakePayment_DB",
+    "MakePayment_GUI",
+    "SendNotification"
+   ],
+   "direct": [
+    "CreateOrder",
+    "MakePayment_API",
+    "MakePayment_DB",
+    "MakePayment_GUI",
+    "SendNotification"
+   ],
+   "harmful": [
+    "CancelOrder"
+   ],
+   "false_pos": [],
+   "false_neg": [],
+   "depth": {
+    "CreateOrder": 0,
+    "ReserveInventory": null,
+    "ValidatePaymentLimit": 1,
+    "MakePayment_API": 0,
+    "MakePayment_DB": 0,
+    "MakePayment_GUI": 0,
+    "GenerateInvoice": null,
+    "DispatchShipment": null,
+    "SendNotification": 0,
+    "CancelCart": null,
+    "CancelOrder": null,
+    "ViewCatalog": null,
+    "UpdateWishlist": null,
+    "AuditLog": null
+   }
+  },
+  "P1_ecommerce_checkout/fulfilment": {
+   "oracle": [
+    "CreateOrder",
+    "DispatchShipment",
+    "GenerateInvoice",
+    "MakePayment_API",
+    "MakePayment_DB",
+    "MakePayment_GUI",
+    "ReserveInventory",
+    "SendNotification",
+    "ValidatePaymentLimit"
+   ],
+   "regressed": [
+    "CreateOrder",
+    "ReserveInventory",
+    "ValidatePaymentLimit",
+    "MakePayment_API",
+    "MakePayment_DB",
+    "MakePayment_GUI",
+    "GenerateInvoice",
+    "DispatchShipment",
+    "SendNotification"
+   ],
+   "direct": [
+    "CreateOrder",
+    "MakePayment_API",
+    "MakePayment_DB",
+    "MakePayment_GUI",
+    "GenerateInvoice",
+    "DispatchShipment",
+    "SendNotification"
+   ],
+   "harmful": [
+    "CancelOrder"
+   ],
+   "false_pos": [],
+   "false_neg": [],
+   "depth": {
+    "CreateOrder": 0,
+    "ReserveInventory": 1,
+    "ValidatePaymentLimit": 1,
+    "MakePayment_API": 0,
+    "MakePayment_DB": 0,
+    "MakePayment_GUI": 0,
+    "GenerateInvoice": 0,
+    "DispatchShipment": 0,
+    "SendNotification": 0,
+    "CancelCart": null,
+    "CancelOrder": null,
+    "ViewCatalog": null,
+    "UpdateWishlist": null,
+    "AuditLog": null
+   }
+  },
+  "P2_ml_pipeline/main": {
+   "oracle": [
+    "CleanData",
+    "DeployModel",
+    "EngineerFeatures",
+    "EvaluateModel",
+    "GenerateReport",
+    "LoadCSV",
+    "LoadParquetS3",
+    "TrainModel_CPU",
+    "TrainModel_GPU",
+    "ValidateSchema"
+   ],
+   "regressed": [
+    "LoadCSV",
+    "LoadParquetS3",
+    "ValidateSchema",
+    "CleanData",
+    "EngineerFeatures",
+    "TrainModel_GPU",
+    "TrainModel_CPU",
+    "EvaluateModel",
+    "DeployModel",
+    "GenerateReport"
+   ],
+   "direct": [
+    "DeployModel",
+    "GenerateReport"
+   ],
+   "harmful": [],
+   "false_pos": [],
+   "false_neg": [],
+   "depth": {
+    "LoadCSV": 3,
+    "LoadParquetS3": 3,
+    "ValidateSchema": 3,
+    "CleanData": 3,
+    "ConvertToParquet": null,
+    "EngineerFeatures": 2,
+    "TrainModel_GPU": 1,
+    "TrainModel_CPU": 1,
+    "EvaluateModel": 1,
+    "DeployModel": 0,
+    "GenerateReport": 0,
+    "SendSlackAlert": null,
+    "ClearTempFiles": null,
+    "CompressLogs": null,
+    "PlotTSNE": null
+   }
+  },
+  "P2_ml_pipeline/train_only": {
+   "oracle": [
+    "CleanData",
+    "EngineerFeatures",
+    "LoadCSV",
+    "LoadParquetS3",
+    "TrainModel_CPU",
+    "TrainModel_GPU",
+    "ValidateSchema"
+   ],
+   "regressed": [
+    "LoadCSV",
+    "LoadParquetS3",
+    "ValidateSchema",
+    "CleanData",
+    "EngineerFeatures",
+    "TrainModel_GPU",
+    "TrainModel_CPU"
+   ],
+   "direct": [
+    "TrainModel_GPU",
+    "TrainModel_CPU"
+   ],
+   "harmful": [],
+   "false_pos": [],
+   "false_neg": [],
+   "depth": {
+    "LoadCSV": 2,
+    "LoadParquetS3": 2,
+    "ValidateSchema": 2,
+    "CleanData": 2,
+    "ConvertToParquet": null,
+    "EngineerFeatures": 1,
+    "TrainModel_GPU": 0,
+    "TrainModel_CPU": 0,
+    "EvaluateModel": null,
+    "DeployModel": null,
+    "GenerateReport": null,
+    "SendSlackAlert": null,
+    "ClearTempFiles": null,
+    "CompressLogs": null,
+    "PlotTSNE": null
+   }
+  },
+  "P3_loan_approval/main": {
+   "oracle": [
+    "ApproveLoan",
+    "AssessRisk",
+    "DisburseFunds",
+    "FetchCreditScore",
+    "SendDecisionEmail",
+    "SignContract",
+    "SubmitApplication",
+    "UploadDocuments",
+    "VerifyIdentity_API",
+    "VerifyIdentity_Manual"
+   ],
+   "regressed": [
+    "SubmitApplication",
+    "UploadDocuments",
+    "VerifyIdentity_API",
+    "VerifyIdentity_Manual",
+    "FetchCreditScore",
+    "AssessRisk",
+    "ApproveLoan",
+    "DeclineLoan",
+    "SignContract",
+    "DisburseFunds",
+    "SendDecisionEmail"
+   ],
+   "direct": [
+    "DisburseFunds",
+    "SendDecisionEmail"
+   ],
+   "harmful": [],
+   "false_pos": [
+    "DeclineLoan"
+   ],
+   "false_neg": [],
+   "depth": {
+    "SubmitApplication": 2,
+    "UploadDocuments": 5,
+    "VerifyIdentity_API": 4,
+    "VerifyIdentity_Manual": 4,
+    "FetchCreditScore": 3,
+    "AssessRisk": 2,
+    "ApproveLoan": 1,
+    "DeclineLoan": 1,
+    "SignContract": 1,
+    "DisburseFunds": 0,
+    "SendDecisionEmail": 0,
+    "ArchiveRecords": null,
+    "UpdateMarketingPrefs": null
+   }
+  },
+  "P3_loan_approval/decline": {
+   "oracle": [
+    "AssessRisk",
+    "DeclineLoan",
+    "FetchCreditScore",
+    "SendDecisionEmail",
+    "SubmitApplication",
+    "UploadDocuments",
+    "VerifyIdentity_API",
+    "VerifyIdentity_Manual"
+   ],
+   "regressed": [
+    "SubmitApplication",
+    "UploadDocuments",
+    "VerifyIdentity_API",
+    "VerifyIdentity_Manual",
+    "FetchCreditScore",
+    "AssessRisk",
+    "DeclineLoan",
+    "SendDecisionEmail"
+   ],
+   "direct": [
+    "DeclineLoan",
+    "SendDecisionEmail"
+   ],
+   "harmful": [
+    "ApproveLoan"
+   ],
+   "false_pos": [],
+   "false_neg": [],
+   "depth": {
+    "SubmitApplication": 5,
+    "UploadDocuments": 4,
+    "VerifyIdentity_API": 3,
+    "VerifyIdentity_Manual": 3,
+    "FetchCreditScore": 2,
+    "AssessRisk": 1,
+    "ApproveLoan": 1,
+    "DeclineLoan": 0,
+    "SignContract": null,
+    "DisburseFunds": null,
+    "SendDecisionEmail": 0,
+    "ArchiveRecords": null,
+    "UpdateMarketingPrefs": null
+   }
+  }
+ },
+ "exp5_mc": [
+  [
+   "P1",
+   "CreateOrder > ValidatePaymentLimit > MakePayment_API > SendN",
+   "273",
+   "0.041",
+   "0.9925",
+   "0.9926",
+   "0.0443",
+   "0.0440"
+  ],
+  [
+   "P2",
+   "LoadCSV > ValidateSchema > CleanData > EngineerFeatures > Tr",
+   "27440",
+   "0.400",
+   "0.9450",
+   "0.9455",
+   "0.0823",
+   "0.0826"
+  ],
+  [
+   "P3",
+   "SubmitApplication > UploadDocuments > VerifyIdentity_API > F",
+   "5700",
+   "1.250",
+   "0.9509",
+   "0.9508",
+   "0.0965",
+   "0.0959"
+  ]
+ ],
+ "exp5_invariance": {
+  "identical": 20,
+  "dsim_func": 0.0,
+  "dsim_overall": 0.006321920086510971
+ },
+ "exp5_profiles": [
+  [
+   "P1/payment",
+   "MakePayment_DB",
+   "MakePayment_DB",
+   "MakePayment_API"
+  ],
+  [
+   "P2/train",
+   "TrainModel_GPU",
+   "TrainModel_CPU",
+   "TrainModel_CPU"
+  ],
+  [
+   "P3/verify",
+   "VerifyIdentity_API",
+   "VerifyIdentity_API",
+   "VerifyIdentity_Manual"
+  ],
+  [
+   "P2/load",
+   "LoadCSV",
+   "LoadCSV",
+   "LoadCSV"
+  ]
+ ],
+ "exp5_avail": [
+  [
+   "P1 t=12h",
+   "['MakePayment_API', 'MakePayment_DB', 'MakePayment_GUI']"
+  ],
+  [
+   "P1 t=23h",
+   "['MakePayment_API', 'MakePayment_DB']"
+  ],
+  [
+   "P1 composite incl. GUI payment: window",
+   "[8, 22] -> avail at 23h: False"
+  ],
+  [
+   "P1 MakePayment_API unavailable -> top functional substitutes",
+   "[('MakePayment_GUI', 1.0), ('MakePayment_DB', 1.0)]"
+  ],
+  [
+   "P2 no GPU in environment: TrainModel_GPU feasible?",
+   "False"
+  ],
+  [
+   "P2 no GPU: best functional substitute",
+   "[('TrainModel_CPU', 1.0)]"
+  ],
+  [
+   "P3 t=20h: VerifyIdentity_Manual (09-17h) available?",
+   "False"
+  ],
+  [
+   "P3 t=20h: best substitute",
+   "VerifyIdentity_API"
+  ]
+ ],
+ "exp5_constraints": [
+  [
+   "loan amount 80 000 (> 50 000 limit)",
+   "ApproveLoan",
+   "1.00/0.00",
+   "0.80/0.20",
+   "False",
+   "False"
+  ],
+  [
+   "loan amount 20 000 (within limit)",
+   "ApproveLoan",
+   "1.00/0.00",
+   "1.00/0.00",
+   "True",
+   "True"
+  ],
+  [
+   "role GUEST",
+   "CreateOrder",
+   "1.00/0.00",
+   "0.83/0.17",
+   "False",
+   "False"
+  ],
+  [
+   "role CUSTOMER",
+   "CreateOrder",
+   "1.00/0.00",
+   "1.00/0.00",
+   "True",
+   "True"
+  ]
+ ],
+ "exp5_global": {
+  "safe": {
+   "certain": [],
+   "possible": []
+  },
+  "unsafe": {
+   "certain": [],
+   "possible": [
+    "K1"
+   ]
+  }
+ },
+ "eff_real": [
+  [
+   "P1_ecommerce_checkout",
+   26,
+   203,
+   "812 B",
+   "824 B",
+   "133 us",
+   "4.07 ms (14x14)"
+  ],
+  [
+   "P2_ml_pipeline",
+   17,
+   160,
+   "640 B",
+   "652 B",
+   "145 us",
+   "3.07 ms (15x15)"
+  ],
+  [
+   "P3_loan_approval",
+   20,
+   166,
+   "664 B",
+   "676 B",
+   "92 us",
+   "4.67 ms (13x13)"
+  ]
+ ],
+ "eff_scaling": [
+  [
+   250,
+   2000,
+   "88 ms",
+   "0.7 M pairs/s"
+  ],
+  [
+   500,
+   2000,
+   "290 ms",
+   "0.9 M pairs/s"
+  ],
+  [
+   1000,
+   2000,
+   "630 ms",
+   "1.6 M pairs/s"
+  ],
+  [
+   2000,
+   2000,
+   "2853 ms",
+   "1.4 M pairs/s"
+  ],
+  [
+   4000,
+   2000,
+   "12378 ms",
+   "1.3 M pairs/s"
+  ]
+ ],
+ "eff_compression": [
+  [
+   16,
+   0.41905200000000004,
+   0.5418893817051442
+  ],
+  [
+   32,
+   0.488439,
+   0.5952841275256833
+  ],
+  [
+   64,
+   0.5808223333333333,
+   0.6680787747829712
+  ],
+  [
+   128,
+   0.705317,
+   0.758093559270632
+  ],
+  [
+   256,
+   0.835741,
+   0.856059744493726
+  ],
+  [
+   512,
+   0.93817,
+   0.9398290306683347
+  ],
+  [
+   1024,
+   0.9873569999999999,
+   0.9871678228894196
+  ],
+  [
+   2048,
+   0.9991563333333332,
+   0.9990617536676902
+  ]
+ ]
+}

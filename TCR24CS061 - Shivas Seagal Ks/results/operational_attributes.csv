@@ -1,0 +1,9 @@
+Capability,Latency,Reliability,Risk,Cost
+CreateOrder,120,0.99,0.02,2.0
+MakePayment,250,0.98,0.03,3.0
+SendNotification,80,0.97,0.01,1.0
+CancelCart,100,0.96,0.04,1.5
+CreateOrderDB,150,0.98,0.02,1.5
+CreateOrderGUI,180,0.97,0.03,2.5
+RefundPayment,200,0.97,0.04,2.0
+TrackDelivery,90,0.99,0.01,1.0

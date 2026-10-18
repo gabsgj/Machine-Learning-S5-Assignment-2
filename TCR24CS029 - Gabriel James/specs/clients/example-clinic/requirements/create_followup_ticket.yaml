@@ -1,0 +1,124 @@
+# Client requirement sheet, example clinic: raise a follow-up queue ticket after a discharge.
+#
+# This is the shape a client uses to state its own requirement before any module has been
+# chosen. The vocabulary is the client's own: patient_ref, visit_reason, urgency, ticket_ref.
+# The mapper ranks the capabilities of whichever pool the client selects, and the adapter
+# synthesizer turns a selected candidate into executable field mappings with renames and
+# transforms. Resolve it with, for example:
+#
+#   careweave_cli mapping specs/clients/example-clinic/requirements/create_followup_ticket.yaml \
+#       --pool modules/appointment-queue/spec.json
+#
+# See documents/04_MAPPING_AND_ADAPTERS.md, section "Client requirements and chosen pools".
+spec_version: "1.0"
+
+module:
+  module_id: requirement-create-followup-ticket
+  version: "1.0"
+  domain: hospital
+  port: 5202
+  base_url: "http://127.0.0.1:5202"
+  health: /health
+  description: Client requirement for a follow-up queue ticket phrased in the example clinic vocabulary patient_ref, visit_reason, urgency, ticket_ref.
+  language: specification
+
+state_schema:
+  - name: Patient.discharged
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Ticket.open
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Queue.length
+    type: integer
+    domain:
+      - 0
+      - 10000
+    kind: counter
+
+initial_state:
+  Patient.discharged: false
+
+resources:
+  - id: requirement_db
+    kind: database
+    available: true
+    details: Placeholder resource of the requirement, bound only when a candidate is selected
+
+constraints:
+  - id: K-Required-Inputs
+    kind: input
+    expression: patient_ref is mandatory
+    enforced_by: requirement definition
+
+goal:
+  - variable: Ticket.open
+    op: "="
+    value: true
+
+capabilities:
+  - id: REQ-CreateFollowupTicket
+    name: create_followup_ticket
+    type: API
+    description: Raise a follow-up queue ticket for a freshly discharged patient.
+    inputs:
+      - name: patient_ref
+        type: string
+        domain: clinic patient reference
+        required: true
+      - name: visit_reason
+        type: string
+        domain: follow-up reason text
+        required: false
+      - name: urgency
+        type: enumerated
+        domain:
+          - LOW
+          - NORMAL
+          - HIGH
+          - EMERGENCY
+        required: false
+    outputs:
+      - name: ticket_ref
+        type: string
+        domain: generated ticket identifier
+      - name: ticket_number
+        type: integer
+        domain:
+          - 1
+          - 100000
+    preconditions:
+      - variable: Patient.discharged
+        op: "="
+        value: true
+    effects:
+      - variable: Ticket.open
+        op: SET
+        value: true
+      - variable: Queue.length
+        op: INCREMENT
+        value: 1
+    constraints: []
+    resources:
+      - requirement_db
+    quality:
+      time_ms: 120
+      money: 0
+      resource: 0.02
+      risk: 0.01
+      energy: 0.001
+    reliability: 0.98
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/create_followup_ticket
+    roles:
+      - clerk

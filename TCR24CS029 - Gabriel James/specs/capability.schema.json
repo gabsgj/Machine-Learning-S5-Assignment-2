@@ -1,0 +1,252 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://careweave.local/specs/capability.schema.json",
+  "title": "Formal Capability Specification Sheet",
+  "description": "Formal specification sheet for one application module. The root object carries the formal application model A = (S, C, S_I, G, R, K) for the module: state variable schema S, capability set C, initial state S_I, goal specification G, resources R and global constraints K.",
+  "type": "object",
+  "required": ["spec_version", "module", "state_schema", "initial_state", "resources", "constraints", "goal", "capabilities"],
+  "additionalProperties": false,
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "description": "Version of this specification sheet format.",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "module": {
+      "type": "object",
+      "description": "Identity and deployment facts of the module that implements these capabilities.",
+      "required": ["module_id", "version", "domain", "port", "base_url", "health"],
+      "additionalProperties": false,
+      "properties": {
+        "module_id": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "domain": {"type": "string", "enum": ["hospital", "ecommerce", "documents", "generic"]},
+        "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+        "base_url": {"type": "string", "minLength": 1},
+        "health": {"type": "string", "description": "Health endpoint path, relative to base_url."},
+        "description": {"type": "string"},
+        "language": {"type": "string", "description": "Implementation language of the module."},
+        "database_file": {"type": "string", "description": "SQLite database file, relative to the module root, when the module owns one."},
+        "ui": {"type": "string", "description": "UI root path served by the module, when the module serves one."}
+      }
+    },
+    "state_schema": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Typed state variable schema. Each entry declares one state variable x with a name, type and domain.",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "domain"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string", "minLength": 1, "pattern": "^[A-Za-z_][A-Za-z0-9_.]*$"},
+          "type": {"type": "string", "enum": ["boolean", "integer", "real", "categorical", "enumerated", "structured"]},
+          "domain": {
+            "description": "Value domain. For boolean the domain is [false, true]; for enumerated and categorical a list of allowed values; for integer and real a two element [min, max] range or the string \"unbounded\"; for structured a list of component field names.",
+            "oneOf": [
+              {"type": "array", "items": {}},
+              {"type": "string", "enum": ["unbounded"]}
+            ]
+          },
+          "unit": {"type": "string"},
+          "kind": {"type": "string", "enum": ["value", "counter", "flag", "status", "resource"]}
+        }
+      }
+    },
+    "initial_state": {
+      "type": "object",
+      "description": "S_I: the condition of the application before execution begins. Keys must appear in state_schema.",
+      "minProperties": 1
+    },
+    "resources": {
+      "type": "array",
+      "description": "R: resources the module can provide or consume.",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {"type": "string", "enum": ["database", "authentication_token", "payment_gateway", "network", "file_system", "gpu", "external_service", "clock"]},
+          "available": {"type": "boolean"},
+          "details": {"type": "string"}
+        }
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "description": "K: global constraints and policies of the application.",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "expression"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {"type": "string", "enum": ["input", "state", "resource", "security", "temporal", "dependency", "domain"]},
+          "expression": {"type": "string", "minLength": 1, "description": "Constraint expression over typed state variables."},
+          "enforced_by": {"type": "string", "description": "Endpoint or service function that enforces the constraint."}
+        }
+      }
+    },
+    "goal": {
+      "type": "array",
+      "description": "G: goal specification of the module in isolation, as a set of typed conditions.",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/condition"}
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "description": "C: the capability set of the module. Each element is the formal tuple (T, I, O, P, E, K, R, Q, Rel, A, M).",
+      "items": {"$ref": "#/$defs/capability"}
+    }
+  },
+  "$defs": {
+    "value": {
+      "description": "Typed literal value. Integral JSON numbers decode to the integer type and fractional numbers to the real type; the schema cannot separate them because JSON Schema treats an integer as a number, so a single numeric alternative is used.",
+      "oneOf": [
+        {"type": "boolean"},
+        {"type": "number"},
+        {"type": "string"},
+        {"type": "array", "items": {"type": ["boolean", "integer", "number", "string"]}}
+      ]
+    },
+    "condition": {
+      "type": "object",
+      "description": "Typed condition over a state variable. Operators: =, !=, <, <=, >, >=, in.",
+      "required": ["variable", "op", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "variable": {"type": "string", "minLength": 1},
+        "op": {"type": "string", "enum": ["=", "!=", "<", "<=", ">", ">=", "in"]},
+        "value": {"$ref": "#/$defs/value"}
+      }
+    },
+    "effect_item": {
+      "type": "object",
+      "description": "Effect over a state variable. Operator SET assigns a value, INCREMENT and DECREMENT change a numeric variable, DELETE removes the binding.",
+      "required": ["variable", "op", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "variable": {"type": "string", "minLength": 1},
+        "op": {"type": "string", "enum": ["SET", "INCREMENT", "DECREMENT", "DELETE"]},
+        "value": {"$ref": "#/$defs/value"}
+      }
+    },
+    "io_item": {
+      "type": "object",
+      "required": ["name", "type", "domain"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "type": {"type": "string", "minLength": 1},
+        "domain": {
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": ["boolean", "integer", "number", "string"]}}
+          ]
+        },
+        "required": {"type": "boolean"}
+      }
+    },
+    "availability": {
+      "description": "A_i, or the time windowed form A_i(t).",
+      "oneOf": [
+        {"type": "boolean"},
+        {"type": "integer", "enum": [0, 1]},
+        {"type": "object",
+         "required": ["always"],
+         "additionalProperties": false,
+         "properties": {
+           "always": {"type": "boolean"},
+           "windows": {
+             "type": "array",
+             "items": {
+               "type": "object",
+               "required": ["days", "from", "to"],
+               "additionalProperties": false,
+               "properties": {
+                 "days": {"type": "array", "items": {"type": "string", "enum": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]}},
+                 "from": {"type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$"},
+                 "to": {"type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$"},
+                 "timezone": {"type": "string"}
+               }
+             }
+           }
+         }
+        }
+      ]
+    },
+    "mechanism": {
+      "type": "object",
+      "description": "M_i: execution mechanism. Fields not relevant to the capability type are omitted.",
+      "required": ["kind"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"type": "string", "enum": ["API", "DATABASE", "GUI", "EVENT", "FUNCTION", "FILE", "COMPUTATION", "MESSAGE", "SERVICE"]},
+        "method": {"type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]},
+        "endpoint": {"type": "string"},
+        "operation": {
+          "description": "Database operation on the declared table. Canonical names are insert, update and select_one; the aliases create, set, select, query and read are accepted and mapped by the adapter synthesizer.",
+          "type": "string",
+          "enum": ["insert", "create", "update", "set", "select", "query", "select_one", "read"]
+        },
+        "table": {"type": "string"},
+        "action": {"type": "string", "enum": ["CLICK", "SUBMIT", "SELECT", "NAVIGATE"]},
+        "component": {"type": "string"},
+        "page": {"type": "string"},
+        "trigger": {"type": "string"},
+        "handler": {"type": "string"},
+        "topic": {"type": "string"},
+        "queue": {"type": "string"},
+        "function": {"type": "string"},
+        "module_path": {"type": "string"},
+        "path": {"type": "string"},
+        "format": {"type": "string", "enum": ["csv", "json", "text", "binary"]},
+        "expression": {"type": "string"},
+        "output_artifact": {"type": "string"},
+        "service": {"type": "string"},
+        "base_url": {"type": "string"},
+        "notes": {"type": "string"}
+      }
+    },
+    "capability": {
+      "type": "object",
+      "required": ["id", "name", "type", "inputs", "outputs", "preconditions", "effects", "constraints", "resources", "quality", "reliability", "availability", "mechanism"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "description": "Stable capability identifier, for example PR-Register."},
+        "name": {"type": "string", "minLength": 1, "description": "Machine name, for example register_patient or Pat_reg."},
+        "type": {"type": "string", "description": "T_i: capability type.", "enum": ["API", "DATABASE", "GUI", "EVENT", "FUNCTION", "FILE", "COMPUTATION", "MESSAGE", "SERVICE"]},
+        "description": {"type": "string"},
+        "inputs": {"type": "array", "items": {"$ref": "#/$defs/io_item"}, "description": "I_i"},
+        "outputs": {"type": "array", "items": {"$ref": "#/$defs/io_item"}, "description": "O_i"},
+        "preconditions": {"type": "array", "items": {"$ref": "#/$defs/condition"}, "description": "P_i"},
+        "effects": {"type": "array", "items": {"$ref": "#/$defs/effect_item"}, "description": "E_i"},
+        "constraints": {"type": "array", "items": {"$ref": "#/$defs/condition"}, "description": "K_i: capability specific constraints over inputs or state."},
+        "resources": {"type": "array", "items": {"type": "string"}, "description": "R_i: resource identifiers required to execute."},
+        "quality": {
+          "type": "object",
+          "description": "Q_i: quality attributes. At least time_ms, money, resource, risk and energy are supported; extra attributes are allowed.",
+          "additionalProperties": false,
+          "properties": {
+            "time_ms": {"type": "number", "minimum": 0},
+            "money": {"type": "number", "minimum": 0},
+            "resource": {"type": "number", "minimum": 0},
+            "risk": {"type": "number", "minimum": 0, "maximum": 1},
+            "energy": {"type": "number", "minimum": 0}
+          }
+        },
+        "reliability": {"type": "number", "minimum": 0, "maximum": 1, "description": "Rel_i"},
+        "availability": {"$ref": "#/$defs/availability"},
+        "mechanism": {"$ref": "#/$defs/mechanism"},
+        "roles": {"type": "array", "items": {"type": "string"}},
+        "state_delta_hint": {
+          "type": "object",
+          "description": "Optional declaration of the net state delta when the module wants to be explicit about it. Informational only; the encoder computes the delta from preconditions and effects.",
+          "additionalProperties": {"type": ["boolean", "integer", "number", "string"]}
+        }
+      }
+    }
+  }
+}

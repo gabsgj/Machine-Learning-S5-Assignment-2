@@ -1,0 +1,411 @@
+{
+  "availability": [
+    {
+      "minute": 0,
+      "note": "no time point supplied; window evaluation skipped",
+      "outcome": "skip",
+      "verdict": "uncertain",
+      "weekday": ""
+    },
+    {
+      "minute": 480,
+      "note": "opens at 08:00",
+      "outcome": "pass",
+      "verdict": "uncertain",
+      "weekday": "mon"
+    },
+    {
+      "minute": 200,
+      "note": "before the window",
+      "outcome": "fail",
+      "verdict": "incompatible",
+      "weekday": "mon"
+    },
+    {
+      "minute": 1019,
+      "note": "one minute before close",
+      "outcome": "pass",
+      "verdict": "uncertain",
+      "weekday": "mon"
+    },
+    {
+      "minute": 1020,
+      "note": "the closing minute is outside (half open interval)",
+      "outcome": "fail",
+      "verdict": "incompatible",
+      "weekday": "mon"
+    },
+    {
+      "minute": 480,
+      "note": "weekend",
+      "outcome": "fail",
+      "verdict": "incompatible",
+      "weekday": "sat"
+    }
+  ],
+  "default_weights": {
+    "kind_tie_break": true,
+    "margin": 0.04921502651526832,
+    "selected": "AR-PatReg"
+  },
+  "experiment": "exp5_operational_attributes",
+  "numeric_toggles": [
+    {
+      "attribute": "cost-time",
+      "composed": 320.0,
+      "fail_boundary": 319.68,
+      "fail_verdict": "incompatible",
+      "pair": "PAT-CreateOrder -> PAT-MakePayment",
+      "pass_boundary": 320.0,
+      "pass_verdict": "compatible"
+    },
+    {
+      "attribute": "cost-money",
+      "composed": 0.5,
+      "fail_boundary": 0.4995,
+      "fail_verdict": "incompatible",
+      "pair": "PAT-CreateOrder -> PAT-MakePayment",
+      "pass_boundary": 0.5,
+      "pass_verdict": "compatible"
+    },
+    {
+      "attribute": "cost-energy",
+      "composed": 0.006,
+      "fail_boundary": 0.005994,
+      "fail_verdict": "incompatible",
+      "pair": "PAT-CreateOrder -> PAT-MakePayment",
+      "pass_boundary": 0.006,
+      "pass_verdict": "compatible"
+    },
+    {
+      "attribute": "cost-resource",
+      "composed": 0.1,
+      "fail_boundary": 0.0999,
+      "fail_verdict": "incompatible",
+      "pair": "DEC-ScheduleMaintenance -> DEC-EscalateTicket",
+      "pass_boundary": 0.1,
+      "pass_verdict": "uncertain"
+    },
+    {
+      "attribute": "risk",
+      "composed": 0.03960000000000004,
+      "fail_boundary": 0.03956040000000004,
+      "fail_verdict": "incompatible",
+      "pair": "DEC-ScheduleMaintenance -> DEC-EscalateTicket",
+      "pass_boundary": 0.03960000000000004,
+      "pass_verdict": "uncertain"
+    },
+    {
+      "attribute": "reliability",
+      "composed": 0.9408,
+      "fail_boundary": 0.9417407999999998,
+      "fail_verdict": "incompatible",
+      "pair": "DEC-ScheduleMaintenance -> DEC-EscalateTicket",
+      "pass_boundary": 0.9408,
+      "pass_verdict": "uncertain"
+    }
+  ],
+  "resources_and_roles": [
+    {
+      "check": "resources",
+      "enforced": true,
+      "inventory": [
+        "decoy_db"
+      ],
+      "outcome": "pass",
+      "verdict": "uncertain"
+    },
+    {
+      "check": "resources",
+      "enforced": true,
+      "inventory": [],
+      "outcome": "fail",
+      "verdict": "incompatible"
+    },
+    {
+      "check": "resources",
+      "enforced": false,
+      "inventory": [],
+      "outcome": "skip",
+      "verdict": "uncertain"
+    },
+    {
+      "check": "resources",
+      "enforced": false,
+      "inventory": [
+        "decoy_db"
+      ],
+      "outcome": "skip",
+      "verdict": "uncertain"
+    },
+    {
+      "check": "roles",
+      "enforced": true,
+      "inventory": [
+        "service"
+      ],
+      "outcome": "pass",
+      "verdict": "uncertain"
+    },
+    {
+      "check": "roles",
+      "enforced": true,
+      "inventory": [
+        "service",
+        "admin"
+      ],
+      "outcome": "pass",
+      "verdict": "uncertain"
+    },
+    {
+      "check": "roles",
+      "enforced": true,
+      "inventory": [
+        "customer"
+      ],
+      "outcome": "fail",
+      "verdict": "incompatible"
+    },
+    {
+      "check": "roles",
+      "enforced": false,
+      "inventory": [],
+      "outcome": "skip",
+      "verdict": "uncertain"
+    }
+  ],
+  "smallest_positive_sweep_margin": 0.003515359036804888,
+  "weight_sweep": [
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.0,
+      "fields_weight": 0.5,
+      "form_total": 0.6933800209936674,
+      "kind_tie_break": false,
+      "margin": 0.07030718073609765,
+      "name_weight": 0.5,
+      "pat_reg_total": 0.763687201729765,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.05,
+      "fields_weight": 0.475,
+      "form_total": 0.708711019943984,
+      "kind_tie_break": false,
+      "margin": 0.06679182169929276,
+      "name_weight": 0.475,
+      "pat_reg_total": 0.7755028416432768,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.1,
+      "fields_weight": 0.45,
+      "form_total": 0.7240420188943006,
+      "kind_tie_break": false,
+      "margin": 0.06327646266248788,
+      "name_weight": 0.45,
+      "pat_reg_total": 0.7873184815567885,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.15,
+      "fields_weight": 0.425,
+      "form_total": 0.7393730178446173,
+      "kind_tie_break": false,
+      "margin": 0.05976110362568299,
+      "name_weight": 0.425,
+      "pat_reg_total": 0.7991341214703003,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.2,
+      "fields_weight": 0.4,
+      "form_total": 0.7547040167949339,
+      "kind_tie_break": false,
+      "margin": 0.05624574458887821,
+      "name_weight": 0.4,
+      "pat_reg_total": 0.8109497613838121,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.25,
+      "fields_weight": 0.375,
+      "form_total": 0.7700350157452505,
+      "kind_tie_break": false,
+      "margin": 0.05273038555207332,
+      "name_weight": 0.375,
+      "pat_reg_total": 0.8227654012973238,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.3,
+      "fields_weight": 0.35,
+      "form_total": 0.7853660146955671,
+      "kind_tie_break": true,
+      "margin": 0.04921502651526832,
+      "name_weight": 0.35,
+      "pat_reg_total": 0.8345810412108354,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.35,
+      "fields_weight": 0.325,
+      "form_total": 0.8006970136458837,
+      "kind_tie_break": true,
+      "margin": 0.045699667478463546,
+      "name_weight": 0.325,
+      "pat_reg_total": 0.8463966811243473,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.4,
+      "fields_weight": 0.3,
+      "form_total": 0.8160280125962005,
+      "kind_tie_break": true,
+      "margin": 0.042184308441658436,
+      "name_weight": 0.3,
+      "pat_reg_total": 0.8582123210378589,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.45,
+      "fields_weight": 0.275,
+      "form_total": 0.831359011546517,
+      "kind_tie_break": true,
+      "margin": 0.03866894940485377,
+      "name_weight": 0.275,
+      "pat_reg_total": 0.8700279609513708,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.5,
+      "fields_weight": 0.25,
+      "form_total": 0.8466900104968337,
+      "kind_tie_break": true,
+      "margin": 0.03515359036804877,
+      "name_weight": 0.25,
+      "pat_reg_total": 0.8818436008648824,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.55,
+      "fields_weight": 0.22499999999999998,
+      "form_total": 0.8620210094471503,
+      "kind_tie_break": true,
+      "margin": 0.03163823133124399,
+      "name_weight": 0.22499999999999998,
+      "pat_reg_total": 0.8936592407783943,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.6,
+      "fields_weight": 0.2,
+      "form_total": 0.8773520083974669,
+      "kind_tie_break": true,
+      "margin": 0.028122872294439105,
+      "name_weight": 0.2,
+      "pat_reg_total": 0.905474880691906,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.65,
+      "fields_weight": 0.175,
+      "form_total": 0.8926830073477836,
+      "kind_tie_break": true,
+      "margin": 0.024607513257634217,
+      "name_weight": 0.175,
+      "pat_reg_total": 0.9172905206054178,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.7,
+      "fields_weight": 0.15000000000000002,
+      "form_total": 0.9080140062981001,
+      "kind_tie_break": true,
+      "margin": 0.02109215422082933,
+      "name_weight": 0.15000000000000002,
+      "pat_reg_total": 0.9291061605189295,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.75,
+      "fields_weight": 0.125,
+      "form_total": 0.9233450052484169,
+      "kind_tie_break": true,
+      "margin": 0.01757679518402433,
+      "name_weight": 0.125,
+      "pat_reg_total": 0.9409218004324412,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.8,
+      "fields_weight": 0.09999999999999998,
+      "form_total": 0.9386760041987334,
+      "kind_tie_break": true,
+      "margin": 0.014061436147219553,
+      "name_weight": 0.09999999999999998,
+      "pat_reg_total": 0.952737440345953,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.85,
+      "fields_weight": 0.07500000000000001,
+      "form_total": 0.9540070031490501,
+      "kind_tie_break": true,
+      "margin": 0.010546077110414664,
+      "name_weight": 0.07500000000000001,
+      "pat_reg_total": 0.9645530802594647,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.9,
+      "fields_weight": 0.04999999999999999,
+      "form_total": 0.9693380020993667,
+      "kind_tie_break": true,
+      "margin": 0.007030718073609776,
+      "name_weight": 0.04999999999999999,
+      "pat_reg_total": 0.9763687201729765,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 0.95,
+      "fields_weight": 0.025000000000000022,
+      "form_total": 0.9846690010496834,
+      "kind_tie_break": true,
+      "margin": 0.003515359036804888,
+      "name_weight": 0.025000000000000022,
+      "pat_reg_total": 0.9881843600864882,
+      "selected": "AR-PatReg"
+    },
+    {
+      "ambiguous": false,
+      "conditions_weight": 1.0,
+      "fields_weight": 0.0,
+      "form_total": 1.0,
+      "kind_tie_break": true,
+      "margin": 0.0,
+      "name_weight": 0.0,
+      "pat_reg_total": 1.0,
+      "selected": "AR-PatReg"
+    }
+  ]
+}

@@ -1,0 +1,1178 @@
+{
+ "problem_id": "P1_ecommerce_checkout",
+ "domain": "e-commerce",
+ "description": "Checkout: from an authenticated cart to a paid order and a notification.",
+ "state_variables": [
+  {
+   "name": "User.authenticated",
+   "type": "bool"
+  },
+  {
+   "name": "User.role",
+   "type": "enum",
+   "values": [
+    "GUEST",
+    "CUSTOMER",
+    "ADMIN"
+   ]
+  },
+  {
+   "name": "Cart.exists",
+   "type": "bool"
+  },
+  {
+   "name": "Cart.item_count",
+   "type": "int",
+   "lo": 0,
+   "hi": 99
+  },
+  {
+   "name": "Cart.locked",
+   "type": "bool"
+  },
+  {
+   "name": "Order.exists",
+   "type": "bool"
+  },
+  {
+   "name": "Order.status",
+   "type": "enum",
+   "values": [
+    "NONE",
+    "CREATED",
+    "PAID",
+    "SHIPPED",
+    "CANCELLED"
+   ]
+  },
+  {
+   "name": "Inventory.available",
+   "type": "bool"
+  },
+  {
+   "name": "Inventory.reserved",
+   "type": "bool"
+  },
+  {
+   "name": "Payment.status",
+   "type": "enum",
+   "values": [
+    "NOT_STARTED",
+    "PENDING",
+    "SUCCESS",
+    "FAILED"
+   ]
+  },
+  {
+   "name": "Payment.within_limit",
+   "type": "bool"
+  },
+  {
+   "name": "Notification.sent",
+   "type": "bool"
+  },
+  {
+   "name": "Invoice.generated",
+   "type": "bool"
+  },
+  {
+   "name": "Shipment.dispatched",
+   "type": "bool"
+  },
+  {
+   "name": "Catalog.viewed",
+   "type": "bool"
+  },
+  {
+   "name": "Audit.logged",
+   "type": "bool"
+  },
+  {
+   "name": "Wishlist.updated",
+   "type": "bool"
+  }
+ ],
+ "initial_state": {
+  "User.authenticated": true,
+  "User.role": "CUSTOMER",
+  "Cart.exists": true,
+  "Cart.item_count": 3,
+  "Cart.locked": false,
+  "Order.exists": false,
+  "Order.status": "NONE",
+  "Inventory.available": true,
+  "Inventory.reserved": false,
+  "Payment.status": "NOT_STARTED",
+  "Payment.within_limit": false,
+  "Notification.sent": false,
+  "Invoice.generated": false,
+  "Shipment.dispatched": false,
+  "Catalog.viewed": false,
+  "Audit.logged": false,
+  "Wishlist.updated": false
+ },
+ "goals": {
+  "main": [
+   {
+    "var": "Order.exists",
+    "op": "==",
+    "value": true
+   },
+   {
+    "var": "Payment.status",
+    "op": "==",
+    "value": "SUCCESS"
+   },
+   {
+    "var": "Notification.sent",
+    "op": "==",
+    "value": true
+   }
+  ],
+  "fulfilment": [
+   {
+    "var": "Order.exists",
+    "op": "==",
+    "value": true
+   },
+   {
+    "var": "Payment.status",
+    "op": "==",
+    "value": "SUCCESS"
+   },
+   {
+    "var": "Invoice.generated",
+    "op": "==",
+    "value": true
+   },
+   {
+    "var": "Shipment.dispatched",
+    "op": "==",
+    "value": true
+   },
+   {
+    "var": "Notification.sent",
+    "op": "==",
+    "value": true
+   }
+  ]
+ },
+ "goal_text": {
+  "main": "create an order, pay for it and notify the customer",
+  "fulfilment": "create an order, pay for it, invoice it, ship it and notify the customer"
+ },
+ "resources": [
+  "Database",
+  "AuthToken",
+  "PaymentGateway",
+  "Network",
+  "FileSystem",
+  "ExternalService",
+  "EventBus",
+  "Browser"
+ ],
+ "environment": [
+  "Database",
+  "AuthToken",
+  "PaymentGateway",
+  "Network",
+  "FileSystem",
+  "ExternalService",
+  "EventBus",
+  "Browser"
+ ],
+ "global_constraints": [
+  {
+   "id": "K1",
+   "description": "never dispatch before payment succeeded",
+   "forbid": [
+    {
+     "var": "Shipment.dispatched",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Payment.status",
+     "op": "!=",
+     "value": "SUCCESS"
+    }
+   ]
+  }
+ ],
+ "domain_parent": {
+  "positive_decimal": "decimal",
+  "valid_uuid": "uuid",
+  "pdf": "file"
+ },
+ "context_ports": [
+  {
+   "name": "cart_id",
+   "type": "UUID",
+   "domain": "valid_uuid",
+   "required": true
+  },
+  {
+   "name": "amount",
+   "type": "DECIMAL",
+   "domain": "positive_decimal",
+   "required": true
+  },
+  {
+   "name": "payment_token",
+   "type": "STRING",
+   "domain": "token",
+   "required": true
+  },
+  {
+   "name": "user_id",
+   "type": "UUID",
+   "domain": "valid_uuid",
+   "required": true
+  }
+ ],
+ "capabilities": [
+  {
+   "id": "CreateOrder",
+   "type": "API",
+   "description": "create an order from the authenticated customer's cart",
+   "inputs": [
+    {
+     "name": "cart_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "order_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "User.authenticated",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Cart.exists",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Cart.item_count",
+     "op": ">",
+     "value": 0
+    },
+    {
+     "var": "Inventory.available",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Order.exists",
+     "op": "==",
+     "value": false
+    }
+   ],
+   "effects": [
+    {
+     "var": "Order.exists",
+     "value": true
+    },
+    {
+     "var": "Order.status",
+     "value": "CREATED"
+    },
+    {
+     "var": "Cart.locked",
+     "value": true
+    }
+   ],
+   "constraints": [
+    {
+     "var": "User.role",
+     "op": "in",
+     "value": [
+      "CUSTOMER",
+      "ADMIN"
+     ]
+    }
+   ],
+   "resources": [
+    "Database",
+    "AuthToken",
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 60,
+    "money": 0.01,
+    "resource_cost": 2,
+    "risk": 0.01,
+    "energy": 0.5
+   },
+   "reliability": 0.999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "POST",
+    "endpoint": "/orders"
+   }
+  },
+  {
+   "id": "ReserveInventory",
+   "type": "DATABASE",
+   "description": "reserve stock for the order",
+   "inputs": [
+    {
+     "name": "order_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "reservation_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Order.status",
+     "op": "==",
+     "value": "CREATED"
+    },
+    {
+     "var": "Inventory.available",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Inventory.reserved",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Database"
+   ],
+   "qos": {
+    "time_ms": 35,
+    "money": 0.002,
+    "resource_cost": 2,
+    "risk": 0.02,
+    "energy": 0.3
+   },
+   "reliability": 0.998,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "operation": "UPDATE",
+    "table": "inventory"
+   }
+  },
+  {
+   "id": "ValidatePaymentLimit",
+   "type": "FUNCTION",
+   "description": "check that the amount is within the limit",
+   "inputs": [
+    {
+     "name": "order_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    },
+    {
+     "name": "amount",
+     "type": "DECIMAL",
+     "domain": "decimal",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "limit_token",
+     "type": "STRING",
+     "domain": "token",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Order.exists",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Payment.within_limit",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [],
+   "qos": {
+    "time_ms": 8,
+    "money": 0.0,
+    "resource_cost": 1,
+    "risk": 0.005,
+    "energy": 0.05
+   },
+   "reliability": 0.9995,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "function": "validate_limit",
+    "module": "payments"
+   }
+  },
+  {
+   "id": "MakePayment_API",
+   "type": "API",
+   "description": "pay through the payment gateway API",
+   "inputs": [
+    {
+     "name": "order_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    },
+    {
+     "name": "amount",
+     "type": "DECIMAL",
+     "domain": "decimal",
+     "required": true
+    },
+    {
+     "name": "payment_token",
+     "type": "STRING",
+     "domain": "token",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "payment_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Order.exists",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Payment.status",
+     "op": "==",
+     "value": "NOT_STARTED"
+    },
+    {
+     "var": "Payment.within_limit",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Payment.status",
+     "value": "SUCCESS"
+    },
+    {
+     "var": "Order.status",
+     "value": "PAID"
+    }
+   ],
+   "constraints": [
+    {
+     "var": "User.role",
+     "op": "in",
+     "value": [
+      "CUSTOMER",
+      "ADMIN"
+     ]
+    }
+   ],
+   "resources": [
+    "PaymentGateway",
+    "Network",
+    "AuthToken"
+   ],
+   "qos": {
+    "time_ms": 180,
+    "money": 0.03,
+    "resource_cost": 2,
+    "risk": 0.02,
+    "energy": 0.6
+   },
+   "reliability": 0.995,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "POST",
+    "endpoint": "/payments"
+   },
+   "alt_group": "payment"
+  },
+  {
+   "id": "MakePayment_DB",
+   "type": "DATABASE",
+   "description": "record the payment directly in the ledger",
+   "inputs": [
+    {
+     "name": "order_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    },
+    {
+     "name": "amount",
+     "type": "DECIMAL",
+     "domain": "decimal",
+     "required": true
+    },
+    {
+     "name": "payment_token",
+     "type": "STRING",
+     "domain": "token",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "payment_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Order.exists",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Payment.status",
+     "op": "==",
+     "value": "NOT_STARTED"
+    },
+    {
+     "var": "Payment.within_limit",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Payment.status",
+     "value": "SUCCESS"
+    },
+    {
+     "var": "Order.status",
+     "value": "PAID"
+    }
+   ],
+   "constraints": [
+    {
+     "var": "User.role",
+     "op": "in",
+     "value": [
+      "CUSTOMER",
+      "ADMIN"
+     ]
+    }
+   ],
+   "resources": [
+    "Database"
+   ],
+   "qos": {
+    "time_ms": 40,
+    "money": 0.002,
+    "resource_cost": 3,
+    "risk": 0.08,
+    "energy": 0.4
+   },
+   "reliability": 0.97,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "operation": "INSERT",
+    "table": "ledger"
+   },
+   "alt_group": "payment"
+  },
+  {
+   "id": "MakePayment_GUI",
+   "type": "GUI",
+   "description": "pay by clicking through the checkout page",
+   "inputs": [
+    {
+     "name": "order_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    },
+    {
+     "name": "amount",
+     "type": "DECIMAL",
+     "domain": "decimal",
+     "required": true
+    },
+    {
+     "name": "payment_token",
+     "type": "STRING",
+     "domain": "token",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "payment_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Order.exists",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Payment.status",
+     "op": "==",
+     "value": "NOT_STARTED"
+    },
+    {
+     "var": "Payment.within_limit",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Payment.status",
+     "value": "SUCCESS"
+    },
+    {
+     "var": "Order.status",
+     "value": "PAID"
+    }
+   ],
+   "constraints": [
+    {
+     "var": "User.role",
+     "op": "in",
+     "value": [
+      "CUSTOMER",
+      "ADMIN"
+     ]
+    }
+   ],
+   "resources": [
+    "Browser",
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 1500,
+    "money": 0.0,
+    "resource_cost": 5,
+    "risk": 0.05,
+    "energy": 2.0
+   },
+   "reliability": 0.9,
+   "availability": {
+    "available": true,
+    "window": [
+     8,
+     22
+    ]
+   },
+   "mechanism": {
+    "action": "CLICK",
+    "component": "pay_button"
+   },
+   "alt_group": "payment"
+  },
+  {
+   "id": "GenerateInvoice",
+   "type": "FILE",
+   "description": "render a PDF invoice",
+   "inputs": [
+    {
+     "name": "order_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    },
+    {
+     "name": "payment_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "invoice_pdf",
+     "type": "FILE",
+     "domain": "pdf",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Payment.status",
+     "op": "==",
+     "value": "SUCCESS"
+    }
+   ],
+   "effects": [
+    {
+     "var": "Invoice.generated",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "FileSystem"
+   ],
+   "qos": {
+    "time_ms": 120,
+    "money": 0.004,
+    "resource_cost": 2,
+    "risk": 0.01,
+    "energy": 0.8
+   },
+   "reliability": 0.998,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "format": "PDF",
+    "template": "invoice_v2"
+   }
+  },
+  {
+   "id": "DispatchShipment",
+   "type": "SERVICE",
+   "description": "hand the parcel to the carrier",
+   "inputs": [
+    {
+     "name": "order_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    },
+    {
+     "name": "reservation_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    },
+    {
+     "name": "invoice_pdf",
+     "type": "FILE",
+     "domain": "file",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "tracking_no",
+     "type": "STRING",
+     "domain": "token",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Payment.status",
+     "op": "==",
+     "value": "SUCCESS"
+    },
+    {
+     "var": "Inventory.reserved",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Invoice.generated",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Shipment.dispatched",
+     "value": true
+    },
+    {
+     "var": "Order.status",
+     "value": "SHIPPED"
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "ExternalService",
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 300,
+    "money": 0.05,
+    "resource_cost": 3,
+    "risk": 0.04,
+    "energy": 1.0
+   },
+   "reliability": 0.985,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "POST",
+    "endpoint": "/shipments"
+   }
+  },
+  {
+   "id": "SendNotification",
+   "type": "EVENT",
+   "description": "tell the customer the payment succeeded",
+   "inputs": [
+    {
+     "name": "order_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "message_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Payment.status",
+     "op": "==",
+     "value": "SUCCESS"
+    },
+    {
+     "var": "Order.exists",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Notification.sent",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "EventBus"
+   ],
+   "qos": {
+    "time_ms": 25,
+    "money": 0.001,
+    "resource_cost": 1,
+    "risk": 0.01,
+    "energy": 0.1
+   },
+   "reliability": 0.999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "trigger": "PaymentSucceeded",
+    "handler": "SendNotification"
+   }
+  },
+  {
+   "id": "CancelCart",
+   "type": "API",
+   "description": "cancel the cart (only before an order exists)",
+   "inputs": [],
+   "outputs": [],
+   "preconditions": [
+    {
+     "var": "Order.exists",
+     "op": "==",
+     "value": false
+    },
+    {
+     "var": "Cart.exists",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Cart.exists",
+     "value": false
+    },
+    {
+     "var": "Cart.item_count",
+     "value": 0
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Database"
+   ],
+   "qos": {
+    "time_ms": 30,
+    "money": 0.0,
+    "resource_cost": 1,
+    "risk": 0.01,
+    "energy": 0.1
+   },
+   "reliability": 0.999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "DELETE",
+    "endpoint": "/carts"
+   }
+  },
+  {
+   "id": "CancelOrder",
+   "type": "API",
+   "description": "cancel an unpaid order",
+   "inputs": [
+    {
+     "name": "order_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "outputs": [],
+   "preconditions": [
+    {
+     "var": "Order.exists",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Payment.status",
+     "op": "!=",
+     "value": "SUCCESS"
+    }
+   ],
+   "effects": [
+    {
+     "var": "Order.exists",
+     "value": false
+    },
+    {
+     "var": "Order.status",
+     "value": "CANCELLED"
+    },
+    {
+     "var": "Inventory.reserved",
+     "value": false
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Database"
+   ],
+   "qos": {
+    "time_ms": 70,
+    "money": 0.005,
+    "resource_cost": 2,
+    "risk": 0.03,
+    "energy": 0.4
+   },
+   "reliability": 0.995,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "DELETE",
+    "endpoint": "/orders"
+   }
+  },
+  {
+   "id": "ViewCatalog",
+   "type": "GUI",
+   "description": "browse the product catalogue",
+   "inputs": [],
+   "outputs": [],
+   "preconditions": [],
+   "effects": [
+    {
+     "var": "Catalog.viewed",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Browser",
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 200,
+    "money": 0.0,
+    "resource_cost": 1,
+    "risk": 0.0,
+    "energy": 0.3
+   },
+   "reliability": 0.999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "action": "OPEN",
+    "component": "catalog_page"
+   }
+  },
+  {
+   "id": "UpdateWishlist",
+   "type": "DATABASE",
+   "description": "store a wishlist entry",
+   "inputs": [],
+   "outputs": [],
+   "preconditions": [
+    {
+     "var": "User.authenticated",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Wishlist.updated",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Database"
+   ],
+   "qos": {
+    "time_ms": 20,
+    "money": 0.0,
+    "resource_cost": 1,
+    "risk": 0.005,
+    "energy": 0.1
+   },
+   "reliability": 0.999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "operation": "UPSERT",
+    "table": "wishlist"
+   }
+  },
+  {
+   "id": "AuditLog",
+   "type": "EVENT",
+   "description": "append an audit record",
+   "inputs": [],
+   "outputs": [],
+   "preconditions": [],
+   "effects": [
+    {
+     "var": "Audit.logged",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "EventBus"
+   ],
+   "qos": {
+    "time_ms": 5,
+    "money": 0.0001,
+    "resource_cost": 1,
+    "risk": 0.0,
+    "energy": 0.02
+   },
+   "reliability": 0.9999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "trigger": "AnyAction",
+    "handler": "AuditWriter"
+   }
+  }
+ ]
+}

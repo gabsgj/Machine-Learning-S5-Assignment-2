@@ -1,0 +1,4 @@
+capability,type,execution_time,resource_cost,monetary_cost,risk,energy,reliability,availability
+CreateOrder_API,API,2,1,5,0.02,1,0.99,YES
+CreateOrder_DATABASE,DATABASE,1.5,1,2,0.03,0.8,0.97,YES
+CreateOrder_GUI,GUI,4,2,8,0.05,1.5,0.94,YES

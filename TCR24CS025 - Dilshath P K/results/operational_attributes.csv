@@ -1,0 +1,3 @@
+name,type,inputs,outputs,preconditions,effects,resources,cost,reliability,availability
+PaymentServiceA,API,"['order_id', 'amount']",['payment_id'],{'Order.exists': True},{'Payment.status': 'SUCCESS'},['PAYMENT_GATEWAY'],0.1,0.99,1
+PaymentServiceB,API,"['order_id', 'amount']",['payment_id'],{'Order.exists': True},{'Payment.status': 'SUCCESS'},['PAYMENT_GATEWAY'],0.02,0.9,1

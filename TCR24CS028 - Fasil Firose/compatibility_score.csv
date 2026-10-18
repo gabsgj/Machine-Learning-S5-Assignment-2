@@ -1,0 +1,11 @@
+,CreateOrder,MakePayment,CancelCart,SendNotification,CreateOrder_API,CreateOrder_DB,CreateOrder_GUI,GetWeatherForecast,LogAnalyticsEvent,MakePayment_Degraded
+CreateOrder,0.000,0.800,0.000,0.400,0.000,0.000,0.000,0.600,0.600,0.800
+MakePayment,0.000,0.000,0.000,0.600,0.000,0.000,0.000,0.600,0.600,0.000
+CancelCart,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.600,0.600,0.000
+SendNotification,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.600,0.600,0.000
+CreateOrder_API,0.000,0.800,0.000,0.400,0.000,0.000,0.000,0.600,0.600,0.800
+CreateOrder_DB,0.000,0.800,0.000,0.400,0.000,0.000,0.000,0.600,0.600,0.800
+CreateOrder_GUI,0.000,0.800,0.000,0.400,0.000,0.000,0.000,0.600,0.600,0.800
+GetWeatherForecast,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.600,0.600,0.000
+LogAnalyticsEvent,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.600,0.600,0.000
+MakePayment_Degraded,0.000,0.000,0.000,0.600,0.000,0.000,0.000,0.600,0.600,0.000

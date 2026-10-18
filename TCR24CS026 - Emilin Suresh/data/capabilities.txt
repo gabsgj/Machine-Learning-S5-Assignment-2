@@ -1,0 +1,131 @@
+CAPABILITY DATASET
+==================
+
+C1
+Name: CreateOrder
+Type: API
+Precondition: cart_status = ACTIVE
+Effect: order_status = CREATED
+Input: customer_id
+Input: cart_id
+Output: order_id
+Resource: database
+Reliability: 0.98
+Availability: 1
+ExecutionTime: 2.0
+ResourceCost: 1.0
+MonetaryCost: 5.0
+Risk: 0.02
+Energy: 1.0
+Mechanism: REST API
+
+C2
+Name: MakePayment
+Type: SERVICE
+Precondition: order_status = CREATED
+Effect: payment_status = PAID
+Input: order_id
+Input: amount
+Output: payment_id
+Resource: payment_gateway
+Reliability: 0.95
+Availability: 1
+ExecutionTime: 3.0
+ResourceCost: 2.0
+MonetaryCost: 10.0
+Risk: 0.03
+Energy: 2.0
+Mechanism: Payment Service
+
+C3
+Name: SendConfirmation
+Type: MESSAGE
+Precondition: payment_status = PAID
+Effect: confirmation_sent = YES
+Input: payment_id
+Output: confirmation_id
+Resource: mail_server
+Reliability: 0.99
+Availability: 1
+ExecutionTime: 1.0
+ResourceCost: 1.0
+MonetaryCost: 1.0
+Risk: 0.01
+Energy: 0.5
+Mechanism: Email Service
+
+C4
+Name: CancelCart
+Type: FUNCTION
+Precondition: cart_status = ACTIVE
+Effect: cart_status = CANCELLED
+Input: cart_id
+Output: cancel_status
+Resource: database
+Reliability: 0.97
+Availability: 1
+ExecutionTime: 1.5
+ResourceCost: 1.0
+MonetaryCost: 2.0
+Risk: 0.02
+Energy: 0.5
+Mechanism: Application Function
+
+C5
+Name: UpdateUserProfile
+Type: DATABASE
+Precondition: user_status = ACTIVE
+Effect: profile_status = UPDATED
+Input: user_id
+Output: profile_status
+Resource: user_database
+Reliability: 0.99
+Availability: 1
+ExecutionTime: 2.0
+ResourceCost: 1.0
+MonetaryCost: 2.0
+Risk: 0.01
+Energy: 0.5
+Mechanism: SQL Database
+
+C6
+Name: GenerateReport
+Type: COMPUTATION
+Precondition: data_available = YES
+Effect: report_status = GENERATED
+Input: report_period
+Output: report_file
+Resource: compute_server
+Reliability: 0.96
+Availability: 1
+ExecutionTime: 5.0
+ResourceCost: 4.0
+MonetaryCost: 3.0
+Risk: 0.02
+Energy: 3.0
+Mechanism: Data Processing
+
+
+ALTERNATIVE IMPLEMENTATIONS
+===========================
+
+ALT1
+Name: CreateOrder_API
+Type: API
+Effect: order_status = CREATED
+Mechanism: REST API
+Reliability: 0.99
+
+ALT2
+Name: CreateOrder_DATABASE
+Type: DATABASE
+Effect: order_status = CREATED
+Mechanism: SQL INSERT
+Reliability: 0.97
+
+ALT3
+Name: CreateOrder_GUI
+Type: GUI
+Effect: order_status = CREATED
+Mechanism: Graphical Interface
+Reliability: 0.94

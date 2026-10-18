@@ -1,0 +1,518 @@
+{
+  "problemName": "ecommerce_capability_composition",
+  "domain": "E-commerce order processing",
+  "description": "Formal dataset for capability embedding and composition.",
+  "initialState": {
+    "User.authenticated": true,
+    "User.role": "CUSTOMER",
+    "Cart.exists": true,
+    "Cart.item_count": 3,
+    "Order.exists": false,
+    "Order.status": "NONE",
+    "Payment.status": "NOT_STARTED",
+    "Inventory.available": true,
+    "Notification.sent": false,
+    "Profile.updated": false
+  },
+  "goal": [
+    {
+      "variable": "Order.exists",
+      "op": "==",
+      "expectedValue": true
+    },
+    {
+      "variable": "Payment.status",
+      "op": "==",
+      "expectedValue": "SUCCESS"
+    },
+    {
+      "variable": "Notification.sent",
+      "op": "==",
+      "expectedValue": true
+    }
+  ],
+  "globalConstraints": [
+    {
+      "variable": "Cart.item_count",
+      "op": ">",
+      "expectedValue": 0
+    }
+  ],
+  "resources": [
+    "Database",
+    "Network",
+    "Authentication token",
+    "Payment gateway",
+    "Notification service",
+    "Browser"
+  ],
+  "capabilities": [
+    {
+      "id": "CreateOrder",
+      "name": "CreateOrder",
+      "description": "Create an order from the current cart",
+      "type": "API",
+      "mechanism": "POST /orders",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid cart identifiers",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid order identifiers"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "op": "==",
+          "expectedValue": true
+        },
+        {
+          "variable": "Cart.item_count",
+          "op": ">",
+          "expectedValue": 0
+        },
+        {
+          "variable": "Inventory.available",
+          "op": "==",
+          "expectedValue": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "op": "SET",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "op": "SET",
+          "value": "CREATED"
+        }
+      ],
+      "constraints": [
+        {
+          "variable": "Cart.item_count",
+          "op": ">",
+          "expectedValue": 0
+        }
+      ],
+      "resources": [
+        "Database",
+        "Network",
+        "Authentication token"
+      ],
+      "qos": {
+        "timeMs": 70,
+        "money": 0.01,
+        "resource": 2,
+        "risk": 0.01
+      },
+      "reliability": 0.997,
+      "availability": 1.0
+    },
+    {
+      "id": "MakePayment",
+      "name": "MakePayment",
+      "description": "Charge the payment method for an existing order",
+      "type": "SERVICE",
+      "mechanism": "PaymentGateway.charge",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid order identifiers",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_id",
+          "type": "UUID",
+          "domain": "valid payment identifiers"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "op": "==",
+          "expectedValue": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Payment.status",
+          "op": "SET",
+          "value": "SUCCESS"
+        }
+      ],
+      "constraints": [
+        {
+          "variable": "Payment.amount",
+          "op": ">",
+          "expectedValue": 0
+        }
+      ],
+      "resources": [
+        "Payment gateway",
+        "Network"
+      ],
+      "qos": {
+        "timeMs": 120,
+        "money": 0.02,
+        "resource": 3,
+        "risk": 0.02
+      },
+      "reliability": 0.99,
+      "availability": 1.0
+    },
+    {
+      "id": "CancelCart",
+      "name": "CancelCart",
+      "description": "Cancel a cart that has not become an order",
+      "type": "API",
+      "mechanism": "POST /carts/cancel",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid cart identifiers",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cancellation_id",
+          "type": "UUID",
+          "domain": "valid cancellation identifiers"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "op": "==",
+          "expectedValue": false
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Cart.cancelled",
+          "op": "SET",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Database",
+        "Network"
+      ],
+      "qos": {
+        "timeMs": 45,
+        "money": 0.003,
+        "resource": 1,
+        "risk": 0.01
+      },
+      "reliability": 0.995,
+      "availability": 1.0
+    },
+    {
+      "id": "SendNotification",
+      "name": "SendNotification",
+      "description": "Notify the customer after successful payment",
+      "type": "EVENT",
+      "mechanism": "OrderPaid -> NotificationHandler",
+      "inputs": [
+        {
+          "name": "payment_id",
+          "type": "UUID",
+          "domain": "valid payment identifiers",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "notification_id",
+          "type": "UUID",
+          "domain": "valid notification identifiers"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Payment.status",
+          "op": "==",
+          "expectedValue": "SUCCESS"
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Notification.sent",
+          "op": "SET",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Notification service",
+        "Network"
+      ],
+      "qos": {
+        "timeMs": 30,
+        "money": 0.002,
+        "resource": 1,
+        "risk": 0.005
+      },
+      "reliability": 0.999,
+      "availability": 1.0
+    },
+    {
+      "id": "CreateOrder_DB",
+      "name": "CreateOrder_DB",
+      "description": "Database implementation of order creation",
+      "type": "DATABASE",
+      "mechanism": "INSERT orders",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid cart identifiers",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid order identifiers"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "op": "==",
+          "expectedValue": true
+        },
+        {
+          "variable": "Cart.item_count",
+          "op": ">",
+          "expectedValue": 0
+        },
+        {
+          "variable": "Inventory.available",
+          "op": "==",
+          "expectedValue": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "op": "SET",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "op": "SET",
+          "value": "CREATED"
+        }
+      ],
+      "constraints": [
+        {
+          "variable": "Cart.item_count",
+          "op": ">",
+          "expectedValue": 0
+        }
+      ],
+      "resources": [
+        "Database"
+      ],
+      "qos": {
+        "timeMs": 25,
+        "money": 0.002,
+        "resource": 1,
+        "risk": 0.03
+      },
+      "reliability": 0.985,
+      "availability": 1.0
+    },
+    {
+      "id": "CreateOrder_GUI",
+      "name": "CreateOrder_GUI",
+      "description": "GUI implementation of order creation",
+      "type": "GUI",
+      "mechanism": "CLICK submit_button",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid cart identifiers",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid order identifiers"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "op": "==",
+          "expectedValue": true
+        },
+        {
+          "variable": "Cart.item_count",
+          "op": ">",
+          "expectedValue": 0
+        },
+        {
+          "variable": "Inventory.available",
+          "op": "==",
+          "expectedValue": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "op": "SET",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "op": "SET",
+          "value": "CREATED"
+        }
+      ],
+      "constraints": [
+        {
+          "variable": "Cart.item_count",
+          "op": ">",
+          "expectedValue": 0
+        }
+      ],
+      "resources": [
+        "Browser",
+        "Network"
+      ],
+      "qos": {
+        "timeMs": 110,
+        "money": 0.012,
+        "resource": 2,
+        "risk": 0.015
+      },
+      "reliability": 0.992,
+      "availability": 1.0
+    },
+    {
+      "id": "AddToCart",
+      "name": "AddToCart",
+      "description": "Add an item to the cart",
+      "type": "API",
+      "mechanism": "POST /cart/items",
+      "inputs": [
+        {
+          "name": "product_id",
+          "type": "UUID",
+          "domain": "valid product identifiers",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid cart identifiers"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "User.authenticated",
+          "op": "==",
+          "expectedValue": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Cart.exists",
+          "op": "SET",
+          "value": true
+        }
+      ],
+      "constraints": [
+        {
+          "variable": "Inventory.available",
+          "op": "==",
+          "expectedValue": true
+        }
+      ],
+      "resources": [
+        "Database",
+        "Network"
+      ],
+      "qos": {
+        "timeMs": 40,
+        "money": 0.002,
+        "resource": 1,
+        "risk": 0.01
+      },
+      "reliability": 0.998,
+      "availability": 1.0
+    },
+    {
+      "id": "UpdateProfile",
+      "name": "UpdateProfile",
+      "description": "Update customer profile information",
+      "type": "API",
+      "mechanism": "PATCH /users/profile",
+      "inputs": [
+        {
+          "name": "user_id",
+          "type": "UUID",
+          "domain": "valid user identifiers",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "profile_version",
+          "type": "INTEGER",
+          "domain": "nonnegative versions"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "User.authenticated",
+          "op": "==",
+          "expectedValue": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Profile.updated",
+          "op": "SET",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Database",
+        "Network"
+      ],
+      "qos": {
+        "timeMs": 50,
+        "money": 0.004,
+        "resource": 1,
+        "risk": 0.005
+      },
+      "reliability": 0.999,
+      "availability": 1.0
+    }
+  ]
+}

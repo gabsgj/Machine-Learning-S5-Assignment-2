@@ -1,0 +1,6 @@
+relation,cosine
+composite_vs_c1,0.8632
+composite_vs_c2,0.8264
+composite_vs_c3,0.7069
+algebraic_vs_reencoded,0.9660
+associativity,1.0000

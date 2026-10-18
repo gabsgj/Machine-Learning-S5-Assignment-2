@@ -1,0 +1,136 @@
+{
+  "training": {
+    "pair_count": 8,
+    "mean_cosine": 0.8531443923711777,
+    "ridge_lambda": 0.01,
+    "pairs": [
+      "C1->C2",
+      "C2->C3",
+      "C3->C4",
+      "C4->C5",
+      "C5->C6",
+      "C6->C7",
+      "C4->C9",
+      "C9->C10"
+    ]
+  },
+  "heldout_direct": [
+    {
+      "from": "C1",
+      "to": "C11",
+      "consistency": 0.851691722869873
+    },
+    {
+      "from": "C4",
+      "to": "C12",
+      "consistency": 0.8544946908950806
+    },
+    {
+      "from": "C4",
+      "to": "C13",
+      "consistency": 0.8758053779602051
+    },
+    {
+      "from": "C5",
+      "to": "C8",
+      "consistency": 0.836306095123291
+    }
+  ],
+  "heldout_direct_mean": 0.8545744717121124,
+  "recursive_chains": [
+    {
+      "id": "purchase_success_chain",
+      "length": 7,
+      "prefix_consistency": [
+        1.0000001192092896,
+        0.8255938291549683,
+        0.8393641710281372,
+        0.8309774994850159,
+        0.824849545955658,
+        0.8212332725524902,
+        0.792862057685852
+      ],
+      "final_consistency": 0.792862057685852
+    },
+    {
+      "id": "cancel_and_release_chain",
+      "length": 3,
+      "prefix_consistency": [
+        1.0,
+        0.8806296586990356,
+        0.7976531386375427
+      ],
+      "final_consistency": 0.7976531386375427
+    },
+    {
+      "id": "inventory_to_order",
+      "length": 3,
+      "prefix_consistency": [
+        1.0,
+        0.8190077543258667,
+        0.8358086943626404
+      ],
+      "final_consistency": 0.8358086943626404
+    },
+    {
+      "id": "order_to_verify",
+      "length": 3,
+      "prefix_consistency": [
+        1.0,
+        0.8527294993400574,
+        0.8354380130767822
+      ],
+      "final_consistency": 0.8354380130767822
+    },
+    {
+      "id": "payment_to_notify",
+      "length": 3,
+      "prefix_consistency": [
+        1.0000001192092896,
+        0.8647940754890442,
+        0.8218902349472046
+      ],
+      "final_consistency": 0.8218902349472046
+    },
+    {
+      "id": "create_to_update",
+      "length": 2,
+      "prefix_consistency": [
+        1.0,
+        0.8544946908950806
+      ],
+      "final_consistency": 0.8544946908950806
+    },
+    {
+      "id": "create_to_get",
+      "length": 2,
+      "prefix_consistency": [
+        1.0,
+        0.8758053779602051
+      ],
+      "final_consistency": 0.8758053779602051
+    },
+    {
+      "id": "create_to_refund",
+      "length": 3,
+      "prefix_consistency": [
+        1.0,
+        0.8527294993400574,
+        0.8188939690589905
+      ],
+      "final_consistency": 0.8188939690589905
+    },
+    {
+      "id": "add_to_remove",
+      "length": 2,
+      "prefix_consistency": [
+        1.0000001192092896,
+        0.851691722869873
+      ],
+      "final_consistency": 0.851691722869873
+    }
+  ],
+  "mean_final_chain_consistency": 0.831615322166019,
+  "min_final_chain_consistency": 0.792862057685852,
+  "leakage_control": "Composer prediction uses only atomic or previously predicted vectors plus vector-derived relation features. Formal composites are encoded independently and are never supplied to prediction."
+}

@@ -1,0 +1,814 @@
+{
+  "environment": {
+    "python": "3.12.14",
+    "numpy": "2.3.5",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39"
+  },
+  "results": [
+    {
+      "domain": "commerce",
+      "state_count": 384,
+      "variables": 7,
+      "D": 17,
+      "port_values": 6,
+      "port_slots": 5,
+      "mechanisms": 11,
+      "resources": 5,
+      "capabilities": 11,
+      "dimension": 81,
+      "bytes_float64": 648,
+      "unique_vectors": 11,
+      "experiment1": {
+        "pairs": 121,
+        "exact_correct": 121,
+        "baseline_correct": 83,
+        "coverage_errors": 0,
+        "first_to_second": {
+          "state_coverage": 1.0,
+          "io_compatible": true,
+          "existential": true,
+          "guaranteed": true
+        },
+        "first_to_cancel": {
+          "state_coverage": 0.0,
+          "io_compatible": true,
+          "existential": false,
+          "guaranteed": false
+        },
+        "wrong_input": {
+          "state_coverage": 1.0,
+          "io_compatible": false,
+          "existential": false,
+          "guaranteed": false
+        }
+      },
+      "experiment2": [
+        {
+          "names": [
+            "CreateOrder",
+            "MakePayment",
+            "SendNotification"
+          ],
+          "checks": 384,
+          "errors": 0,
+          "guards": {
+            "authenticated": [
+              false,
+              true
+            ],
+            "cart": [
+              false,
+              true
+            ],
+            "notification": [
+              false,
+              true
+            ],
+            "order": [
+              false,
+              true
+            ],
+            "payment": [
+              "NOT_STARTED",
+              "REFUNDED",
+              "SUCCESS"
+            ],
+            "quantity": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "theme": [
+              "DARK",
+              "LIGHT"
+            ]
+          },
+          "effects": {
+            "order": true,
+            "payment": "SUCCESS",
+            "notification": true
+          },
+          "associative": true,
+          "goal_satisfied": true,
+          "goal_relevance": 1.0,
+          "leave_one_out": [
+            false,
+            false,
+            false
+          ],
+          "raw_sum_l2_error": 8.485000579948595,
+          "quality": {
+            "time_ms": 240.0,
+            "money": 0.51,
+            "energy": 0.36,
+            "resource_cost": 3.0,
+            "risk": 0.05880800000000008
+          },
+          "reliability": 0.9411919999999999,
+          "inputs": [
+            {
+              "name": "cart_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "order_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            },
+            {
+              "name": "receipt_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            },
+            {
+              "name": "message_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ]
+        }
+      ],
+      "experiment3": {
+        "semantic_similarity": [
+          1.0,
+          1.0
+        ],
+        "full_distances": [
+          20.09988059666027,
+          160.01259708222975
+        ]
+      },
+      "experiment4": {
+        "irrelevant_name": "ChangeTheme",
+        "direct_goal_relevance": 0.0,
+        "first_direct_goal_relevance": 0.0,
+        "full_chain_with_irrelevant_goal": true
+      },
+      "experiment5": {
+        "ranks": {
+          "0": [
+            {
+              "name": "CreateOrder",
+              "score": 0.98
+            },
+            {
+              "name": "CreateOrder_DATABASE",
+              "score": 0.94
+            },
+            {
+              "name": "CreateOrder_GUI",
+              "score": 0.82
+            }
+          ],
+          "1": [
+            {
+              "name": "CreateOrder_DATABASE",
+              "score": 0.9199999999999999
+            },
+            {
+              "name": "CreateOrder",
+              "score": 0.9
+            },
+            {
+              "name": "CreateOrder_GUI",
+              "score": 0.815
+            }
+          ],
+          "10": [
+            {
+              "name": "CreateOrder_GUI",
+              "score": 0.7699999999999999
+            },
+            {
+              "name": "CreateOrder_DATABASE",
+              "score": 0.74
+            },
+            {
+              "name": "CreateOrder",
+              "score": 0.17999999999999994
+            }
+          ]
+        },
+        "gates": {
+          "normal": [
+            "CreateOrder",
+            "CreateOrder_DATABASE",
+            "CreateOrder_GUI"
+          ],
+          "no_database": [
+            "CreateOrder",
+            "CreateOrder_GUI"
+          ],
+          "api_unavailable": [
+            "CreateOrder_DATABASE",
+            "CreateOrder_GUI"
+          ]
+        }
+      },
+      "atomic_state_checks": 4224,
+      "atomic_errors": 0,
+      "timings": {
+        "encode_ms": 0.01650193000023137,
+        "compose_ms": 0.03396010199958255
+      }
+    },
+    {
+      "domain": "logistics",
+      "state_count": 384,
+      "variables": 7,
+      "D": 17,
+      "port_values": 7,
+      "port_slots": 6,
+      "mechanisms": 9,
+      "resources": 7,
+      "capabilities": 9,
+      "dimension": 84,
+      "bytes_float64": 672,
+      "unique_vectors": 9,
+      "experiment1": {
+        "pairs": 81,
+        "exact_correct": 81,
+        "baseline_correct": 47,
+        "coverage_errors": 0,
+        "first_to_second": {
+          "state_coverage": 1.0,
+          "io_compatible": true,
+          "existential": true,
+          "guaranteed": true
+        },
+        "first_to_cancel": {
+          "state_coverage": 1.0,
+          "io_compatible": true,
+          "existential": true,
+          "guaranteed": true
+        },
+        "wrong_input": {
+          "state_coverage": 1.0,
+          "io_compatible": false,
+          "existential": false,
+          "guaranteed": false
+        }
+      },
+      "experiment2": [
+        {
+          "names": [
+            "ReserveStock",
+            "CreateLabel",
+            "Dispatch"
+          ],
+          "checks": 384,
+          "errors": 0,
+          "guards": {
+            "audit": [
+              false,
+              true
+            ],
+            "dispatched": [
+              false,
+              true
+            ],
+            "labelled": [
+              false,
+              true
+            ],
+            "notified": [
+              false,
+              true
+            ],
+            "quantity": [
+              1,
+              2,
+              3
+            ],
+            "reserved": [
+              false
+            ],
+            "role": [
+              "ADMIN",
+              "STAFF"
+            ]
+          },
+          "effects": {
+            "reserved": true,
+            "labelled": true,
+            "dispatched": true
+          },
+          "associative": true,
+          "goal_satisfied": false,
+          "goal_relevance": 0.5,
+          "leave_one_out": [
+            false,
+            false,
+            false
+          ],
+          "raw_sum_l2_error": 8.602048293385012,
+          "quality": {
+            "time_ms": 240.0,
+            "money": 0.86,
+            "energy": 0.36,
+            "resource_cost": 3.0,
+            "risk": 0.05880800000000008
+          },
+          "reliability": 0.9411919999999999,
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "stock_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            },
+            {
+              "name": "label_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            },
+            {
+              "name": "tracking_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ]
+        },
+        {
+          "names": [
+            "ReserveStock",
+            "NotifyWarehouse",
+            "CreateLabel",
+            "Dispatch"
+          ],
+          "checks": 384,
+          "errors": 0,
+          "guards": {
+            "audit": [
+              false,
+              true
+            ],
+            "dispatched": [
+              false,
+              true
+            ],
+            "labelled": [
+              false,
+              true
+            ],
+            "notified": [
+              false,
+              true
+            ],
+            "quantity": [
+              1,
+              2,
+              3
+            ],
+            "reserved": [
+              false
+            ],
+            "role": [
+              "ADMIN",
+              "STAFF"
+            ]
+          },
+          "effects": {
+            "reserved": true,
+            "notified": true,
+            "labelled": true,
+            "dispatched": true
+          },
+          "associative": true,
+          "goal_satisfied": true,
+          "goal_relevance": 1.0,
+          "leave_one_out": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "raw_sum_l2_error": 12.960933695392612,
+          "quality": {
+            "time_ms": 320.0,
+            "money": 0.94,
+            "energy": 0.48,
+            "resource_cost": 4.0,
+            "risk": 0.07763184000000012
+          },
+          "reliability": 0.9223681599999999,
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "stock_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            },
+            {
+              "name": "warehouse_message",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            },
+            {
+              "name": "label_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            },
+            {
+              "name": "tracking_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ]
+        }
+      ],
+      "experiment3": {
+        "semantic_similarity": [
+          1.0,
+          1.0
+        ],
+        "full_distances": [
+          20.09988059666027,
+          160.01259708222975
+        ]
+      },
+      "experiment4": {
+        "irrelevant_name": "RotateAudit",
+        "direct_goal_relevance": 0.0,
+        "first_direct_goal_relevance": 0.0,
+        "full_chain_with_irrelevant_goal": true
+      },
+      "experiment5": {
+        "ranks": {
+          "0": [
+            {
+              "name": "ReserveStock",
+              "score": 0.98
+            },
+            {
+              "name": "ReserveStock_DATABASE",
+              "score": 0.94
+            },
+            {
+              "name": "ReserveStock_GUI",
+              "score": 0.82
+            }
+          ],
+          "1": [
+            {
+              "name": "ReserveStock_DATABASE",
+              "score": 0.9199999999999999
+            },
+            {
+              "name": "ReserveStock",
+              "score": 0.9
+            },
+            {
+              "name": "ReserveStock_GUI",
+              "score": 0.815
+            }
+          ],
+          "10": [
+            {
+              "name": "ReserveStock_GUI",
+              "score": 0.7699999999999999
+            },
+            {
+              "name": "ReserveStock_DATABASE",
+              "score": 0.74
+            },
+            {
+              "name": "ReserveStock",
+              "score": 0.17999999999999994
+            }
+          ]
+        },
+        "gates": {
+          "normal": [
+            "ReserveStock",
+            "ReserveStock_DATABASE",
+            "ReserveStock_GUI"
+          ],
+          "no_database": [
+            "ReserveStock",
+            "ReserveStock_GUI"
+          ],
+          "api_unavailable": [
+            "ReserveStock_DATABASE",
+            "ReserveStock_GUI"
+          ]
+        }
+      },
+      "atomic_state_checks": 3456,
+      "atomic_errors": 0,
+      "timings": {
+        "encode_ms": 0.018754391999209474,
+        "compose_ms": 0.042590399999426154
+      }
+    },
+    {
+      "domain": "build",
+      "state_count": 192,
+      "variables": 6,
+      "D": 15,
+      "port_values": 6,
+      "port_slots": 5,
+      "mechanisms": 9,
+      "resources": 6,
+      "capabilities": 9,
+      "dimension": 75,
+      "bytes_float64": 600,
+      "unique_vectors": 9,
+      "experiment1": {
+        "pairs": 81,
+        "exact_correct": 81,
+        "baseline_correct": 54,
+        "coverage_errors": 0,
+        "first_to_second": {
+          "state_coverage": 1.0,
+          "io_compatible": true,
+          "existential": true,
+          "guaranteed": true
+        },
+        "first_to_cancel": {
+          "state_coverage": 0.0,
+          "io_compatible": true,
+          "existential": false,
+          "guaranteed": false
+        },
+        "wrong_input": {
+          "state_coverage": 1.0,
+          "io_compatible": false,
+          "existential": false,
+          "guaranteed": false
+        }
+      },
+      "experiment2": [
+        {
+          "names": [
+            "Compile",
+            "Test",
+            "Deploy"
+          ],
+          "checks": 192,
+          "errors": 0,
+          "guards": {
+            "artifact": [
+              false,
+              true
+            ],
+            "cache": [
+              false,
+              true
+            ],
+            "credentials": [
+              true
+            ],
+            "environment": [
+              "PROD"
+            ],
+            "size": [
+              1,
+              2
+            ],
+            "stage": [
+              "RAW"
+            ]
+          },
+          "effects": {
+            "stage": "DEPLOYED",
+            "artifact": true
+          },
+          "associative": true,
+          "goal_satisfied": true,
+          "goal_relevance": 1.0,
+          "leave_one_out": [
+            false,
+            false,
+            false
+          ],
+          "raw_sum_l2_error": 7.745659096663627,
+          "quality": {
+            "time_ms": 240.0,
+            "money": 0.41000000000000003,
+            "energy": 0.36,
+            "resource_cost": 3.0,
+            "risk": 0.05880800000000008
+          },
+          "reliability": 0.9411919999999999,
+          "inputs": [
+            {
+              "name": "source_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "artifact_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            },
+            {
+              "name": "test_result",
+              "type": "STATUS",
+              "domain": [
+                "PASS"
+              ],
+              "required": true
+            },
+            {
+              "name": "deployment_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ]
+        }
+      ],
+      "experiment3": {
+        "semantic_similarity": [
+          1.0,
+          1.0
+        ],
+        "full_distances": [
+          20.09988059666027,
+          160.01259708222975
+        ]
+      },
+      "experiment4": {
+        "irrelevant_name": "WarmCache",
+        "direct_goal_relevance": 0.0,
+        "first_direct_goal_relevance": 0.0,
+        "full_chain_with_irrelevant_goal": true
+      },
+      "experiment5": {
+        "ranks": {
+          "0": [
+            {
+              "name": "Compile",
+              "score": 0.98
+            },
+            {
+              "name": "Compile_DATABASE",
+              "score": 0.94
+            },
+            {
+              "name": "Compile_GUI",
+              "score": 0.82
+            }
+          ],
+          "1": [
+            {
+              "name": "Compile_DATABASE",
+              "score": 0.9199999999999999
+            },
+            {
+              "name": "Compile",
+              "score": 0.9
+            },
+            {
+              "name": "Compile_GUI",
+              "score": 0.815
+            }
+          ],
+          "10": [
+            {
+              "name": "Compile_GUI",
+              "score": 0.7699999999999999
+            },
+            {
+              "name": "Compile_DATABASE",
+              "score": 0.74
+            },
+            {
+              "name": "Compile",
+              "score": 0.17999999999999994
+            }
+          ]
+        },
+        "gates": {
+          "normal": [
+            "Compile",
+            "Compile_DATABASE",
+            "Compile_GUI"
+          ],
+          "no_database": [
+            "Compile",
+            "Compile_GUI"
+          ],
+          "api_unavailable": [
+            "Compile_DATABASE",
+            "Compile_GUI"
+          ]
+        }
+      },
+      "atomic_state_checks": 1728,
+      "atomic_errors": 0,
+      "timings": {
+        "encode_ms": 0.01730522199977713,
+        "compose_ms": 0.032485235999956785
+      }
+    }
+  ],
+  "scaling": [
+    {
+      "boolean_variables": 10,
+      "states_if_enumerated": 1024,
+      "dimension": 58,
+      "bytes_float64": 464,
+      "dense_transition_bytes": 8388608,
+      "compose_ms": 0.022417815000608243
+    },
+    {
+      "boolean_variables": 20,
+      "states_if_enumerated": 1048576,
+      "dimension": 108,
+      "bytes_float64": 864,
+      "dense_transition_bytes": 8796093022208,
+      "compose_ms": 0.03155472000116788
+    },
+    {
+      "boolean_variables": 40,
+      "states_if_enumerated": 1099511627776,
+      "dimension": 208,
+      "bytes_float64": 1664,
+      "dense_transition_bytes": 9671406556917033397649408,
+      "compose_ms": 0.04853016499964724
+    },
+    {
+      "boolean_variables": 80,
+      "states_if_enumerated": 1208925819614629174706176,
+      "dimension": 408,
+      "bytes_float64": 3264,
+      "dense_transition_bytes": 11692013098647223345629478661730264157247460343808,
+      "compose_ms": 0.0835026899994773
+    },
+    {
+      "boolean_variables": 160,
+      "states_if_enumerated": 1461501637330902918203684832716283019655932542976,
+      "dimension": 808,
+      "bytes_float64": 6464,
+      "dense_transition_bytes": 17087896287367280659160173649356416916821636178853222159576332862577757806245124400183696695492608,
+      "compose_ms": 0.1667307750017244
+    }
+  ]
+}

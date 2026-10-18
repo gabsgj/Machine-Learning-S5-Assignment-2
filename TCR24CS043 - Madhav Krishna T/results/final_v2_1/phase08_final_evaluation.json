@@ -1,0 +1,681 @@
+{
+  "model": "SCE-128 v2.1",
+  "dataset": "expanded_application.json",
+  "vector_dimension": 128,
+  "experiments": {
+    "phase02_capability_compatibility": {
+      "pair_count": 13,
+      "formal": {
+        "tp": 8,
+        "tn": 5,
+        "fp": 0,
+        "fn": 0,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "raw_cosine_auc": 0.625,
+      "compatibility_proxy_auc": 0.9,
+      "rows": [
+        {
+          "from": "C1",
+          "to": "C2",
+          "expected": true,
+          "predicted": true,
+          "formal_score": 0.8768292138352991,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 1.0,
+          "effect_precondition_vector": 0.5091460691764951,
+          "output_input_vector": 1.0,
+          "proxy_score": 0.6564022484235466,
+          "raw_cosine": 0.4909420907497406,
+          "conflict": 0.0
+        },
+        {
+          "from": "C2",
+          "to": "C3",
+          "expected": true,
+          "predicted": true,
+          "formal_score": 1.00000002682209,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 1.0,
+          "effect_precondition_vector": 1.0000001192092896,
+          "output_input_vector": 1.0000000596046448,
+          "proxy_score": 1.000000101327896,
+          "raw_cosine": 0.868902325630188,
+          "conflict": 0.0
+        },
+        {
+          "from": "C3",
+          "to": "C4",
+          "expected": true,
+          "predicted": true,
+          "formal_score": 0.9750000158945721,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 1.0,
+          "effect_precondition_vector": 1.0000000794728596,
+          "output_input_vector": 1.0,
+          "proxy_score": 1.0000000556310016,
+          "raw_cosine": 0.5521418452262878,
+          "conflict": 0.0
+        },
+        {
+          "from": "C4",
+          "to": "C5",
+          "expected": true,
+          "predicted": true,
+          "formal_score": 0.8885073870420457,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 0.5,
+          "effect_precondition_vector": 1.0000000596046448,
+          "output_input_vector": 0.7701475024223328,
+          "proxy_score": 0.9310442924499511,
+          "raw_cosine": 0.7693389058113098,
+          "conflict": 0.0
+        },
+        {
+          "from": "C5",
+          "to": "C6",
+          "expected": true,
+          "predicted": true,
+          "formal_score": 0.9833333363135656,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 1.0,
+          "effect_precondition_vector": 1.0,
+          "output_input_vector": 1.0000000596046448,
+          "proxy_score": 1.0000000178813933,
+          "raw_cosine": 0.7921141386032104,
+          "conflict": 0.0
+        },
+        {
+          "from": "C6",
+          "to": "C7",
+          "expected": true,
+          "predicted": true,
+          "formal_score": 0.9666666666666668,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 1.0,
+          "effect_precondition_vector": 1.0,
+          "output_input_vector": 1.0,
+          "proxy_score": 1.0,
+          "raw_cosine": 0.5132827162742615,
+          "conflict": 0.0
+        },
+        {
+          "from": "C4",
+          "to": "C9",
+          "expected": true,
+          "predicted": true,
+          "formal_score": 1.0000000119209291,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 1.0,
+          "effect_precondition_vector": 1.0000000596046448,
+          "output_input_vector": 1.0,
+          "proxy_score": 1.0000000417232513,
+          "raw_cosine": 0.7252928018569946,
+          "conflict": 0.0
+        },
+        {
+          "from": "C9",
+          "to": "C10",
+          "expected": true,
+          "predicted": true,
+          "formal_score": 0.8918956547975541,
+          "effect_precondition_exact": 1.0,
+          "output_input_exact": 0.5,
+          "effect_precondition_vector": 1.0000000596046448,
+          "output_input_vector": 0.8379128575325012,
+          "proxy_score": 0.9513738989830016,
+          "raw_cosine": 0.574394702911377,
+          "conflict": 0.0
+        },
+        {
+          "from": "C1",
+          "to": "C4",
+          "expected": false,
+          "predicted": false,
+          "formal_score": 0.40561951249837874,
+          "effect_precondition_exact": 0.0,
+          "output_input_exact": 0.75,
+          "effect_precondition_vector": 1.0000000596046448,
+          "output_input_vector": 0.862390011548996,
+          "proxy_score": 0.9587170451879501,
+          "raw_cosine": 0.5386325120925903,
+          "conflict": 0.0
+        },
+        {
+          "from": "C1",
+          "to": "C7",
+          "expected": false,
+          "predicted": false,
+          "formal_score": 0.12098727226257323,
+          "effect_precondition_exact": 0.0,
+          "output_input_exact": 0.5,
+          "effect_precondition_vector": 0.0,
+          "output_input_vector": 0.6697454452514648,
+          "proxy_score": 0.20092363357543944,
+          "raw_cosine": 0.5011982321739197,
+          "conflict": 0.0
+        },
+        {
+          "from": "C4",
+          "to": "C8",
+          "expected": false,
+          "predicted": false,
+          "formal_score": 0.029940019100904464,
+          "effect_precondition_exact": 0.0,
+          "output_input_exact": 0.75,
+          "effect_precondition_vector": 0.6579947471618652,
+          "output_input_vector": 0.856024831533432,
+          "proxy_score": 0.7174037724733352,
+          "raw_cosine": 0.8331812024116516,
+          "conflict": 1.0
+        },
+        {
+          "from": "C1",
+          "to": "C14",
+          "expected": false,
+          "predicted": false,
+          "formal_score": 0.16410833001136782,
+          "effect_precondition_exact": 0.0,
+          "output_input_exact": 0.5,
+          "effect_precondition_vector": 0.0,
+          "output_input_vector": 0.782166600227356,
+          "proxy_score": 0.23464998006820678,
+          "raw_cosine": 0.6639063358306885,
+          "conflict": 0.0
+        },
+        {
+          "from": "C1",
+          "to": "C15",
+          "expected": false,
+          "predicted": false,
+          "formal_score": 0.0303141987323761,
+          "effect_precondition_exact": 0.0,
+          "output_input_exact": 0.0,
+          "effect_precondition_vector": 0.0,
+          "output_input_vector": 0.406283974647522,
+          "proxy_score": 0.12188519239425659,
+          "raw_cosine": 0.49337899684906006,
+          "conflict": 0.0
+        }
+      ]
+    },
+    "phase04_alternative_implementations": {
+      "within": [
+        {
+          "a": "C4_API",
+          "b": "C4_DB",
+          "same_contract": true,
+          "functional": 0.8150347088064466,
+          "implementation": -0.0627313032746315,
+          "operational": 0.9989748001098633,
+          "overall": 0.7364551121635097
+        },
+        {
+          "a": "C4_API",
+          "b": "C4_GUI",
+          "same_contract": true,
+          "functional": 0.7263676353863308,
+          "implementation": 0.037313900887966156,
+          "operational": 0.9919243454933167,
+          "overall": 0.6707400974418436
+        },
+        {
+          "a": "C4_DB",
+          "b": "C4_GUI",
+          "same_contract": true,
+          "functional": 0.8585168825728553,
+          "implementation": 0.10485332645475864,
+          "operational": 0.9909096956253052,
+          "overall": 0.7897701676136683
+        }
+      ],
+      "negative_controls": [
+        {
+          "a": "C4_API",
+          "b": "C5",
+          "same_contract": false,
+          "functional": 0.7686010218624558,
+          "implementation": 0.912908136844635,
+          "operational": 0.9946327805519104,
+          "overall": 0.7943333212951464
+        },
+        {
+          "a": "C4_API",
+          "b": "C12",
+          "same_contract": false,
+          "functional": 0.8440607615879604,
+          "implementation": 0.7527512907981873,
+          "operational": 0.998697817325592,
+          "overall": 0.8426616672958646
+        },
+        {
+          "a": "C4_API",
+          "b": "C14",
+          "same_contract": false,
+          "functional": 0.71353608582701,
+          "implementation": 0.5632547065615654,
+          "operational": 0.9964714050292969,
+          "overall": 0.71265471386058
+        },
+        {
+          "a": "C4_DB",
+          "b": "C5",
+          "same_contract": false,
+          "functional": 0.8613266689436776,
+          "implementation": -0.0665670856833458,
+          "operational": 0.9898412227630615,
+          "overall": 0.7749630211719445
+        },
+        {
+          "a": "C4_DB",
+          "b": "C12",
+          "same_contract": false,
+          "functional": 0.7390340788323166,
+          "implementation": 0.19614219665527344,
+          "operational": 0.9994854927062988,
+          "overall": 0.6977674613083114
+        },
+        {
+          "a": "C4_DB",
+          "b": "C14",
+          "same_contract": false,
+          "functional": 0.6090906006949288,
+          "implementation": 0.1370689868927002,
+          "operational": 0.9976035952568054,
+          "overall": 0.5813140890427998
+        },
+        {
+          "a": "C4_GUI",
+          "b": "C5",
+          "same_contract": false,
+          "functional": 0.7509387284517288,
+          "implementation": -0.032992951571941376,
+          "operational": 0.9922677278518677,
+          "overall": 0.6846120104193687
+        },
+        {
+          "a": "C4_GUI",
+          "b": "C12",
+          "same_contract": false,
+          "functional": 0.5969718864985875,
+          "implementation": 0.051231592893600464,
+          "operational": 0.9921022653579712,
+          "overall": 0.5621543760810579
+        },
+        {
+          "a": "C4_GUI",
+          "b": "C14",
+          "same_contract": false,
+          "functional": 0.4775830698864801,
+          "implementation": -0.2731161415576935,
+          "operational": 0.9862579107284546,
+          "overall": 0.4279468907841615
+        }
+      ],
+      "summary": {
+        "within_functional_mean": 0.7999730755885442,
+        "negative_functional_mean": 0.706793655842794,
+        "functional_gap": 0.09317941974575028,
+        "within_overall_mean": 0.7323217924063404,
+        "negative_overall_mean": 0.6753786168065816,
+        "overall_gap": 0.05694317559975881,
+        "within_implementation_mean": 0.0264786413560311
+      }
+    },
+    "phase05_goal_relevance": {
+      "summary": {
+        "relevant_mean": 0.7551545570294063,
+        "irrelevant_mean": 0.44039371112982434,
+        "score_gap": 0.3147608458995819,
+        "auc": 0.9722222222222222,
+        "precision_at_5": 1.0,
+        "precision_at_10": 1.0
+      },
+      "ranked": [
+        {
+          "id": "C4",
+          "name": "CreateOrder",
+          "relevant": true,
+          "semantic_effect_goal": 0.9659520983695984,
+          "exact_goal_effect_coverage": 0.3333333333333333,
+          "backward_goal_reachability": 1.0,
+          "score": 0.8496427158514659
+        },
+        {
+          "id": "C4_API",
+          "name": "CreateOrder_API",
+          "relevant": true,
+          "semantic_effect_goal": 0.9659520983695984,
+          "exact_goal_effect_coverage": 0.3333333333333333,
+          "backward_goal_reachability": 1.0,
+          "score": 0.8496427158514659
+        },
+        {
+          "id": "C4_DB",
+          "name": "CreateOrder_DATABASE",
+          "relevant": true,
+          "semantic_effect_goal": 0.9659520983695984,
+          "exact_goal_effect_coverage": 0.3333333333333333,
+          "backward_goal_reachability": 1.0,
+          "score": 0.8496427158514659
+        },
+        {
+          "id": "C4_GUI",
+          "name": "CreateOrder_GUI",
+          "relevant": true,
+          "semantic_effect_goal": 0.9659520983695984,
+          "exact_goal_effect_coverage": 0.3333333333333333,
+          "backward_goal_reachability": 1.0,
+          "score": 0.8496427158514659
+        },
+        {
+          "id": "C5",
+          "name": "MakePayment",
+          "relevant": true,
+          "semantic_effect_goal": 0.9324966669082642,
+          "exact_goal_effect_coverage": 0.3333333333333333,
+          "backward_goal_reachability": 1.0,
+          "score": 0.8329150001207988
+        },
+        {
+          "id": "C7",
+          "name": "SendNotification",
+          "relevant": true,
+          "semantic_effect_goal": 0.9124016761779785,
+          "exact_goal_effect_coverage": 0.3333333333333333,
+          "backward_goal_reachability": 1.0,
+          "score": 0.822867504755656
+        },
+        {
+          "id": "C3",
+          "name": "ReserveInventory",
+          "relevant": true,
+          "semantic_effect_goal": 0.9730596542358398,
+          "exact_goal_effect_coverage": 0.0,
+          "backward_goal_reachability": 1.0,
+          "score": 0.78652982711792
+        },
+        {
+          "id": "C1",
+          "name": "AddToCart",
+          "relevant": true,
+          "semantic_effect_goal": 0.961663007736206,
+          "exact_goal_effect_coverage": 0.0,
+          "backward_goal_reachability": 1.0,
+          "score": 0.7808315038681031
+        },
+        {
+          "id": "C2",
+          "name": "CheckInventory",
+          "relevant": true,
+          "semantic_effect_goal": 0.9586104154586792,
+          "exact_goal_effect_coverage": 0.0,
+          "backward_goal_reachability": 1.0,
+          "score": 0.7793052077293396
+        },
+        {
+          "id": "C6",
+          "name": "VerifyPayment",
+          "relevant": true,
+          "semantic_effect_goal": 0.8917989134788513,
+          "exact_goal_effect_coverage": 0.0,
+          "backward_goal_reachability": 1.0,
+          "score": 0.7458994567394257
+        },
+        {
+          "id": "C9",
+          "name": "CancelOrder",
+          "relevant": false,
+          "semantic_effect_goal": 0.9663987159729004,
+          "exact_goal_effect_coverage": 0.0,
+          "backward_goal_reachability": 0.0,
+          "score": 0.4831993579864502
+        },
+        {
+          "id": "C13",
+          "name": "GetOrder",
+          "relevant": true,
+          "semantic_effect_goal": 0.9219584465026855,
+          "exact_goal_effect_coverage": 0.0,
+          "backward_goal_reachability": 0.0,
+          "score": 0.4609792232513428
+        },
+        {
+          "id": "C12",
+          "name": "UpdateOrder",
+          "relevant": true,
+          "semantic_effect_goal": 0.9079121947288513,
+          "exact_goal_effect_coverage": 0.0,
+          "backward_goal_reachability": 0.0,
+          "score": 0.45395609736442566
+        },
+        {
+          "id": "C15",
+          "name": "GenerateSalesReport",
+          "relevant": false,
+          "semantic_effect_goal": 0.8897945880889893,
+          "exact_goal_effect_coverage": 0.0,
+          "backward_goal_reachability": 0.0,
+          "score": 0.44489729404449463
+        },
+        {
+          "id": "C14",
+          "name": "UpdateProfile",
+          "relevant": false,
+          "semantic_effect_goal": 0.8873843550682068,
+          "exact_goal_effect_coverage": 0.0,
+          "backward_goal_reachability": 0.0,
+          "score": 0.4436921775341034
+        },
+        {
+          "id": "C11",
+          "name": "RemoveFromCart",
+          "relevant": false,
+          "semantic_effect_goal": 0.8733767867088318,
+          "exact_goal_effect_coverage": 0.0,
+          "backward_goal_reachability": 0.0,
+          "score": 0.4366883933544159
+        },
+        {
+          "id": "C8",
+          "name": "RefundPayment",
+          "relevant": false,
+          "semantic_effect_goal": 0.862339437007904,
+          "exact_goal_effect_coverage": 0.0,
+          "backward_goal_reachability": 0.0,
+          "score": 0.431169718503952
+        },
+        {
+          "id": "C10",
+          "name": "ReleaseInventory",
+          "relevant": false,
+          "semantic_effect_goal": 0.8054306507110596,
+          "exact_goal_effect_coverage": 0.0,
+          "backward_goal_reachability": 0.0,
+          "score": 0.4027153253555298
+        }
+      ],
+      "method": "hybrid embedding + symbolic backward goal reachability; not embedding-only prediction"
+    },
+    "phase06_operational_attributes": {
+      "baseline": "C5 MakePayment",
+      "rows": [
+        {
+          "variant": "high_monetary_cost",
+          "whole_cosine": 0.9886257648468018,
+          "operational_cosine": 0.8862568140029907,
+          "non_operational_mean_cosine": 0.9999999867545234
+        },
+        {
+          "variant": "low_reliability",
+          "whole_cosine": 0.9891692399978638,
+          "operational_cosine": 0.8916909098625183,
+          "non_operational_mean_cosine": 0.9999999867545234
+        },
+        {
+          "variant": "unavailable",
+          "whole_cosine": 0.9355407953262329,
+          "operational_cosine": 0.3554072082042694,
+          "non_operational_mean_cosine": 0.9999999867545234
+        },
+        {
+          "variant": "high_risk",
+          "whole_cosine": 0.9952075481414795,
+          "operational_cosine": 0.9520750641822815,
+          "non_operational_mean_cosine": 0.9999999867545234
+        }
+      ],
+      "summary": {
+        "mean_whole_vector_cosine": 0.9771358370780945,
+        "mean_operational_block_cosine": 0.771357499063015,
+        "mean_non_operational_cosine": 0.9999999867545234,
+        "largest_operational_change": "unavailable"
+      }
+    },
+    "phase07_leakage_free_composition": {
+      "training": {
+        "pair_count": 8,
+        "mean_cosine": 0.8531443923711777,
+        "ridge_lambda": 0.01,
+        "pairs": [
+          "C1->C2",
+          "C2->C3",
+          "C3->C4",
+          "C4->C5",
+          "C5->C6",
+          "C6->C7",
+          "C4->C9",
+          "C9->C10"
+        ]
+      },
+      "heldout_direct": [
+        {
+          "from": "C1",
+          "to": "C11",
+          "consistency": 0.851691722869873
+        },
+        {
+          "from": "C4",
+          "to": "C12",
+          "consistency": 0.8544946908950806
+        },
+        {
+          "from": "C4",
+          "to": "C13",
+          "consistency": 0.8758053779602051
+        },
+        {
+          "from": "C5",
+          "to": "C8",
+          "consistency": 0.836306095123291
+        }
+      ],
+      "heldout_direct_mean": 0.8545744717121124,
+      "recursive_chains": [
+        {
+          "id": "purchase_success_chain",
+          "length": 7,
+          "prefix_consistency": [
+            1.0000001192092896,
+            0.8255938291549683,
+            0.8393641710281372,
+            0.8309774994850159,
+            0.824849545955658,
+            0.8212332725524902,
+            0.792862057685852
+          ],
+          "final_consistency": 0.792862057685852
+        },
+        {
+          "id": "cancel_and_release_chain",
+          "length": 3,
+          "prefix_consistency": [
+            1.0,
+            0.8806296586990356,
+            0.7976531386375427
+          ],
+          "final_consistency": 0.7976531386375427
+        },
+        {
+          "id": "inventory_to_order",
+          "length": 3,
+          "prefix_consistency": [
+            1.0,
+            0.8190077543258667,
+            0.8358086943626404
+          ],
+          "final_consistency": 0.8358086943626404
+        },
+        {
+          "id": "order_to_verify",
+          "length": 3,
+          "prefix_consistency": [
+            1.0,
+            0.8527294993400574,
+            0.8354380130767822
+          ],
+          "final_consistency": 0.8354380130767822
+        },
+        {
+          "id": "payment_to_notify",
+          "length": 3,
+          "prefix_consistency": [
+            1.0000001192092896,
+            0.8647940754890442,
+            0.8218902349472046
+          ],
+          "final_consistency": 0.8218902349472046
+        },
+        {
+          "id": "create_to_update",
+          "length": 2,
+          "prefix_consistency": [
+            1.0,
+            0.8544946908950806
+          ],
+          "final_consistency": 0.8544946908950806
+        },
+        {
+          "id": "create_to_get",
+          "length": 2,
+          "prefix_consistency": [
+            1.0,
+            0.8758053779602051
+          ],
+          "final_consistency": 0.8758053779602051
+        },
+        {
+          "id": "create_to_refund",
+          "length": 3,
+          "prefix_consistency": [
+            1.0,
+            0.8527294993400574,
+            0.8188939690589905
+          ],
+          "final_consistency": 0.8188939690589905
+        },
+        {
+          "id": "add_to_remove",
+          "length": 2,
+          "prefix_consistency": [
+            1.0000001192092896,
+            0.851691722869873
+          ],
+          "final_consistency": 0.851691722869873
+        }
+      ],
+      "mean_final_chain_consistency": 0.831615322166019,
+      "min_final_chain_consistency": 0.792862057685852,
+      "leakage_control": "Composer prediction uses only atomic or previously predicted vectors plus vector-derived relation features. Formal composites are encoded independently and are never supplied to prediction."
+    }
+  },
+  "methodological_notes": [
+    "The symbolic compatibility engine and embedding-derived compatibility proxy are reported separately.",
+    "Composition is evaluated without leakage: the learned composer never receives a formal composite during prediction.",
+    "Goal relevance is a hybrid embedding + symbolic reachability measure, not embedding-only prediction.",
+    "Operational perturbations are controlled so that non-operational fields remain unchanged."
+  ]
+}

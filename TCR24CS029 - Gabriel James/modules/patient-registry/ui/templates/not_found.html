@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Not found{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Not found</h1>
+  <p>No {{ subject }} matches the identifier <code>{{ identifier }}</code>.</p>
+  <p><a class="button" href="{{ url_for('ui.home') }}">Back to the home page</a></p>
+</section>
+{% endblock %}

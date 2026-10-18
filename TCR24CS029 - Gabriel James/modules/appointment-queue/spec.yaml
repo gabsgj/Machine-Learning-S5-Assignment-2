@@ -1,0 +1,343 @@
+# Formal capability specification sheet, YAML rendering.
+# Generated from spec.json by the careweave_cli spec-yaml command; the two files are
+# always equivalent, and the round trip is proved by the command and by the test suite.
+capabilities:
+  - availability: true
+    constraints: []
+    description: Create a queue ticket for a patient with an optional priority (default NORMAL).
+    effects:
+      - op: SET
+        value: true
+        variable: Ticket.open
+      - op: INCREMENT
+        value: 1
+        variable: Queue.length
+    id: AQ-CreateTicket
+    inputs:
+      - domain: medical record number
+        name: patient_mrn
+        required: true
+        type: string
+      - domain: visit reason text
+        name: reason
+        required: false
+        type: string
+      - domain:
+          - LOW
+          - NORMAL
+          - HIGH
+          - EMERGENCY
+        name: priority
+        required: false
+        type: enumerated
+    mechanism:
+      endpoint: /api/create_ticket
+      kind: API
+      method: POST
+    name: create_ticket
+    outputs:
+      - domain: generated ticket identifier
+        name: ticket_id
+        type: string
+      - domain:
+          - "1"
+          - "100000"
+        name: ticket_no
+        type: integer
+    preconditions: []
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.01
+      time_ms: 110.0
+    reliability: 0.99
+    resources:
+      - queue_db
+    roles:
+      - clerk
+    type: API
+  - availability: true
+    constraints: []
+    description: "Call the waiting ticket with the highest priority, oldest first within a priority."
+    effects:
+      - op: SET
+        value: false
+        variable: Ticket.open
+      - op: DECREMENT
+        value: 1
+        variable: Queue.length
+    id: AQ-CallNext
+    inputs:
+      - domain: service desk label
+        name: desk
+        required: false
+        type: string
+    mechanism:
+      endpoint: /api/call_next_ticket
+      kind: API
+      method: POST
+    name: call_next_ticket
+    outputs:
+      - domain: called ticket identifier
+        name: ticket_id
+        type: string
+      - domain: medical record number
+        name: patient_mrn
+        type: string
+      - domain:
+          - LOW
+          - NORMAL
+          - HIGH
+          - EMERGENCY
+        name: priority
+        type: enumerated
+      - domain: ISO 8601 timestamp
+        name: called_at
+        type: string
+    preconditions:
+      - op: ">"
+        value: 0
+        variable: Queue.length
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.01
+      risk: 0.01
+      time_ms: 80.0
+    reliability: 0.99
+    resources:
+      - queue_db
+    roles:
+      - clerk
+      - nurse
+    type: API
+  - availability: true
+    constraints: []
+    description: Update the triage priority of a waiting ticket; the ticket becomes triaged.
+    effects:
+      - op: SET
+        value: true
+        variable: Ticket.triaged
+    id: AQ-UpdateTriage
+    inputs:
+      - domain: waiting ticket identifier
+        name: ticket_id
+        required: true
+        type: string
+      - domain:
+          - LOW
+          - NORMAL
+          - HIGH
+          - EMERGENCY
+        name: priority
+        required: true
+        type: enumerated
+      - domain: triage note text
+        name: notes
+        required: false
+        type: string
+    mechanism:
+      endpoint: /api/update_triage
+      kind: API
+      method: POST
+    name: update_triage
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: updated
+        type: boolean
+      - domain: ticket identifier
+        name: ticket_id
+        type: string
+      - domain:
+          - LOW
+          - NORMAL
+          - HIGH
+          - EMERGENCY
+        name: priority
+        type: enumerated
+    preconditions:
+      - op: =
+        value: true
+        variable: Ticket.open
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.01
+      risk: 0.02
+      time_ms: 70.0
+    reliability: 0.99
+    resources:
+      - queue_db
+    roles:
+      - nurse
+    type: API
+  - availability: true
+    constraints: []
+    description: Cancel a waiting ticket and remove it from the queue.
+    effects:
+      - op: SET
+        value: false
+        variable: Ticket.open
+      - op: DECREMENT
+        value: 1
+        variable: Queue.length
+    id: AQ-Cancel
+    inputs:
+      - domain: waiting ticket identifier
+        name: ticket_id
+        required: true
+        type: string
+      - domain: cancellation reason text
+        name: reason
+        required: false
+        type: string
+    mechanism:
+      endpoint: /api/cancel_ticket
+      kind: API
+      method: POST
+    name: cancel_ticket
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: cancelled
+        type: boolean
+      - domain: ISO 8601 timestamp
+        name: closed_at
+        type: string
+    preconditions:
+      - op: =
+        value: true
+        variable: Ticket.open
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.01
+      risk: 0.01
+      time_ms: 60.0
+    reliability: 0.99
+    resources:
+      - queue_db
+    roles:
+      - clerk
+      - nurse
+    type: API
+  - availability: true
+    constraints: []
+    description: Ticket creation form screen that submits a new queue ticket.
+    effects:
+      - op: SET
+        value: true
+        variable: Ticket.open
+      - op: INCREMENT
+        value: 1
+        variable: Queue.length
+    id: AQ-Form
+    inputs:
+      - domain: medical record number
+        name: patient_mrn
+        required: true
+        type: string
+      - domain: visit reason text
+        name: reason
+        required: false
+        type: string
+      - domain:
+          - LOW
+          - NORMAL
+          - HIGH
+          - EMERGENCY
+        name: priority
+        required: false
+        type: enumerated
+    mechanism:
+      action: SUBMIT
+      component: ticket_form
+      kind: GUI
+      page: /ui/tickets/new
+    name: create_ticket_form
+    outputs:
+      - domain: generated ticket identifier
+        name: ticket_id
+        type: string
+    preconditions: []
+    quality:
+      energy: 0.002
+      money: 0.0
+      resource: 0.02
+      risk: 0.01
+      time_ms: 240.0
+    reliability: 0.97
+    resources:
+      - queue_db
+    roles:
+      - clerk
+    type: GUI
+
+constraints:
+  - enforced_by: services.validation.require_enum and optional_enum
+    expression: "priority in [LOW, NORMAL, HIGH, EMERGENCY]"
+    id: K-Priority-Domain
+    kind: input
+  - enforced_by: "the queue length is derived from open tickets, never stored"
+    expression: "Queue.length >= 0"
+    id: K-Queue-Nonnegative
+    kind: state
+  - enforced_by: services.queue.call_next_ticket order clause
+    expression: tickets of equal priority are called in creation order
+    id: K-Fifo-Within-Priority
+    kind: domain
+
+goal:
+  - op: =
+    value: 0
+    variable: Queue.length
+
+initial_state:
+  Queue.length: 0
+  Ticket.open: false
+  Ticket.triaged: false
+
+module:
+  base_url: "http://127.0.0.1:5002"
+  database_file: data/appointment_queue.db
+  description: "Appointment queue: ticket creation, triage updates, priority ordered calling and cancellation."
+  domain: hospital
+  health: /health
+  language: python
+  module_id: appointment-queue
+  port: 5002
+  ui: /ui/
+  version: 1.0.0
+
+resources:
+  - available: true
+    details: SQLite database in WAL mode owned by this module
+    id: queue_db
+    kind: database
+  - available: true
+    details: Loopback HTTP interface used by the gateway and the dashboard
+    id: network
+    kind: network
+
+spec_version: "1.0"
+
+state_schema:
+  - domain:
+      - "false"
+      - "true"
+    name: Ticket.open
+    type: boolean
+  - domain:
+      - "false"
+      - "true"
+    name: Ticket.triaged
+    type: boolean
+  - domain:
+      - 0.0
+      - 10000.0
+    name: Queue.length
+    type: integer

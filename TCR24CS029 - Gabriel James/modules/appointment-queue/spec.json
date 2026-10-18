@@ -1,0 +1,203 @@
+{
+  "spec_version": "1.0",
+  "module": {
+    "module_id": "appointment-queue",
+    "version": "1.0.0",
+    "domain": "hospital",
+    "port": 5002,
+    "base_url": "http://127.0.0.1:5002",
+    "health": "/health",
+    "description": "Appointment queue: ticket creation, triage updates, priority ordered calling and cancellation.",
+    "language": "python",
+    "database_file": "data/appointment_queue.db",
+    "ui": "/ui/"
+  },
+  "state_schema": [
+    {"name": "Ticket.open", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Ticket.triaged", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Queue.length", "type": "integer", "domain": [0, 10000], "kind": "counter"}
+  ],
+  "initial_state": {
+    "Ticket.open": false,
+    "Ticket.triaged": false,
+    "Queue.length": 0
+  },
+  "resources": [
+    {
+      "id": "queue_db",
+      "kind": "database",
+      "available": true,
+      "details": "SQLite database in WAL mode owned by this module"
+    },
+    {
+      "id": "network",
+      "kind": "network",
+      "available": true,
+      "details": "Loopback HTTP interface used by the gateway and the dashboard"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "K-Priority-Domain",
+      "kind": "input",
+      "expression": "priority in [LOW, NORMAL, HIGH, EMERGENCY]",
+      "enforced_by": "services.validation.require_enum and optional_enum"
+    },
+    {
+      "id": "K-Queue-Nonnegative",
+      "kind": "state",
+      "expression": "Queue.length >= 0",
+      "enforced_by": "the queue length is derived from open tickets, never stored"
+    },
+    {
+      "id": "K-Fifo-Within-Priority",
+      "kind": "domain",
+      "expression": "tickets of equal priority are called in creation order",
+      "enforced_by": "services.queue.call_next_ticket order clause"
+    }
+  ],
+  "goal": [
+    {"variable": "Queue.length", "op": "=", "value": 0}
+  ],
+  "capabilities": [
+    {
+      "id": "AQ-CreateTicket",
+      "name": "create_ticket",
+      "type": "API",
+      "description": "Create a queue ticket for a patient with an optional priority (default NORMAL).",
+      "inputs": [
+        {"name": "patient_mrn", "type": "string", "domain": "medical record number", "required": true},
+        {"name": "reason", "type": "string", "domain": "visit reason text", "required": false},
+        {"name": "priority", "type": "enumerated", "domain": ["LOW", "NORMAL", "HIGH", "EMERGENCY"], "required": false}
+      ],
+      "outputs": [
+        {"name": "ticket_id", "type": "string", "domain": "generated ticket identifier"},
+        {"name": "ticket_no", "type": "integer", "domain": [1, 100000]}
+      ],
+      "preconditions": [],
+      "effects": [
+        {"variable": "Ticket.open", "op": "SET", "value": true},
+        {"variable": "Queue.length", "op": "INCREMENT", "value": 1}
+      ],
+      "constraints": [],
+      "resources": ["queue_db"],
+      "quality": {"time_ms": 110, "money": 0, "resource": 0.02, "risk": 0.01, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/create_ticket"},
+      "roles": ["clerk"]
+    },
+    {
+      "id": "AQ-CallNext",
+      "name": "call_next_ticket",
+      "type": "API",
+      "description": "Call the waiting ticket with the highest priority, oldest first within a priority.",
+      "inputs": [
+        {"name": "desk", "type": "string", "domain": "service desk label", "required": false}
+      ],
+      "outputs": [
+        {"name": "ticket_id", "type": "string", "domain": "called ticket identifier"},
+        {"name": "patient_mrn", "type": "string", "domain": "medical record number"},
+        {"name": "priority", "type": "enumerated", "domain": ["LOW", "NORMAL", "HIGH", "EMERGENCY"]},
+        {"name": "called_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Queue.length", "op": ">", "value": 0}
+      ],
+      "effects": [
+        {"variable": "Ticket.open", "op": "SET", "value": false},
+        {"variable": "Queue.length", "op": "DECREMENT", "value": 1}
+      ],
+      "constraints": [],
+      "resources": ["queue_db"],
+      "quality": {"time_ms": 80, "money": 0, "resource": 0.01, "risk": 0.01, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/call_next_ticket"},
+      "roles": ["clerk", "nurse"]
+    },
+    {
+      "id": "AQ-UpdateTriage",
+      "name": "update_triage",
+      "type": "API",
+      "description": "Update the triage priority of a waiting ticket; the ticket becomes triaged.",
+      "inputs": [
+        {"name": "ticket_id", "type": "string", "domain": "waiting ticket identifier", "required": true},
+        {"name": "priority", "type": "enumerated", "domain": ["LOW", "NORMAL", "HIGH", "EMERGENCY"], "required": true},
+        {"name": "notes", "type": "string", "domain": "triage note text", "required": false}
+      ],
+      "outputs": [
+        {"name": "updated", "type": "boolean", "domain": [false, true]},
+        {"name": "ticket_id", "type": "string", "domain": "ticket identifier"},
+        {"name": "priority", "type": "enumerated", "domain": ["LOW", "NORMAL", "HIGH", "EMERGENCY"]}
+      ],
+      "preconditions": [
+        {"variable": "Ticket.open", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Ticket.triaged", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["queue_db"],
+      "quality": {"time_ms": 70, "money": 0, "resource": 0.01, "risk": 0.02, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/update_triage"},
+      "roles": ["nurse"]
+    },
+    {
+      "id": "AQ-Cancel",
+      "name": "cancel_ticket",
+      "type": "API",
+      "description": "Cancel a waiting ticket and remove it from the queue.",
+      "inputs": [
+        {"name": "ticket_id", "type": "string", "domain": "waiting ticket identifier", "required": true},
+        {"name": "reason", "type": "string", "domain": "cancellation reason text", "required": false}
+      ],
+      "outputs": [
+        {"name": "cancelled", "type": "boolean", "domain": [false, true]},
+        {"name": "closed_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Ticket.open", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Ticket.open", "op": "SET", "value": false},
+        {"variable": "Queue.length", "op": "DECREMENT", "value": 1}
+      ],
+      "constraints": [],
+      "resources": ["queue_db"],
+      "quality": {"time_ms": 60, "money": 0, "resource": 0.01, "risk": 0.01, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/cancel_ticket"},
+      "roles": ["clerk", "nurse"]
+    },
+    {
+      "id": "AQ-Form",
+      "name": "create_ticket_form",
+      "type": "GUI",
+      "description": "Ticket creation form screen that submits a new queue ticket.",
+      "inputs": [
+        {"name": "patient_mrn", "type": "string", "domain": "medical record number", "required": true},
+        {"name": "reason", "type": "string", "domain": "visit reason text", "required": false},
+        {"name": "priority", "type": "enumerated", "domain": ["LOW", "NORMAL", "HIGH", "EMERGENCY"], "required": false}
+      ],
+      "outputs": [
+        {"name": "ticket_id", "type": "string", "domain": "generated ticket identifier"}
+      ],
+      "preconditions": [],
+      "effects": [
+        {"variable": "Ticket.open", "op": "SET", "value": true},
+        {"variable": "Queue.length", "op": "INCREMENT", "value": 1}
+      ],
+      "constraints": [],
+      "resources": ["queue_db"],
+      "quality": {"time_ms": 240, "money": 0, "resource": 0.02, "risk": 0.01, "energy": 0.002},
+      "reliability": 0.97,
+      "availability": {"always": true},
+      "mechanism": {"kind": "GUI", "action": "SUBMIT", "component": "ticket_form", "page": "/ui/tickets/new"},
+      "roles": ["clerk"]
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+first_capability,second_capability,precondition_effect_score,input_output_score,resource_score,final_score,compatible
+CreateOrder,MakePayment,1,0.5,1,0.85,NO
+CreateOrder,CancelCart,0,0,1,0.2,NO

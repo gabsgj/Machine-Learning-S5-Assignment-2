@@ -1,0 +1,60 @@
+{
+  "workflow_id": "clinic-visit-legacy",
+  "steps": [
+    {
+      "name": "register",
+      "requirement": "specs/app/requirements/register_pat.yaml",
+      "preferred_modules": [
+        "patient-registry-alt"
+      ],
+      "inputs": {
+        "pat_no": "LEGACY-DEMO-1",
+        "pat_name": "Integrated Legacy Patient"
+      }
+    },
+    {
+      "name": "verify",
+      "module": "patient-registry-alt",
+      "capability": "PA-Verify",
+      "bind": {
+        "pat_reg": "register.pat_reg"
+      }
+    },
+    {
+      "name": "ticket",
+      "module": "appointment-queue",
+      "capability": "AQ-CreateTicket",
+      "inputs": {
+        "reason": "clinic visit",
+        "priority": "NORMAL"
+      },
+      "bind": {
+        "patient_mrn": "register.pat_reg"
+      }
+    },
+    {
+      "name": "invoice",
+      "module": "pos-billing",
+      "capability": "BILL-GenerateInvoice",
+      "inputs": {
+        "amount": 45.5,
+        "description": "OPD visit, legacy registration"
+      },
+      "bind": {
+        "patient_mrn": "register.pat_reg"
+      }
+    },
+    {
+      "name": "payment",
+      "module": "pos-billing",
+      "capability": "BILL-ProcessPayment",
+      "inputs": {
+        "method": "CASH",
+        "amount_tendered": 50.0
+      },
+      "bind": {
+        "invoice_id": "invoice.invoice_id"
+      }
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+chain,composable,execution_time,resource_cost,monetary_cost,risk,energy,reliability,availability
+CreateOrder->MakePayment->SendConfirmation,NO,0,0,0,0,0,0,NO

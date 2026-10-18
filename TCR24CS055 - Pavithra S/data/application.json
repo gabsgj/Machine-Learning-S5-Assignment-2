@@ -1,0 +1,487 @@
+{
+  "application": {
+    "name": "ECommerceApplication",
+    "description": "Formal application model for capability composition experiments."
+  },
+  "states": [
+    {
+      "user_authenticated": true,
+      "user_role": "CUSTOMER",
+      "cart_exists": true,
+      "cart_item_count_positive": true,
+      "order_exists": false,
+      "order_status_created": false,
+      "payment_success": false,
+      "notification_sent": false,
+      "inventory_available": true
+    },
+    {
+      "user_authenticated": true,
+      "user_role": "CUSTOMER",
+      "cart_exists": true,
+      "cart_item_count_positive": true,
+      "order_exists": true,
+      "order_status_created": true,
+      "payment_success": false,
+      "notification_sent": false,
+      "inventory_available": true
+    }
+  ],
+  "goals": [
+    {
+      "name": "CompletePurchaseGoal",
+      "conditions": [
+        {
+          "name": "order_exists",
+          "value": true
+        },
+        {
+          "name": "payment_success",
+          "value": true
+        },
+        {
+          "name": "notification_sent",
+          "value": true
+        }
+      ]
+    }
+  ],
+  "capabilities": [
+    {
+      "name": "CreateOrder",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "user_authenticated",
+          "value": true
+        },
+        {
+          "name": "cart_exists",
+          "value": true
+        },
+        {
+          "name": "cart_item_count_positive",
+          "value": true
+        },
+        {
+          "name": "inventory_available",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "name": "order_exists",
+          "value": true
+        },
+        {
+          "name": "order_status_created",
+          "value": true
+        }
+      ],
+      "constraints": [
+        "quantity > 0",
+        "quantity <= inventory_available"
+      ],
+      "resources": [
+        "database",
+        "network"
+      ],
+      "cost": 0.01,
+      "reliability": 0.99,
+      "availability": 1.0,
+      "risk": 0.05,
+      "execution_mechanism": {
+        "method": "POST",
+        "endpoint": "/orders"
+      }
+    },
+    {
+      "name": "MakePayment",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "order_exists",
+          "value": true
+        },
+        {
+          "name": "order_status_created",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "name": "payment_success",
+          "value": true
+        }
+      ],
+      "constraints": [
+        "payment_amount <= transaction_limit"
+      ],
+      "resources": [
+        "payment_gateway",
+        "network"
+      ],
+      "cost": 0.02,
+      "reliability": 0.98,
+      "availability": 1.0,
+      "risk": 0.1,
+      "execution_mechanism": {
+        "method": "POST",
+        "endpoint": "/payments"
+      }
+    },
+    {
+      "name": "SendNotification",
+      "type": "EVENT",
+      "inputs": [
+        {
+          "name": "payment_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "preconditions": [
+        {
+          "name": "payment_success",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "name": "notification_sent",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "network",
+        "external_notification_service"
+      ],
+      "cost": 0.005,
+      "reliability": 0.97,
+      "availability": 1.0,
+      "risk": 0.03,
+      "execution_mechanism": {
+        "trigger": "PaymentSuccessful",
+        "handler": "SendNotification"
+      }
+    },
+    {
+      "name": "CancelCart",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [],
+      "preconditions": [
+        {
+          "name": "order_exists",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "name": "cart_cancelled",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "database"
+      ],
+      "cost": 0.005,
+      "reliability": 0.99,
+      "availability": 1.0,
+      "risk": 0.02,
+      "execution_mechanism": {
+        "method": "POST",
+        "endpoint": "/cart/cancel"
+      }
+    },
+    {
+      "name": "UpdateProfile",
+      "type": "DATABASE",
+      "inputs": [
+        {
+          "name": "user_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [],
+      "preconditions": [
+        {
+          "name": "user_authenticated",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "name": "profile_updated",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "database"
+      ],
+      "cost": 0.004,
+      "reliability": 0.995,
+      "availability": 1.0,
+      "risk": 0.01,
+      "execution_mechanism": {
+        "operation": "UPDATE",
+        "table": "users"
+      }
+    },
+    {
+      "name": "SearchProduct",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "search_query",
+          "type": "STRING",
+          "domain": "text",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "product_list",
+          "type": "LIST",
+          "domain": "products"
+        }
+      ],
+      "preconditions": [],
+      "effects": [
+        {
+          "name": "products_displayed",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "database",
+        "network"
+      ],
+      "cost": 0.003,
+      "reliability": 0.995,
+      "availability": 1.0,
+      "risk": 0.01,
+      "execution_mechanism": {
+        "method": "GET",
+        "endpoint": "/products/search"
+      }
+    },
+    {
+      "name": "CreateOrder_Database",
+      "type": "DATABASE",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "user_authenticated",
+          "value": true
+        },
+        {
+          "name": "cart_exists",
+          "value": true
+        },
+        {
+          "name": "cart_item_count_positive",
+          "value": true
+        },
+        {
+          "name": "inventory_available",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "name": "order_exists",
+          "value": true
+        },
+        {
+          "name": "order_status_created",
+          "value": true
+        }
+      ],
+      "constraints": [
+        "quantity > 0"
+      ],
+      "resources": [
+        "database"
+      ],
+      "cost": 0.008,
+      "reliability": 0.995,
+      "availability": 1.0,
+      "risk": 0.04,
+      "execution_mechanism": {
+        "operation": "INSERT",
+        "table": "orders"
+      }
+    },
+    {
+      "name": "CreateOrder_GUI",
+      "type": "GUI",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "user_authenticated",
+          "value": true
+        },
+        {
+          "name": "cart_exists",
+          "value": true
+        },
+        {
+          "name": "cart_item_count_positive",
+          "value": true
+        },
+        {
+          "name": "inventory_available",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "name": "order_exists",
+          "value": true
+        },
+        {
+          "name": "order_status_created",
+          "value": true
+        }
+      ],
+      "constraints": [
+        "quantity > 0"
+      ],
+      "resources": [
+        "network"
+      ],
+      "cost": 0.015,
+      "reliability": 0.96,
+      "availability": 0.99,
+      "risk": 0.07,
+      "execution_mechanism": {
+        "action": "CLICK",
+        "component": "submit_button"
+      }
+    },
+    {
+      "name": "MakePayment_Backup",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "order_exists",
+          "value": true
+        },
+        {
+          "name": "order_status_created",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "name": "payment_success",
+          "value": true
+        }
+      ],
+      "constraints": [
+        "payment_amount <= transaction_limit"
+      ],
+      "resources": [
+        "backup_payment_gateway",
+        "network"
+      ],
+      "cost": 0.05,
+      "reliability": 0.995,
+      "availability": 0.99,
+      "risk": 0.05,
+      "execution_mechanism": {
+        "method": "POST",
+        "endpoint": "/backup-payments"
+      }
+    }
+  ]
+}

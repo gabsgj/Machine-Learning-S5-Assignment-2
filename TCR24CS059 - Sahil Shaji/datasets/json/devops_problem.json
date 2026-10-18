@@ -1,0 +1,227 @@
+{
+  "domain": "devops",
+  "initial_state": {
+    "Code.committed": true,
+    "Lint.passed": false,
+    "Tests.passed": false,
+    "Docker.built": false,
+    "K8s.deployed": false,
+    "Alert.sent": false,
+    "Deployment.version": "1.0.0"
+  },
+  "goal": {
+    "Tests.passed": true,
+    "Docker.built": true,
+    "K8s.deployed": true
+  },
+  "capabilities": {
+    "RunLinter": {
+      "name": "RunLinter",
+      "type": "FUNCTION",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Code.committed": true
+      },
+      "effects": {
+        "Lint.passed": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "CI_Runner",
+          "resource_type": "COMPUTE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 15000.0,
+        "monetary_cost": 0.005,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.99,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "FUNCTION",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "RunUnitTests": {
+      "name": "RunUnitTests",
+      "type": "COMPUTATION",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Lint.passed": true
+      },
+      "effects": {
+        "Tests.passed": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "CI_Runner",
+          "resource_type": "COMPUTE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 45000.0,
+        "monetary_cost": 0.02,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.97,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "COMPUTATION",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "BuildDockerImage": {
+      "name": "BuildDockerImage",
+      "type": "SERVICE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Tests.passed": true
+      },
+      "effects": {
+        "Docker.built": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "DockerDaemon",
+          "resource_type": "SYSTEM",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 60000.0,
+        "monetary_cost": 0.04,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.98,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "SERVICE",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "DeployKubernetes": {
+      "name": "DeployKubernetes",
+      "type": "API",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Docker.built": true
+      },
+      "effects": {
+        "K8s.deployed": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "K8sCluster",
+          "resource_type": "CLUSTER",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 30000.0,
+        "monetary_cost": 0.03,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.995,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "API",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "SendSlackAlert": {
+      "name": "SendSlackAlert",
+      "type": "MESSAGE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "K8s.deployed": true
+      },
+      "effects": {
+        "Alert.sent": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "SlackWebhook",
+          "resource_type": "EXTERNAL",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 500.0,
+        "monetary_cost": 0.001,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.999,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "MESSAGE",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "BackupPostgresDatabase": {
+      "name": "BackupPostgresDatabase",
+      "type": "DATABASE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {},
+      "effects": {
+        "DB.backup_saved": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "S3Storage",
+          "resource_type": "STORAGE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 90000.0,
+        "monetary_cost": 0.1,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.99,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "DATABASE",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    }
+  }
+}

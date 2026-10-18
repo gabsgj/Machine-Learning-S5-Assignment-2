@@ -1,0 +1,197 @@
+{
+  "spec_version": "1.0",
+  "module": {
+    "module_id": "pharmacy-inventory",
+    "version": "1.0.0",
+    "domain": "hospital",
+    "port": 5004,
+    "base_url": "http://127.0.0.1:5004",
+    "health": "/health",
+    "description": "Pharmacy inventory: drug catalogue, stock checks, dispensing with shortage rejection and replenishment.",
+    "language": "python",
+    "database_file": "data/pharmacy_inventory.db",
+    "ui": "/ui/"
+  },
+  "state_schema": [
+    {"name": "Stock.available", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Stock.quantity", "type": "integer", "domain": [0, 100000], "kind": "counter"},
+    {"name": "Drug.dispensed", "type": "boolean", "domain": [false, true], "kind": "flag"}
+  ],
+  "initial_state": {
+    "Stock.available": false,
+    "Stock.quantity": 0,
+    "Drug.dispensed": false
+  },
+  "resources": [
+    {
+      "id": "pharmacy_db",
+      "kind": "database",
+      "available": true,
+      "details": "SQLite database in WAL mode owned by this module"
+    },
+    {
+      "id": "network",
+      "kind": "network",
+      "available": true,
+      "details": "Loopback HTTP interface used by the gateway and the dashboard"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "K-No-Negative-Stock",
+      "kind": "state",
+      "expression": "Stock.quantity >= 0 always",
+      "enforced_by": "services.pharmacy.dispense_drug rejects requests above the level on hand"
+    },
+    {
+      "id": "K-Quantity-Range",
+      "kind": "input",
+      "expression": "dispense quantity in 1..1000, replenish quantity in 1..10000",
+      "enforced_by": "services.pharmacy.require_positive_int call sites"
+    },
+    {
+      "id": "K-Sku-Unique",
+      "kind": "domain",
+      "expression": "one SKU identifies one catalogue entry",
+      "enforced_by": "db.py PRIMARY KEY(drugs.sku) and services.pharmacy.register_drug"
+    }
+  ],
+  "goal": [
+    {"variable": "Stock.available", "op": "=", "value": true},
+    {"variable": "Drug.dispensed", "op": "=", "value": true}
+  ],
+  "capabilities": [
+    {
+      "id": "PH-RegisterDrug",
+      "name": "register_drug",
+      "type": "API",
+      "description": "Add a drug to the catalogue with a unit price and an optional initial quantity.",
+      "inputs": [
+        {"name": "sku", "type": "string", "domain": "stock keeping unit", "required": true},
+        {"name": "name", "type": "string", "domain": "drug name", "required": true},
+        {"name": "unit_price", "type": "real", "domain": [0.01, 100000.0], "required": true},
+        {"name": "initial_quantity", "type": "integer", "domain": [0, 100000], "required": false}
+      ],
+      "outputs": [
+        {"name": "sku", "type": "string", "domain": "stock keeping unit"},
+        {"name": "name", "type": "string", "domain": "drug name"},
+        {"name": "on_hand", "type": "integer", "domain": [0, 1000000]}
+      ],
+      "preconditions": [],
+      "effects": [],
+      "constraints": [],
+      "resources": ["pharmacy_db"],
+      "quality": {"time_ms": 120, "money": 0, "resource": 0.02, "risk": 0.02, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/register_drug"},
+      "roles": ["pharmacist"]
+    },
+    {
+      "id": "PH-CheckStock",
+      "name": "check_stock",
+      "type": "API",
+      "description": "Read the stock level, unit price and availability of one drug.",
+      "inputs": [
+        {"name": "sku", "type": "string", "domain": "stock keeping unit", "required": true}
+      ],
+      "outputs": [
+        {"name": "sku", "type": "string", "domain": "stock keeping unit"},
+        {"name": "name", "type": "string", "domain": "drug name"},
+        {"name": "on_hand", "type": "integer", "domain": [0, 1000000]},
+        {"name": "unit_price", "type": "real", "domain": [0.01, 100000.0]},
+        {"name": "available", "type": "boolean", "domain": [false, true]}
+      ],
+      "preconditions": [],
+      "effects": [],
+      "constraints": [],
+      "resources": ["pharmacy_db"],
+      "quality": {"time_ms": 40, "money": 0, "resource": 0.01, "risk": 0.005, "energy": 0.0005},
+      "reliability": 0.995,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/check_stock"},
+      "roles": ["pharmacist", "nurse"]
+    },
+    {
+      "id": "PH-DispenseDrug",
+      "name": "dispense_drug",
+      "type": "API",
+      "description": "Dispense a quantity of a drug, rejecting requests above the level on hand.",
+      "inputs": [
+        {"name": "sku", "type": "string", "domain": "stock keeping unit", "required": true},
+        {"name": "quantity", "type": "integer", "domain": [1, 1000], "required": true},
+        {"name": "patient_mrn", "type": "string", "domain": "medical record number", "required": false}
+      ],
+      "outputs": [
+        {"name": "dispensed", "type": "boolean", "domain": [false, true]},
+        {"name": "remaining", "type": "integer", "domain": [0, 1000000]},
+        {"name": "dispensed_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Stock.available", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Drug.dispensed", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["pharmacy_db"],
+      "quality": {"time_ms": 100, "money": 0, "resource": 0.02, "risk": 0.05, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/dispense_drug"},
+      "roles": ["pharmacist"]
+    },
+    {
+      "id": "PH-Replenish",
+      "name": "replenish_stock",
+      "type": "API",
+      "description": "Add units to the stock level of one drug.",
+      "inputs": [
+        {"name": "sku", "type": "string", "domain": "stock keeping unit", "required": true},
+        {"name": "quantity", "type": "integer", "domain": [1, 10000], "required": true}
+      ],
+      "outputs": [
+        {"name": "sku", "type": "string", "domain": "stock keeping unit"},
+        {"name": "on_hand", "type": "integer", "domain": [0, 1000000]}
+      ],
+      "preconditions": [],
+      "effects": [
+        {"variable": "Stock.available", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["pharmacy_db"],
+      "quality": {"time_ms": 90, "money": 0, "resource": 0.02, "risk": 0.02, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/replenish_stock"},
+      "roles": ["pharmacist"]
+    },
+    {
+      "id": "PH-Form",
+      "name": "dispense_form",
+      "type": "GUI",
+      "description": "Dispensing screen that submits a dispense request for a catalogue drug.",
+      "inputs": [
+        {"name": "sku", "type": "string", "domain": "stock keeping unit", "required": true},
+        {"name": "quantity", "type": "integer", "domain": [1, 1000], "required": true},
+        {"name": "patient_mrn", "type": "string", "domain": "medical record number", "required": false}
+      ],
+      "outputs": [
+        {"name": "dispensed", "type": "boolean", "domain": [false, true]}
+      ],
+      "preconditions": [
+        {"variable": "Stock.available", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Drug.dispensed", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["pharmacy_db"],
+      "quality": {"time_ms": 230, "money": 0, "resource": 0.02, "risk": 0.05, "energy": 0.002},
+      "reliability": 0.97,
+      "availability": {"always": true},
+      "mechanism": {"kind": "GUI", "action": "SUBMIT", "component": "dispense_form", "page": "/ui/dispense"},
+      "roles": ["pharmacist"]
+    }
+  ]
+}

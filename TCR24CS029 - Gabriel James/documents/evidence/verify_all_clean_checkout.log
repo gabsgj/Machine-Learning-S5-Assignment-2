@@ -1,0 +1,302 @@
+verify_all started Mon Oct 19 00:56:57 IST 2026
+== purge scan
+purge scan clean
+== placeholder scan
+placeholder scan clean
+== scope check (the experiments stay outside the planner scope)
+scope check clean
+== build
+configuring /private/var/folders/z4/k4pjqdls4kgfpvnxd7cy1dzc0000gn/T/opencode/clean_checkout/core/build
+building with 8 jobs
+build ok: /private/var/folders/z4/k4pjqdls4kgfpvnxd7cy1dzc0000gn/T/opencode/clean_checkout/core/build
+== unit tests
+ctest in /private/var/folders/z4/k4pjqdls4kgfpvnxd7cy1dzc0000gn/T/opencode/clean_checkout/core/build
+Test project /private/var/folders/z4/k4pjqdls4kgfpvnxd7cy1dzc0000gn/T/opencode/clean_checkout/core/build
+      Start  1: test_adapter
+ 1/13 Test  #1: test_adapter .....................   Passed    1.01 sec
+      Start  2: test_bundle
+ 2/13 Test  #2: test_bundle ......................   Passed    0.45 sec
+      Start  3: test_compat_conditions
+ 3/13 Test  #3: test_compat_conditions ...........   Passed    0.49 sec
+      Start  4: test_compat_engine
+ 4/13 Test  #4: test_compat_engine ...............   Passed    0.42 sec
+      Start  5: test_composer
+ 5/13 Test  #5: test_composer ....................   Passed    0.51 sec
+      Start  6: test_corpus
+ 6/13 Test  #6: test_corpus ......................   Passed    0.56 sec
+      Start  7: test_determinism
+ 7/13 Test  #7: test_determinism .................   Passed    0.68 sec
+      Start  8: test_embedding
+ 8/13 Test  #8: test_embedding ...................   Passed    0.41 sec
+      Start  9: test_gateway
+ 9/13 Test  #9: test_gateway .....................   Passed    4.48 sec
+      Start 10: test_mapper
+10/13 Test #10: test_mapper ......................   Passed    0.41 sec
+      Start 11: test_planner
+11/13 Test #11: test_planner .....................   Passed    0.41 sec
+      Start 12: test_types
+12/13 Test #12: test_types .......................   Passed    0.40 sec
+      Start 13: test_yaml_lite
+13/13 Test #13: test_yaml_lite ...................   Passed    0.41 sec
+
+100% tests passed out of 13
+
+Total Test time (real) =  10.66 sec
+pytest appointment-queue
+............                                                             [100%]
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.12.14-final-0 _______________
+
+Name                     Stmts   Miss  Cover
+--------------------------------------------
+app.py                      52      3    94%
+db.py                       18      0   100%
+run.py                      10     10     0%
+seed.py                     22     22     0%
+services/__init__.py         0      0   100%
+services/errors.py          13      0   100%
+services/queue.py          106      2    98%
+services/validation.py      32      7    78%
+tests/test_module.py       143      0   100%
+ui/__init__.py              38      3    92%
+--------------------------------------------
+TOTAL                      434     47    89%
+12 passed in 0.63s
+pytest legacy-lab-service
+..........                                                               [100%]
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.12.14-final-0 _______________
+
+Name                     Stmts   Miss  Cover
+--------------------------------------------
+app.py                      52      3    94%
+db.py                       18      0   100%
+run.py                      10     10     0%
+seed.py                     32     32     0%
+services/__init__.py         0      0   100%
+services/errors.py          13      0   100%
+services/lab.py            126      4    97%
+services/validation.py      32     11    66%
+tests/test_module.py       151      0   100%
+ui/__init__.py              36      2    94%
+--------------------------------------------
+TOTAL                      470     62    87%
+10 passed in 0.50s
+pytest opd-ehr
+............                                                             [100%]
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.12.14-final-0 _______________
+
+Name                     Stmts   Miss  Cover
+--------------------------------------------
+app.py                      52      3    94%
+db.py                       18      0   100%
+run.py                      10     10     0%
+seed.py                     23     23     0%
+services/__init__.py         0      0   100%
+services/ehr.py            141      5    96%
+services/errors.py          13      0   100%
+services/validation.py      32     11    66%
+tests/test_module.py       142      0   100%
+ui/__init__.py              36      2    94%
+--------------------------------------------
+TOTAL                      467     54    88%
+12 passed in 0.51s
+pytest patient-registry-alt
+...........                                                              [100%]
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.12.14-final-0 _______________
+
+Name                     Stmts   Miss  Cover
+--------------------------------------------
+app.py                      52      3    94%
+db.py                       18      0   100%
+run.py                      10     10     0%
+seed.py                     27     27     0%
+services/__init__.py         0      0   100%
+services/errors.py          13      0   100%
+services/registry.py        85      2    98%
+services/validation.py      32     22    31%
+tests/test_module.py       139      0   100%
+ui/__init__.py              36      2    94%
+--------------------------------------------
+TOTAL                      412     66    84%
+11 passed in 0.48s
+pytest patient-registry
+.............                                                            [100%]
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.12.14-final-0 _______________
+
+Name                     Stmts   Miss  Cover
+--------------------------------------------
+app.py                      52      3    94%
+db.py                       18      0   100%
+run.py                      10     10     0%
+seed.py                     31     31     0%
+services/__init__.py         0      0   100%
+services/errors.py          13      0   100%
+services/registry.py       139      3    98%
+services/validation.py      32     10    69%
+tests/test_module.py       147      0   100%
+ui/__init__.py              38      2    95%
+--------------------------------------------
+TOTAL                      480     59    88%
+13 passed in 0.54s
+pytest pharmacy-inventory
+..........                                                               [100%]
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.12.14-final-0 _______________
+
+Name                     Stmts   Miss  Cover
+--------------------------------------------
+app.py                      52      3    94%
+db.py                       18      0   100%
+run.py                      10     10     0%
+seed.py                     20     20     0%
+services/__init__.py         0      0   100%
+services/errors.py          13      0   100%
+services/pharmacy.py       112      5    96%
+services/validation.py      32     11    66%
+tests/test_module.py       124      0   100%
+ui/__init__.py              36      3    92%
+--------------------------------------------
+TOTAL                      417     52    88%
+10 passed in 0.46s
+pytest pos-billing
+...........                                                              [100%]
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.12.14-final-0 _______________
+
+Name                     Stmts   Miss  Cover
+--------------------------------------------
+app.py                      52      3    94%
+db.py                       18      0   100%
+run.py                      10     10     0%
+seed.py                     22     22     0%
+services/__init__.py         0      0   100%
+services/billing.py        137     13    91%
+services/errors.py          13      0   100%
+services/validation.py      32     14    56%
+tests/test_module.py       145      0   100%
+ui/__init__.py              49      4    92%
+--------------------------------------------
+TOTAL                      478     66    86%
+11 passed in 0.52s
+unit tests ok
+== experiments
+== exp1_compatibility
+vocabulary name pairs (18 pairs): equivalent mean 0.7698 (min 0.6369), distinct mean 0.1890 (max 0.6699), mechanism pairs max 0.0000, AUC 0.9846
+results written to /private/var/folders/z4/k4pjqdls4kgfpvnxd7cy1dzc0000gn/T/opencode/clean_checkout/experiments/out
+== exp2_composition
+composite interface: inputs [customer_id], outputs [order_id, payment_reference], net delta [Order.exists SET true]
+results written to /private/var/folders/z4/k4pjqdls4kgfpvnxd7cy1dzc0000gn/T/opencode/clean_checkout/experiments/out
+== exp3_alternative_implementations
+
+results written to /private/var/folders/z4/k4pjqdls4kgfpvnxd7cy1dzc0000gn/T/opencode/clean_checkout/experiments/out
+== exp4_irrelevant_capabilities
+weakest intended answer 0.8346, strongest decoy 0.4962 (DEC-RunPayroll)
+results written to /private/var/folders/z4/k4pjqdls4kgfpvnxd7cy1dzc0000gn/T/opencode/clean_checkout/experiments/out
+== exp5_operational_attributes
+smallest positive sweep margin 0.0035
+results written to /private/var/folders/z4/k4pjqdls4kgfpvnxd7cy1dzc0000gn/T/opencode/clean_checkout/experiments/out
+== careweave_evaluation
+  9. Efficiency: wall clock means over repeated runs (5000 encodings, 100 rankings against the 53 candidate pool, 500 compatibility checks) and the storage arithmetic of the vectors
+results written to /private/var/folders/z4/k4pjqdls4kgfpvnxd7cy1dzc0000gn/T/opencode/clean_checkout/experiments/out
+experiments ok; results in /private/var/folders/z4/k4pjqdls4kgfpvnxd7cy1dzc0000gn/T/opencode/clean_checkout/experiments/out
+== integrated workflow
+started appointment-queue on port 5002 (pid 96260)
+started legacy-lab-service on port 5006 (pid 96266)
+started opd-ehr on port 5003 (pid 96272)
+started patient-registry-alt on port 5007 (pid 96278)
+started patient-registry on port 5001 (pid 96284)
+started pharmacy-inventory on port 5004 (pid 96290)
+started pos-billing on port 5005 (pid 96296)
+started gateway on port 5100 (pid 96298)
+gateway healthy: 7 of 7 modules live
+workflow canonical completed: 7 of 7 steps, http 200
+"module_id": "patient-registry",
+"module_id": "patient-registry",
+"name": "register",
+"verdict": "first step"
+"module_id": "patient-registry",
+"module_id": "patient-registry",
+"name": "admit",
+"verdict": "uncertain",
+"module_id": "opd-ehr",
+"module_id": "opd-ehr",
+"name": "encounter",
+"verdict": "uncertain",
+"module_id": "opd-ehr",
+"module_id": "opd-ehr",
+"name": "vitals",
+"verdict": "uncertain",
+"module_id": "opd-ehr",
+"module_id": "opd-ehr",
+"name": "close",
+"verdict": "uncertain",
+"module_id": "pos-billing",
+"module_id": "pos-billing",
+"name": "invoice",
+"verdict": "uncertain",
+"module_id": "pos-billing",
+"module_id": "pos-billing",
+"name": "payment",
+"verdict": "uncertain",
+verified canonical workflow step count: 7
+workflow legacy completed: 5 of 5 steps, http 200
+"module_id": "patient-registry-alt",
+"module_id": "patient-registry-alt",
+"name": "register",
+"verdict": "first step"
+"module_id": "patient-registry-alt",
+"module_id": "patient-registry-alt",
+"name": "verify",
+"verdict": "compatible",
+"module_id": "appointment-queue",
+"module_id": "appointment-queue",
+"name": "ticket",
+"verdict": "uncertain",
+"module_id": "pos-billing",
+"module_id": "pos-billing",
+"name": "invoice",
+"verdict": "uncertain",
+"module_id": "pos-billing",
+"module_id": "pos-billing",
+"name": "payment",
+"verdict": "uncertain",
+verified legacy workflow step count: 5
+== database verification
+verified canonical patient row: yes
+verified canonical patient admitted flag: 1
+verified canonical active admission: 1
+verified canonical closed encounter: 1
+verified canonical recorded vitals: 1
+verified canonical paid invoice: 1
+verified legacy patient row: yes
+verified legacy verified flag: 1
+verified legacy registration answered by the alias module: patient-registry-alt
+verified legacy open queue ticket: 1
+verified legacy paid invoice: 1
+integrated workflow ok: run 20261019005808 verified in the module databases
+== management API and dashboard endpoints
+verified dashboard index
+verified sheets list
+verified sheet detail
+verified embedding
+verified embedding compare
+verified adapter preview
+verified plan
+verified experiments
+verified audit
+stopping appointment-queue (pid 96260)
+stopping gateway (pid 96298)
+stopping legacy-lab-service (pid 96266)
+stopping opd-ehr (pid 96272)
+stopping patient-registry-alt (pid 96278)
+stopping patient-registry (pid 96284)
+stopping pharmacy-inventory (pid 96290)
+stopping pos-billing (pid 96296)
+stopped 8 processes
+== dashboard offline check
+dashboard assets complete and free of external URLs
+verify_all ok Mon Oct 19 00:58:10 IST 2026

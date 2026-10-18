@@ -1,0 +1,176 @@
+{
+  "domain": "hotel_booking",
+  "description": "Hotel booking domain covering room search, reservation, check-in, check-out, room service, and cancellation workflows.",
+  "state_variables": [
+    "search_done", "room_available", "reservation_made", "payment_authorized",
+    "payment_captured", "checked_in", "checked_out", "room_service_requested",
+    "room_service_delivered", "reservation_cancelled", "refund_processed",
+    "loyalty_points_credited"
+  ],
+  "resource_vocabulary": ["pms_db", "payment_gateway", "housekeeping_system", "kitchen_system", "email_service"],
+  "initial_state": {
+    "search_done": false,
+    "room_available": false,
+    "reservation_made": false,
+    "payment_authorized": false,
+    "payment_captured": false,
+    "checked_in": false,
+    "checked_out": false,
+    "room_service_requested": false,
+    "room_service_delivered": false,
+    "reservation_cancelled": false,
+    "refund_processed": false,
+    "loyalty_points_credited": false
+  },
+  "goal": {
+    "checked_in": true,
+    "payment_captured": true,
+    "loyalty_points_credited": true
+  },
+  "capabilities": [
+    {
+      "name": "SearchRooms",
+      "type": "API",
+      "inputs": [
+        {"name": "check_in_date", "type": "string", "domain": "ISO8601", "required": true},
+        {"name": "check_out_date", "type": "string", "domain": "ISO8601", "required": true},
+        {"name": "guests", "type": "int", "domain": "positive_int", "required": true},
+        {"name": "room_type", "type": "string", "domain": "enum", "required": false}
+      ],
+      "outputs": [
+        {"name": "available_rooms", "type": "list", "domain": "room_list"},
+        {"name": "price_range", "type": "dict", "domain": "price_range"}
+      ],
+      "preconditions": {},
+      "effects": {"search_done": true, "room_available": true},
+      "constraints": ["check_in must be before check_out", "guests must be positive"],
+      "resources": ["pms_db"],
+      "cost": {"time_ms": 250, "money": 0.01, "resource": 0.1, "risk": 0.01, "energy": 0.08},
+      "reliability": 0.99,
+      "availability": true,
+      "mechanism": {"endpoint": "/api/rooms/search", "method": "GET", "cache_ttl": 300}
+    },
+    {
+      "name": "MakeReservation",
+      "type": "API",
+      "inputs": [
+        {"name": "room_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "guest_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "check_in_date", "type": "string", "domain": "ISO8601", "required": true},
+        {"name": "check_out_date", "type": "string", "domain": "ISO8601", "required": true}
+      ],
+      "outputs": [
+        {"name": "reservation_id", "type": "string", "domain": "UUID"},
+        {"name": "confirmation_code", "type": "string", "domain": "alphanumeric"}
+      ],
+      "preconditions": {"search_done": true, "room_available": true},
+      "effects": {"reservation_made": true, "payment_authorized": true, "room_available": false},
+      "constraints": ["room must still be available at time of booking"],
+      "resources": ["pms_db", "payment_gateway", "email_service"],
+      "cost": {"time_ms": 500, "money": 0.5, "resource": 0.3, "risk": 0.1, "energy": 0.2},
+      "reliability": 0.97,
+      "availability": true,
+      "mechanism": {"endpoint": "/api/reservations", "method": "POST", "payment_hold": true}
+    },
+    {
+      "name": "CapturePayment",
+      "type": "API",
+      "inputs": [
+        {"name": "reservation_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "amount", "type": "float", "domain": "positive_real", "required": true}
+      ],
+      "outputs": [
+        {"name": "transaction_id", "type": "string", "domain": "UUID"},
+        {"name": "invoice_url", "type": "string", "domain": "URL"}
+      ],
+      "preconditions": {"reservation_made": true, "payment_authorized": true},
+      "effects": {"payment_captured": true},
+      "constraints": ["capture must occur within authorization window"],
+      "resources": ["payment_gateway", "pms_db"],
+      "cost": {"time_ms": 600, "money": 0.3, "resource": 0.35, "risk": 0.12, "energy": 0.18},
+      "reliability": 0.96,
+      "availability": true,
+      "mechanism": {"provider": "adyen", "capture_type": "immediate", "currency": "USD"}
+    },
+    {
+      "name": "CheckIn",
+      "type": "GUI",
+      "inputs": [
+        {"name": "reservation_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "guest_id_document", "type": "string", "domain": "document_id", "required": true}
+      ],
+      "outputs": [
+        {"name": "room_key", "type": "string", "domain": "key_card_code"},
+        {"name": "room_number", "type": "string", "domain": "alphanumeric"}
+      ],
+      "preconditions": {"reservation_made": true, "payment_captured": true},
+      "effects": {"checked_in": true},
+      "constraints": ["guest must present valid ID", "check-in time must be after 14:00"],
+      "resources": ["pms_db", "housekeeping_system"],
+      "cost": {"time_ms": 120, "money": 0.0, "resource": 0.2, "risk": 0.05, "energy": 0.1},
+      "reliability": 0.98,
+      "availability": {"start": "14:00", "end": "23:59"},
+      "mechanism": {"kiosk_app": "oracle_hospitality", "id_scanner": "passport_reader"}
+    },
+    {
+      "name": "OrderRoomService",
+      "type": "MESSAGE",
+      "inputs": [
+        {"name": "room_number", "type": "string", "domain": "alphanumeric", "required": true},
+        {"name": "items", "type": "list", "domain": "menu_items", "required": true}
+      ],
+      "outputs": [
+        {"name": "order_id", "type": "string", "domain": "UUID"},
+        {"name": "estimated_time", "type": "int", "domain": "minutes"}
+      ],
+      "preconditions": {"checked_in": true},
+      "effects": {"room_service_requested": true},
+      "constraints": ["order must be placed within kitchen hours"],
+      "resources": ["kitchen_system", "pms_db"],
+      "cost": {"time_ms": 200, "money": 0.0, "resource": 0.25, "risk": 0.03, "energy": 0.12},
+      "reliability": 0.94,
+      "availability": {"start": "06:00", "end": "23:00"},
+      "mechanism": {"app": "in_room_tablet", "protocol": "internal_messaging", "queue": "kitchen_ticket_queue"}
+    },
+    {
+      "name": "CheckOut",
+      "type": "SERVICE",
+      "inputs": [
+        {"name": "reservation_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "guest_id", "type": "string", "domain": "UUID", "required": true}
+      ],
+      "outputs": [
+        {"name": "final_invoice", "type": "string", "domain": "URL"},
+        {"name": "loyalty_points_earned", "type": "int", "domain": "non_negative_int"}
+      ],
+      "preconditions": {"checked_in": true, "payment_captured": true},
+      "effects": {"checked_out": true, "loyalty_points_credited": true},
+      "constraints": ["check-out time must be before 12:00 unless late checkout agreed"],
+      "resources": ["pms_db", "email_service"],
+      "cost": {"time_ms": 180, "money": 0.0, "resource": 0.2, "risk": 0.04, "energy": 0.1},
+      "reliability": 0.98,
+      "availability": {"start": "06:00", "end": "12:00"},
+      "mechanism": {"desk_system": "oracle_hospitality", "email_invoice": true, "loyalty_api": "hilton_honors"}
+    },
+    {
+      "name": "CancelReservation",
+      "type": "API",
+      "inputs": [
+        {"name": "reservation_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "reason", "type": "string", "domain": "free_text", "required": false}
+      ],
+      "outputs": [
+        {"name": "cancellation_id", "type": "string", "domain": "UUID"},
+        {"name": "refund_amount", "type": "float", "domain": "non_negative_real"}
+      ],
+      "preconditions": {"reservation_made": true, "checked_in": false},
+      "effects": {"reservation_cancelled": true, "room_available": true, "refund_processed": true},
+      "constraints": ["cancellation policy applies", "cannot cancel after check-in"],
+      "resources": ["pms_db", "payment_gateway", "email_service"],
+      "cost": {"time_ms": 350, "money": 0.1, "resource": 0.25, "risk": 0.15, "energy": 0.12},
+      "reliability": 0.97,
+      "availability": true,
+      "mechanism": {"endpoint": "/api/reservations/cancel", "method": "DELETE", "policy_engine": "cancellation_rules"}
+    }
+  ]
+}

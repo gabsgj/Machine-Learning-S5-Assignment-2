@@ -1,0 +1,97 @@
+TRANSCRIPT patient-registry live run
+database: documents/evidence/modules/patient-registry.db
+server log: documents/evidence/modules/patient-registry.server.log
+python: 3.12.14
+
+$ GET /health
+  (module health)
+  http status: 200
+  response: {"database": "../../documents/evidence/modules/patient-registry.db", "module": "patient-registry", "port": 5001, "status": "ok"}
+
+$ GET /spec
+  http status: 200
+  capability ids: ["PR-Register", "PR-Admit", "PR-Discharge", "PR-FlagAllergy", "PR-Lookup", "PR-Form"]
+  state variables: ["Patient.registered", "Patient.admitted", "Patient.allergy_flagged", "Ward.bed_available"]
+
+$ GET /state
+  (state before any capability call)
+  http status: 200
+  response: {"module": "patient-registry", "state": {"Patient.admitted": false, "Patient.allergy_flagged": false, "Patient.registered": false, "Ward.bed_available": true}, "status": "ok"}
+
+$ GET /ui/
+  (UI page)
+  http status: 200
+  response (3191 bytes of HTML): <!doctype html>
+
+$ GET /ui/patients
+  (UI page)
+  http status: 200
+  response (1443 bytes of HTML): <!doctype html>
+
+$ GET /ui/patients/new
+  (UI page)
+  http status: 200
+  response (1812 bytes of HTML): <!doctype html>
+
+$ GET /ui/capabilities
+  (UI page)
+  http status: 200
+  response (11335 bytes of HTML): <!doctype html>
+
+$ POST /api/register_patient
+  (register a patient)
+  request body: {"date_of_birth": "1815-12-10", "full_name": "Ada Lovelace", "mrn": "MRN-2001"}
+  http status: 200
+  response: {"capability": "PR-Register", "effects": [{"op": "SET", "value": true, "variable": "Patient.registered"}], "outputs": {"created_at": "2026-10-18T15:32:55+00:00", "mrn": "MRN-2001", "patient_id": "PAT-9B87B9B7"}, "state": {"Patient.admitted": false, "Patient.allergy_flagged": false, "Patient.registered": true, "Ward.bed_available": true}, "status": "ok", "trace": ["PR-Register executed"]}
+
+$ POST /api/register_patient
+  (register with a duplicate MRN is rejected)
+  request body: {"full_name": "Copy", "mrn": "MRN-2001"}
+  http status: 409
+  response: {"capability": "PR-Register", "error": "a patient with MRN \"MRN-2001\" already exists", "status": "error"}
+
+$ POST /api/lookup_patient
+  (look the patient up by MRN)
+  request body: {"mrn": "MRN-2001"}
+  http status: 200
+  response: {"capability": "PR-Lookup", "effects": [], "outputs": {"admitted": false, "allergy_count": 0, "full_name": "Ada Lovelace", "mrn": "MRN-2001", "patient_id": "PAT-9B87B9B7"}, "state": {"Patient.admitted": false, "Patient.allergy_flagged": false, "Patient.registered": true, "Ward.bed_available": true}, "status": "ok", "trace": ["PR-Lookup executed"]}
+
+$ POST /api/admit_patient
+  (admit the patient)
+  request body: {"expected_stay_days": 3, "patient_id": "PAT-9B87B9B7", "ward": "Ward A"}
+  http status: 200
+  response: {"capability": "PR-Admit", "effects": [{"op": "SET", "value": true, "variable": "Patient.admitted"}], "outputs": {"admission_id": "ADM-EA42162D", "admitted_at": "2026-10-18T15:32:55+00:00"}, "state": {"Patient.admitted": true, "Patient.allergy_flagged": false, "Patient.registered": true, "Ward.bed_available": true}, "status": "ok", "trace": ["PR-Admit executed"]}
+
+$ POST /api/flag_allergy
+  (flag an allergy)
+  request body: {"allergen": "Penicillin", "patient_id": "PAT-9B87B9B7", "severity": "SEVERE"}
+  http status: 200
+  response: {"capability": "PR-FlagAllergy", "effects": [{"op": "SET", "value": true, "variable": "Patient.allergy_flagged"}], "outputs": {"allergy_id": "ALG-0161A4C5", "flagged": true}, "state": {"Patient.admitted": true, "Patient.allergy_flagged": true, "Patient.registered": true, "Ward.bed_available": true}, "status": "ok", "trace": ["PR-FlagAllergy executed"]}
+
+$ POST /api/lookup_patient
+  (look the patient up by identifier)
+  request body: {"patient_id": "PAT-9B87B9B7"}
+  http status: 200
+  response: {"capability": "PR-Lookup", "effects": [], "outputs": {"admitted": true, "allergy_count": 1, "full_name": "Ada Lovelace", "mrn": "MRN-2001", "patient_id": "PAT-9B87B9B7"}, "state": {"Patient.admitted": true, "Patient.allergy_flagged": true, "Patient.registered": true, "Ward.bed_available": true}, "status": "ok", "trace": ["PR-Lookup executed"]}
+
+$ POST /api/discharge_patient
+  (discharge the admission)
+  request body: {"admission_id": "ADM-EA42162D"}
+  http status: 200
+  response: {"capability": "PR-Discharge", "effects": [{"op": "SET", "value": false, "variable": "Patient.admitted"}], "outputs": {"discharged": true, "discharged_at": "2026-10-18T15:32:55+00:00"}, "state": {"Patient.admitted": false, "Patient.allergy_flagged": true, "Patient.registered": true, "Ward.bed_available": true}, "status": "ok", "trace": ["PR-Discharge executed"]}
+
+$ GET /state
+  (state snapshot after the calls)
+  http status: 200
+  response: {"module": "patient-registry", "state": {"Patient.admitted": false, "Patient.allergy_flagged": true, "Patient.registered": true, "Ward.bed_available": true}, "status": "ok"}
+
+$ POST /ui/patients/new
+  (GUI capability form submission)
+  request body: {"full_name": "Grace Hopper", "mrn": "MRN-2002"}
+  http status: 200
+  response: {"capability": "PR-Form", "effects": [{"op": "SET", "value": true, "variable": "Patient.registered"}], "outputs": {"created_at": "2026-10-18T15:32:55+00:00", "mrn": "MRN-2002", "patient_id": "PAT-6AA636AF"}, "state": {"Patient.admitted": false, "Patient.allergy_flagged": true, "Patient.registered": true, "Ward.bed_available": true}, "status": "ok", "trace": ["PR-Form submitted through /ui/patients/new"]}
+
+$ GET /ui/patients/PAT-6AA636AF
+  (UI detail page)
+  http status: 200
+  response (3557 bytes of HTML): <!doctype html>

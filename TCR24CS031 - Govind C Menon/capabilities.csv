@@ -1,0 +1,16 @@
+name,type,inputs_count,inputs_list,outputs_count,outputs_list,preconditions_count,effects_count,resources_list,monetary_cost,execution_time_ms,resource_cost,risk,reliability,availability,mechanism_type,mechanism_endpoint
+CreateOrder,FUNCTION,1,cart_id,1,order_id,3,3,Database,0.01,80.0,2.0,0.05,0.99,1.0,FUNCTION_CALL,create_order_function
+MakePayment,API,2,"order_id, payment_details",1,payment_receipt,3,2,"PaymentGateway, Network",0.1,250.0,4.0,0.1,0.97,0.99,REST_API,/api/v1/payments
+SendNotification,MESSAGE,2,"order_id, notification_payload",1,notification_receipt,2,1,"EmailService, Network",0.005,40.0,1.0,0.01,0.995,1.0,MESSAGE_QUEUE,notifications.topic
+CancelCart,FUNCTION,1,cart_id,1,cart_status,3,2,Database,0.0,20.0,1.0,0.01,0.999,1.0,FUNCTION_CALL,cancel_cart_function
+CheckInventory,SERVICE,1,cart_id,1,inventory_status,1,1,"Database, Network",0.002,30.0,1.5,0.02,0.99,1.0,MICROSERVICE,/inventory/check
+GenerateInvoice,FILE,2,"order_id, payment_receipt",1,invoice_pdf,2,1,"FileSystem, Database",0.02,120.0,3.0,0.03,0.98,0.99,FILE_IO,/storage/invoices
+UpdateProfile,GUI,2,"user_id, user_profile",1,profile_data,1,1,Database,0.0,50.0,1.0,0.01,0.99,1.0,UI_COMPONENT,profile_form
+GenerateReport,COMPUTATION,1,report_type,1,report_file,2,1,"GPU, Database",0.5,1500.0,8.0,0.15,0.94,0.95,BATCH_JOB,analytics_worker
+PlayMusic,SERVICE,1,track_id,1,audio_stream,1,1,Network,0.0,15.0,0.5,0.0,0.999,1.0,AUDIO_STREAM,media_player
+CreateOrderAPI,API,1,cart_id,1,order_id,3,3,"Network, Database, AuthToken",0.03,120.0,2.5,0.08,0.98,0.99,REST_API,/api/orders/create
+CreateOrderDatabase,DATABASE,1,cart_id,1,order_id,3,3,Database,0.005,35.0,1.5,0.02,0.995,1.0,DATABASE_INSERT,orders_table
+CreateOrderGUI,GUI,1,cart_id,1,order_id,3,3,"FileSystem, Network",0.0,250.0,3.0,0.1,0.96,0.98,GUI_INTERACTION,checkout_submit_btn
+MakePayment_HighCost_LowRel,API,2,"order_id, payment_details",1,payment_receipt,3,2,"PaymentGateway, Network",0.5,500.0,6.0,0.3,0.8,1.0,REST_API,/api/v1/payments
+MakePayment_Economy,API,2,"order_id, payment_details",1,payment_receipt,3,2,"PaymentGateway, Network",0.01,300.0,2.0,0.15,0.92,0.95,REST_API,/api/v1/payments
+MakePayment_Enterprise,API,2,"order_id, payment_details",1,payment_receipt,3,2,"PaymentGateway, Network",0.15,100.0,5.0,0.02,0.999,1.0,REST_API,/api/v1/payments

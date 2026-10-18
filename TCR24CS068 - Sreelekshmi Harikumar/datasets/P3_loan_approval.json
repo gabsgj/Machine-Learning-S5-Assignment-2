@@ -1,0 +1,898 @@
+{
+ "problem_id": "P3_loan_approval",
+ "domain": "banking / loan processing",
+ "description": "From an application to a signed and disbursed loan with a decision e-mail.",
+ "state_variables": [
+  {
+   "name": "App.submitted",
+   "type": "bool"
+  },
+  {
+   "name": "Docs.uploaded",
+   "type": "bool"
+  },
+  {
+   "name": "Applicant.identity",
+   "type": "enum",
+   "values": [
+    "UNVERIFIED",
+    "VERIFIED",
+    "REJECTED"
+   ]
+  },
+  {
+   "name": "Credit.checked",
+   "type": "bool"
+  },
+  {
+   "name": "Risk.band",
+   "type": "enum",
+   "values": [
+    "UNSET",
+    "LOW",
+    "MEDIUM",
+    "HIGH"
+   ]
+  },
+  {
+   "name": "Loan.decision",
+   "type": "enum",
+   "values": [
+    "PENDING",
+    "APPROVED",
+    "DECLINED"
+   ]
+  },
+  {
+   "name": "Applicant.income",
+   "type": "int",
+   "lo": 0,
+   "hi": 500000
+  },
+  {
+   "name": "Loan.amount",
+   "type": "int",
+   "lo": 0,
+   "hi": 1000000
+  },
+  {
+   "name": "Contract.signed",
+   "type": "bool"
+  },
+  {
+   "name": "Funds.disbursed",
+   "type": "bool"
+  },
+  {
+   "name": "Email.sent",
+   "type": "bool"
+  },
+  {
+   "name": "Archive.done",
+   "type": "bool"
+  },
+  {
+   "name": "Marketing.updated",
+   "type": "bool"
+  }
+ ],
+ "initial_state": {
+  "App.submitted": false,
+  "Docs.uploaded": false,
+  "Applicant.identity": "UNVERIFIED",
+  "Credit.checked": false,
+  "Risk.band": "UNSET",
+  "Loan.decision": "PENDING",
+  "Applicant.income": 60000,
+  "Loan.amount": 20000,
+  "Contract.signed": false,
+  "Funds.disbursed": false,
+  "Email.sent": false,
+  "Archive.done": false,
+  "Marketing.updated": false
+ },
+ "goals": {
+  "main": [
+   {
+    "var": "Funds.disbursed",
+    "op": "==",
+    "value": true
+   },
+   {
+    "var": "Email.sent",
+    "op": "==",
+    "value": true
+   }
+  ],
+  "decline": [
+   {
+    "var": "Loan.decision",
+    "op": "==",
+    "value": "DECLINED"
+   },
+   {
+    "var": "Email.sent",
+    "op": "==",
+    "value": true
+   }
+  ]
+ },
+ "goal_text": {
+  "main": "disburse the approved loan and e-mail the applicant",
+  "decline": "decline the application and e-mail the applicant"
+ },
+ "resources": [
+  "Browser",
+  "ExternalService",
+  "PaymentGateway",
+  "Network",
+  "Database",
+  "FileSystem",
+  "MailServer"
+ ],
+ "environment": [
+  "Browser",
+  "ExternalService",
+  "PaymentGateway",
+  "Network",
+  "Database",
+  "FileSystem",
+  "MailServer"
+ ],
+ "global_constraints": [
+  {
+   "id": "K1",
+   "description": "never disburse without a signed contract",
+   "forbid": [
+    {
+     "var": "Funds.disbursed",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Contract.signed",
+     "op": "==",
+     "value": false
+    }
+   ]
+  }
+ ],
+ "domain_parent": {
+  "pdf": "file"
+ },
+ "context_ports": [
+  {
+   "name": "applicant_data",
+   "type": "JSON",
+   "domain": "form",
+   "required": true
+  }
+ ],
+ "capabilities": [
+  {
+   "id": "SubmitApplication",
+   "type": "GUI",
+   "description": "applicant submits the web form",
+   "inputs": [
+    {
+     "name": "applicant_data",
+     "type": "JSON",
+     "domain": "form",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "application_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "App.submitted",
+     "op": "==",
+     "value": false
+    }
+   ],
+   "effects": [
+    {
+     "var": "App.submitted",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Browser",
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 1200,
+    "money": 0.0,
+    "resource_cost": 2,
+    "risk": 0.01,
+    "energy": 0.5
+   },
+   "reliability": 0.995,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "action": "CLICK",
+    "component": "submit_button"
+   }
+  },
+  {
+   "id": "UploadDocuments",
+   "type": "FILE",
+   "description": "upload proof of identity and income",
+   "inputs": [
+    {
+     "name": "application_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "doc_bundle",
+     "type": "FILE",
+     "domain": "pdf",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "App.submitted",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Docs.uploaded",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "FileSystem",
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 2500,
+    "money": 0.0,
+    "resource_cost": 2,
+    "risk": 0.02,
+    "energy": 1.0
+   },
+   "reliability": 0.99,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "operation": "UPLOAD",
+    "path": "/docs"
+   }
+  },
+  {
+   "id": "VerifyIdentity_API",
+   "type": "API",
+   "description": "automated identity check",
+   "inputs": [
+    {
+     "name": "doc_bundle",
+     "type": "FILE",
+     "domain": "file",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "kyc_report",
+     "type": "JSON",
+     "domain": "kyc",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Docs.uploaded",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Applicant.identity",
+     "op": "==",
+     "value": "UNVERIFIED"
+    }
+   ],
+   "effects": [
+    {
+     "var": "Applicant.identity",
+     "value": "VERIFIED"
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "ExternalService",
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 900,
+    "money": 0.5,
+    "resource_cost": 2,
+    "risk": 0.04,
+    "energy": 0.4
+   },
+   "reliability": 0.98,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "POST",
+    "endpoint": "/kyc"
+   },
+   "alt_group": "verify"
+  },
+  {
+   "id": "VerifyIdentity_Manual",
+   "type": "GUI",
+   "description": "officer reviews documents by hand",
+   "inputs": [
+    {
+     "name": "doc_bundle",
+     "type": "FILE",
+     "domain": "file",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "kyc_report",
+     "type": "JSON",
+     "domain": "kyc",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Docs.uploaded",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Applicant.identity",
+     "op": "==",
+     "value": "UNVERIFIED"
+    }
+   ],
+   "effects": [
+    {
+     "var": "Applicant.identity",
+     "value": "VERIFIED"
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Browser"
+   ],
+   "qos": {
+    "time_ms": 600000,
+    "money": 4.0,
+    "resource_cost": 5,
+    "risk": 0.01,
+    "energy": 2.0
+   },
+   "reliability": 0.995,
+   "availability": {
+    "available": true,
+    "window": [
+     9,
+     17
+    ]
+   },
+   "mechanism": {
+    "action": "REVIEW",
+    "component": "officer_console"
+   },
+   "alt_group": "verify"
+  },
+  {
+   "id": "FetchCreditScore",
+   "type": "API",
+   "description": "query the credit bureau",
+   "inputs": [
+    {
+     "name": "kyc_report",
+     "type": "JSON",
+     "domain": "kyc",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "credit_report",
+     "type": "JSON",
+     "domain": "bureau",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Applicant.identity",
+     "op": "==",
+     "value": "VERIFIED"
+    }
+   ],
+   "effects": [
+    {
+     "var": "Credit.checked",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "ExternalService",
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 1100,
+    "money": 0.75,
+    "resource_cost": 2,
+    "risk": 0.03,
+    "energy": 0.4
+   },
+   "reliability": 0.985,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "GET",
+    "endpoint": "/bureau"
+   }
+  },
+  {
+   "id": "AssessRisk",
+   "type": "COMPUTATION",
+   "description": "score and band the applicant",
+   "inputs": [
+    {
+     "name": "credit_report",
+     "type": "JSON",
+     "domain": "bureau",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "risk_score",
+     "type": "DECIMAL",
+     "domain": "decimal",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Credit.checked",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Risk.band",
+     "value": "LOW"
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Database"
+   ],
+   "qos": {
+    "time_ms": 300,
+    "money": 0.0,
+    "resource_cost": 2,
+    "risk": 0.02,
+    "energy": 0.5
+   },
+   "reliability": 0.995,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "function": "risk_model_v3"
+   }
+  },
+  {
+   "id": "ApproveLoan",
+   "type": "SERVICE",
+   "description": "approve within policy",
+   "inputs": [
+    {
+     "name": "risk_score",
+     "type": "DECIMAL",
+     "domain": "decimal",
+     "required": true
+    }
+   ],
+   "outputs": [],
+   "preconditions": [
+    {
+     "var": "Risk.band",
+     "op": "in",
+     "value": [
+      "LOW",
+      "MEDIUM"
+     ]
+    },
+    {
+     "var": "Loan.decision",
+     "op": "==",
+     "value": "PENDING"
+    }
+   ],
+   "effects": [
+    {
+     "var": "Loan.decision",
+     "value": "APPROVED"
+    }
+   ],
+   "constraints": [
+    {
+     "var": "Loan.amount",
+     "op": "<=",
+     "value": 50000
+    },
+    {
+     "var": "Applicant.income",
+     "op": ">=",
+     "value": 30000
+    }
+   ],
+   "resources": [
+    "Database"
+   ],
+   "qos": {
+    "time_ms": 200,
+    "money": 0.0,
+    "resource_cost": 2,
+    "risk": 0.05,
+    "energy": 0.3
+   },
+   "reliability": 0.995,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "POST",
+    "endpoint": "/decisions/approve"
+   }
+  },
+  {
+   "id": "DeclineLoan",
+   "type": "SERVICE",
+   "description": "decline the application",
+   "inputs": [
+    {
+     "name": "risk_score",
+     "type": "DECIMAL",
+     "domain": "decimal",
+     "required": true
+    }
+   ],
+   "outputs": [],
+   "preconditions": [
+    {
+     "var": "Risk.band",
+     "op": "!=",
+     "value": "UNSET"
+    },
+    {
+     "var": "Loan.decision",
+     "op": "==",
+     "value": "PENDING"
+    }
+   ],
+   "effects": [
+    {
+     "var": "Loan.decision",
+     "value": "DECLINED"
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Database"
+   ],
+   "qos": {
+    "time_ms": 200,
+    "money": 0.0,
+    "resource_cost": 2,
+    "risk": 0.02,
+    "energy": 0.3
+   },
+   "reliability": 0.995,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "POST",
+    "endpoint": "/decisions/decline"
+   }
+  },
+  {
+   "id": "SignContract",
+   "type": "API",
+   "description": "applicant e-signs the loan contract",
+   "inputs": [
+    {
+     "name": "application_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "contract_pdf",
+     "type": "FILE",
+     "domain": "pdf",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Loan.decision",
+     "op": "==",
+     "value": "APPROVED"
+    }
+   ],
+   "effects": [
+    {
+     "var": "Contract.signed",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "ExternalService",
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 1800,
+    "money": 0.3,
+    "resource_cost": 2,
+    "risk": 0.03,
+    "energy": 0.4
+   },
+   "reliability": 0.99,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "POST",
+    "endpoint": "/esign"
+   }
+  },
+  {
+   "id": "DisburseFunds",
+   "type": "SERVICE",
+   "description": "transfer the loan amount",
+   "inputs": [
+    {
+     "name": "contract_pdf",
+     "type": "FILE",
+     "domain": "file",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "transfer_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Contract.signed",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Loan.decision",
+     "op": "==",
+     "value": "APPROVED"
+    }
+   ],
+   "effects": [
+    {
+     "var": "Funds.disbursed",
+     "value": true
+    }
+   ],
+   "constraints": [
+    {
+     "var": "Loan.amount",
+     "op": "<=",
+     "value": 50000
+    }
+   ],
+   "resources": [
+    "PaymentGateway",
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 2200,
+    "money": 1.0,
+    "resource_cost": 3,
+    "risk": 0.06,
+    "energy": 0.6
+   },
+   "reliability": 0.99,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "POST",
+    "endpoint": "/transfers"
+   }
+  },
+  {
+   "id": "SendDecisionEmail",
+   "type": "MESSAGE",
+   "description": "e-mail the decision to the applicant",
+   "inputs": [],
+   "outputs": [],
+   "preconditions": [
+    {
+     "var": "Loan.decision",
+     "op": "!=",
+     "value": "PENDING"
+    }
+   ],
+   "effects": [
+    {
+     "var": "Email.sent",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "MailServer"
+   ],
+   "qos": {
+    "time_ms": 250,
+    "money": 0.001,
+    "resource_cost": 1,
+    "risk": 0.01,
+    "energy": 0.1
+   },
+   "reliability": 0.995,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "protocol": "SMTP",
+    "template": "decision"
+   }
+  },
+  {
+   "id": "ArchiveRecords",
+   "type": "FILE",
+   "description": "archive the case file",
+   "inputs": [],
+   "outputs": [],
+   "preconditions": [],
+   "effects": [
+    {
+     "var": "Archive.done",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "FileSystem"
+   ],
+   "qos": {
+    "time_ms": 400,
+    "money": 0.0,
+    "resource_cost": 1,
+    "risk": 0.0,
+    "energy": 0.5
+   },
+   "reliability": 0.999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "operation": "ARCHIVE",
+    "path": "/archive"
+   }
+  },
+  {
+   "id": "UpdateMarketingPrefs",
+   "type": "DATABASE",
+   "description": "store marketing preferences",
+   "inputs": [],
+   "outputs": [],
+   "preconditions": [],
+   "effects": [
+    {
+     "var": "Marketing.updated",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Database"
+   ],
+   "qos": {
+    "time_ms": 20,
+    "money": 0.0,
+    "resource_cost": 1,
+    "risk": 0.0,
+    "energy": 0.1
+   },
+   "reliability": 0.999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "operation": "UPSERT",
+    "table": "marketing"
+   }
+  }
+ ]
+}

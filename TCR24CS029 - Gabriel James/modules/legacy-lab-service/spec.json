@@ -1,0 +1,205 @@
+{
+  "spec_version": "1.0",
+  "module": {
+    "module_id": "legacy-lab-service",
+    "version": "1.0.0",
+    "domain": "hospital",
+    "port": 5006,
+    "base_url": "http://127.0.0.1:5006",
+    "health": "/health",
+    "description": "Legacy laboratory service: test ordering with the legacy vocabulary patient_mrn, test_code, urgency_level, sample reception, result entry and report reading.",
+    "language": "python",
+    "database_file": "data/legacy_lab.db",
+    "ui": "/ui/"
+  },
+  "state_schema": [
+    {"name": "Lab.ordered", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Sample.received", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Lab.resulted", "type": "boolean", "domain": [false, true], "kind": "flag"}
+  ],
+  "initial_state": {
+    "Lab.ordered": false,
+    "Sample.received": false,
+    "Lab.resulted": false
+  },
+  "resources": [
+    {
+      "id": "lab_db",
+      "kind": "database",
+      "available": true,
+      "details": "SQLite database in WAL mode owned by this module"
+    },
+    {
+      "id": "network",
+      "kind": "network",
+      "available": true,
+      "details": "Loopback HTTP interface used by the gateway and the dashboard"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "K-Workflow-Order",
+      "kind": "state",
+      "expression": "an order is ordered before its sample is received and resulted afterwards",
+      "enforced_by": "services.lab status checks in receive_sample and enter_result"
+    },
+    {
+      "id": "K-Test-Code-Catalogue",
+      "kind": "domain",
+      "expression": "test_code must belong to the installed test catalogue",
+      "enforced_by": "services.lab.order_test catalogue lookup"
+    },
+    {
+      "id": "K-Urgency-Domain",
+      "kind": "input",
+      "expression": "urgency_level in [ROUTINE, URGENT, STAT]",
+      "enforced_by": "services.validation.optional_enum"
+    }
+  ],
+  "goal": [
+    {"variable": "Lab.ordered", "op": "=", "value": true},
+    {"variable": "Sample.received", "op": "=", "value": true},
+    {"variable": "Lab.resulted", "op": "=", "value": true}
+  ],
+  "capabilities": [
+    {
+      "id": "LAB-OrderTest",
+      "name": "order_test",
+      "type": "API",
+      "description": "Order a laboratory test for a patient with the legacy vocabulary patient_mrn, test_code, urgency_level.",
+      "inputs": [
+        {"name": "patient_mrn", "type": "string", "domain": "medical record number", "required": true},
+        {"name": "test_code", "type": "string", "domain": "code in the test catalogue", "required": true},
+        {"name": "urgency_level", "type": "enumerated", "domain": ["ROUTINE", "URGENT", "STAT"], "required": false}
+      ],
+      "outputs": [
+        {"name": "lab_order_id", "type": "string", "domain": "generated lab order identifier"},
+        {"name": "test_code", "type": "string", "domain": "code in the test catalogue"},
+        {"name": "test_name", "type": "string", "domain": "catalogue test name"},
+        {"name": "urgency_level", "type": "enumerated", "domain": ["ROUTINE", "URGENT", "STAT"]},
+        {"name": "ordered_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [],
+      "effects": [
+        {"variable": "Lab.ordered", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["lab_db"],
+      "quality": {"time_ms": 120, "money": 0, "resource": 0.02, "risk": 0.02, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/order_test"},
+      "roles": ["physician", "nurse"]
+    },
+    {
+      "id": "LAB-ReceiveSample",
+      "name": "receive_sample",
+      "type": "API",
+      "description": "Accept the physical sample of an ordered test at the laboratory bench.",
+      "inputs": [
+        {"name": "lab_order_id", "type": "string", "domain": "ordered lab order identifier", "required": true},
+        {"name": "sample_label", "type": "string", "domain": "sample tube label", "required": false}
+      ],
+      "outputs": [
+        {"name": "received", "type": "boolean", "domain": [false, true]},
+        {"name": "lab_order_id", "type": "string", "domain": "lab order identifier"},
+        {"name": "received_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Lab.ordered", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Sample.received", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["lab_db"],
+      "quality": {"time_ms": 70, "money": 0, "resource": 0.01, "risk": 0.01, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/receive_sample"},
+      "roles": ["technician"]
+    },
+    {
+      "id": "LAB-EnterResult",
+      "name": "enter_result",
+      "type": "API",
+      "description": "Enter the measured result of an order whose sample has been received.",
+      "inputs": [
+        {"name": "lab_order_id", "type": "string", "domain": "received lab order identifier", "required": true},
+        {"name": "result_value", "type": "real", "domain": [0.0, 100000.0], "required": true},
+        {"name": "unit", "type": "string", "domain": "measurement unit", "required": false}
+      ],
+      "outputs": [
+        {"name": "resulted", "type": "boolean", "domain": [false, true]},
+        {"name": "lab_order_id", "type": "string", "domain": "lab order identifier"},
+        {"name": "resulted_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Sample.received", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Lab.resulted", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["lab_db"],
+      "quality": {"time_ms": 90, "money": 0, "resource": 0.01, "risk": 0.03, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/enter_result"},
+      "roles": ["technician"]
+    },
+    {
+      "id": "LAB-GetReport",
+      "name": "get_report",
+      "type": "API",
+      "description": "Read the report line of an order, including its status before the result exists.",
+      "inputs": [
+        {"name": "lab_order_id", "type": "string", "domain": "lab order identifier", "required": true}
+      ],
+      "outputs": [
+        {"name": "report_text", "type": "string", "domain": "human readable report line"},
+        {"name": "status", "type": "enumerated", "domain": ["ordered", "received", "resulted"]},
+        {"name": "resulted", "type": "boolean", "domain": [false, true]},
+        {"name": "patient_mrn", "type": "string", "domain": "medical record number"},
+        {"name": "test_code", "type": "string", "domain": "code in the test catalogue"},
+        {"name": "urgency_level", "type": "enumerated", "domain": ["ROUTINE", "URGENT", "STAT"]}
+      ],
+      "preconditions": [
+        {"variable": "Lab.ordered", "op": "=", "value": true}
+      ],
+      "effects": [],
+      "constraints": [],
+      "resources": ["lab_db"],
+      "quality": {"time_ms": 40, "money": 0, "resource": 0.01, "risk": 0.005, "energy": 0.0005},
+      "reliability": 0.995,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/get_report"},
+      "roles": ["physician", "technician"]
+    },
+    {
+      "id": "LAB-Form",
+      "name": "order_test_form",
+      "type": "GUI",
+      "description": "Order entry screen that submits a new laboratory test order.",
+      "inputs": [
+        {"name": "patient_mrn", "type": "string", "domain": "medical record number", "required": true},
+        {"name": "test_code", "type": "string", "domain": "code in the test catalogue", "required": true},
+        {"name": "urgency_level", "type": "enumerated", "domain": ["ROUTINE", "URGENT", "STAT"], "required": false}
+      ],
+      "outputs": [
+        {"name": "lab_order_id", "type": "string", "domain": "generated lab order identifier"}
+      ],
+      "preconditions": [],
+      "effects": [
+        {"variable": "Lab.ordered", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["lab_db"],
+      "quality": {"time_ms": 240, "money": 0, "resource": 0.02, "risk": 0.02, "energy": 0.002},
+      "reliability": 0.97,
+      "availability": {"always": true},
+      "mechanism": {"kind": "GUI", "action": "SUBMIT", "component": "order_form", "page": "/ui/orders/new"},
+      "roles": ["physician", "nurse"]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Take payment{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Take payment</h1>
+  <p id="capability_hint">
+    Submits the GUI capability <code id="capability_id">BILL-Form</code>, the same code path as
+    the API capability <code id="api_capability_id">BILL-ProcessPayment</code>.
+  </p>
+  <form id="payment_form" data-capability-endpoint="/ui/payments/new" data-result-target="result_output">
+    <label for="invoice_select">Invoice</label>
+    <select id="invoice_select" name="invoice_id" required>
+      {% for invoice in invoices %}
+        {% if invoice.status == "generated" %}
+        <option value="{{ invoice.invoice_id }}">{{ invoice.invoice_id }} &middot; {{ invoice.patient_mrn }} &middot; {{ "%.2f" % invoice.amount }}</option>
+        {% endif %}
+      {% else %}
+      <option value="">No invoices registered</option>
+      {% endfor %}
+    </select>
+    <label for="method_select">Payment method</label>
+    <select id="method_select" name="method" required>
+      {% for method in payment_methods %}
+      <option value="{{ method }}" {% if method == "CARD" %}selected{% endif %}>{{ method }}</option>
+      {% endfor %}
+    </select>
+    <label for="tendered_input">Amount tendered (optional; cash must cover the invoice)</label>
+    <input type="number" id="tendered_input" name="amount_tendered" step="0.01" min="0" placeholder="50.00">
+    <button type="submit" id="submit_button">Take payment</button>
+  </form>
+  <pre id="result_output" class="result" aria-live="polite"></pre>
+</section>
+{% endblock %}

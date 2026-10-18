@@ -1,0 +1,97 @@
+TRANSCRIPT opd-ehr live run
+database: documents/evidence/modules/opd-ehr.db
+server log: documents/evidence/modules/opd-ehr.server.log
+python: 3.12.14
+
+$ GET /health
+  (module health)
+  http status: 200
+  response: {"database": "../../documents/evidence/modules/opd-ehr.db", "module": "opd-ehr", "port": 5003, "status": "ok"}
+
+$ GET /spec
+  http status: 200
+  capability ids: ["EHR-StartEncounter", "EHR-RecordVitals", "EHR-IssuePrescription", "EHR-CloseEncounter", "EHR-Form"]
+  state variables: ["Encounter.active", "Encounter.closed", "Vitals.recorded", "Prescription.issued", "Prescription.count"]
+
+$ GET /state
+  (state before any capability call)
+  http status: 200
+  response: {"module": "opd-ehr", "state": {"Encounter.active": false, "Encounter.closed": false, "Prescription.count": 0, "Prescription.issued": false, "Vitals.recorded": false}, "status": "ok"}
+
+$ GET /ui/
+  (UI page)
+  http status: 200
+  response (3014 bytes of HTML): <!doctype html>
+
+$ GET /ui/encounters
+  (UI page)
+  http status: 200
+  response (1476 bytes of HTML): <!doctype html>
+
+$ GET /ui/encounters/new
+  (UI page)
+  http status: 200
+  response (2027 bytes of HTML): <!doctype html>
+
+$ GET /ui/capabilities
+  (UI page)
+  http status: 200
+  response (10349 bytes of HTML): <!doctype html>
+
+$ POST /api/start_encounter
+  (start an encounter)
+  request body: {"clinician": "Dr Rivera", "patient_mrn": "MRN-4001", "visit_type": "CONSULTATION"}
+  http status: 200
+  response: {"capability": "EHR-StartEncounter", "effects": [{"op": "SET", "value": true, "variable": "Encounter.active"}], "outputs": {"encounter_id": "ENC-F1098D0F", "started_at": "2026-10-18T15:32:54+00:00", "visit_type": "CONSULTATION"}, "state": {"Encounter.active": true, "Encounter.closed": false, "Prescription.count": 0, "Prescription.issued": false, "Vitals.recorded": false}, "status": "ok", "trace": ["EHR-StartEncounter executed"]}
+
+$ POST /api/start_encounter
+  (starting a second encounter is rejected)
+  request body: {"clinician": "Dr Chen", "patient_mrn": "MRN-4002"}
+  http status: 409
+  response: {"capability": "EHR-StartEncounter", "error": "encounter \"ENC-F1098D0F\" is still active; close it before starting another", "status": "error"}
+
+$ POST /api/record_vitals
+  (record vitals)
+  request body: {"encounter_id": "ENC-F1098D0F", "heart_rate": 72, "systolic": 118, "temperature_c": 37.2}
+  http status: 200
+  response: {"capability": "EHR-RecordVitals", "effects": [{"op": "SET", "value": true, "variable": "Vitals.recorded"}], "outputs": {"recorded": true, "recorded_at": "2026-10-18T15:32:54+00:00", "vitals_id": "VIT-191F168C"}, "state": {"Encounter.active": true, "Encounter.closed": false, "Prescription.count": 0, "Prescription.issued": false, "Vitals.recorded": true}, "status": "ok", "trace": ["EHR-RecordVitals executed"]}
+
+$ POST /api/issue_prescription
+  (issue a prescription)
+  request body: {"dose_mg": 500, "drug": "Amoxicillin", "encounter_id": "ENC-F1098D0F", "instructions": "Three times daily for seven days"}
+  http status: 200
+  response: {"capability": "EHR-IssuePrescription", "effects": [{"op": "SET", "value": true, "variable": "Prescription.issued"}, {"op": "INCREMENT", "value": 1, "variable": "Prescription.count"}], "outputs": {"issued_at": "2026-10-18T15:32:54+00:00", "prescription_id": "RX-142E4F8A"}, "state": {"Encounter.active": true, "Encounter.closed": false, "Prescription.count": 1, "Prescription.issued": true, "Vitals.recorded": true}, "status": "ok", "trace": ["EHR-IssuePrescription executed"]}
+
+$ POST /api/record_vitals
+  (record an out of range temperature is rejected)
+  request body: {"encounter_id": "ENC-F1098D0F", "heart_rate": 72, "temperature_c": 52.0}
+  http status: 400
+  response: {"capability": "EHR-RecordVitals", "error": "input \"temperature_c\" must be between 25.0 and 45.0", "status": "error"}
+
+$ POST /api/close_encounter
+  (close the encounter)
+  request body: {"encounter_id": "ENC-F1098D0F", "summary": "Upper respiratory infection, resolved"}
+  http status: 200
+  response: {"capability": "EHR-CloseEncounter", "effects": [{"op": "SET", "value": false, "variable": "Encounter.active"}, {"op": "SET", "value": true, "variable": "Encounter.closed"}], "outputs": {"closed": true, "closed_at": "2026-10-18T15:32:54+00:00"}, "state": {"Encounter.active": false, "Encounter.closed": true, "Prescription.count": 1, "Prescription.issued": true, "Vitals.recorded": true}, "status": "ok", "trace": ["EHR-CloseEncounter executed"]}
+
+$ POST /api/record_vitals
+  (recording vitals on a closed encounter is rejected)
+  request body: {"encounter_id": "ENC-F1098D0F", "heart_rate": 72, "temperature_c": 37.0}
+  http status: 409
+  response: {"capability": "EHR-RecordVitals", "error": "encounter \"ENC-F1098D0F\" is closed", "status": "error"}
+
+$ GET /state
+  (state snapshot after the calls)
+  http status: 200
+  response: {"module": "opd-ehr", "state": {"Encounter.active": false, "Encounter.closed": true, "Prescription.count": 1, "Prescription.issued": true, "Vitals.recorded": true}, "status": "ok"}
+
+$ POST /ui/encounters/new
+  (GUI capability form submission)
+  request body: {"clinician": "Dr Chen", "patient_mrn": "MRN-4003", "visit_type": "FOLLOW_UP"}
+  http status: 200
+  response: {"capability": "EHR-Form", "effects": [{"op": "SET", "value": true, "variable": "Encounter.active"}], "outputs": {"encounter_id": "ENC-F7EB047A", "started_at": "2026-10-18T15:32:54+00:00", "visit_type": "FOLLOW_UP"}, "state": {"Encounter.active": true, "Encounter.closed": true, "Prescription.count": 1, "Prescription.issued": true, "Vitals.recorded": true}, "status": "ok", "trace": ["EHR-Form submitted through /ui/encounters/new"]}
+
+$ GET /ui/encounters/ENC-F7EB047A
+  (UI detail page)
+  http status: 200
+  response (4248 bytes of HTML): <!doctype html>

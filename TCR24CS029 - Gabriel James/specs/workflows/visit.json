@@ -1,0 +1,86 @@
+{
+  "workflow_id": "clinic-visit",
+  "steps": [
+    {
+      "name": "register",
+      "module": "patient-registry",
+      "capability": "PR-Register",
+      "inputs": {
+        "mrn": "VISIT-DEMO-1",
+        "full_name": "Integrated Visit Patient"
+      }
+    },
+    {
+      "name": "admit",
+      "module": "patient-registry",
+      "capability": "PR-Admit",
+      "inputs": {
+        "ward": "Ward-A",
+        "expected_stay_days": 2
+      },
+      "bind": {
+        "patient_id": "register.patient_id"
+      }
+    },
+    {
+      "name": "encounter",
+      "module": "opd-ehr",
+      "capability": "EHR-StartEncounter",
+      "inputs": {
+        "clinician": "Dr. Lin",
+        "visit_type": "CONSULTATION"
+      },
+      "bind": {
+        "patient_mrn": "register.mrn"
+      }
+    },
+    {
+      "name": "vitals",
+      "module": "opd-ehr",
+      "capability": "EHR-RecordVitals",
+      "inputs": {
+        "temperature_c": 37.2,
+        "heart_rate": 72,
+        "systolic": 118
+      },
+      "bind": {
+        "encounter_id": "encounter.encounter_id"
+      }
+    },
+    {
+      "name": "close",
+      "module": "opd-ehr",
+      "capability": "EHR-CloseEncounter",
+      "inputs": {
+        "summary": "Visit completed"
+      },
+      "bind": {
+        "encounter_id": "encounter.encounter_id"
+      }
+    },
+    {
+      "name": "invoice",
+      "module": "pos-billing",
+      "capability": "BILL-GenerateInvoice",
+      "inputs": {
+        "amount": 45.5,
+        "description": "OPD visit"
+      },
+      "bind": {
+        "patient_mrn": "register.mrn"
+      }
+    },
+    {
+      "name": "payment",
+      "module": "pos-billing",
+      "capability": "BILL-ProcessPayment",
+      "inputs": {
+        "method": "CASH",
+        "amount_tendered": 50.0
+      },
+      "bind": {
+        "invoice_id": "invoice.invoice_id"
+      }
+    }
+  ]
+}

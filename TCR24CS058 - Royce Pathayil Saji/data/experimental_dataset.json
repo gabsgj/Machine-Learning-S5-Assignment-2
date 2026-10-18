@@ -1,0 +1,607 @@
+{
+  "capabilities": [
+    {
+      "id": "C1",
+      "name": "CreateOrder",
+      "T": "API",
+      "I": [
+        {"name": "cart_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "order_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Cart.exists", "operator": "=", "value": true},
+        {"name": "Inventory.available", "operator": "=", "value": true}
+      ],
+      "E": [
+        {"name": "Order.exists", "operator": "=", "value": true},
+        {"name": "Cart.locked", "operator": "=", "value": true},
+        {"name": "Order.status", "operator": "=", "value": "CREATED"}
+      ],
+      "K": [
+        {"expression": "quantity > 0"}
+      ],
+      "R": [
+        {"name": "Database", "resource_type": "SHARED"},
+        {"name": "AuthenticationToken", "resource_type": "EXCLUSIVE"}
+      ],
+      "Q": {
+        "execution_time_ms": 100.0,
+        "monetary_cost": 0.01,
+        "resource_cost": 1.0,
+        "risk": 0.02,
+        "energy_cost": 0.5
+      },
+      "Rel": 0.99,
+      "A": 1.0,
+      "M": {
+        "method": "POST",
+        "endpoint": "/orders"
+      }
+    },
+    {
+      "id": "C2",
+      "name": "MakePayment",
+      "T": "API",
+      "I": [
+        {"name": "order_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "payment_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Order.exists", "operator": "=", "value": true}
+      ],
+      "E": [
+        {"name": "Payment.status", "operator": "=", "value": "SUCCESS"}
+      ],
+      "K": [
+        {"expression": "payment_amount <= transaction_limit"}
+      ],
+      "R": [
+        {"name": "PaymentGateway", "resource_type": "EXCLUSIVE"},
+        {"name": "Network", "resource_type": "SHARED"}
+      ],
+      "Q": {
+        "execution_time_ms": 250.0,
+        "monetary_cost": 0.02,
+        "resource_cost": 2.0,
+        "risk": 0.03,
+        "energy_cost": 1.0
+      },
+      "Rel": 0.98,
+      "A": 1.0,
+      "M": {
+        "method": "POST",
+        "endpoint": "/payments"
+      }
+    },
+    {
+      "id": "C3",
+      "name": "CancelCart",
+      "T": "API",
+      "I": [
+        {"name": "cart_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "cancelled_cart_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Order.exists", "operator": "=", "value": false}
+      ],
+      "E": [
+        {"name": "Cart.status", "operator": "=", "value": "CANCELLED"}
+      ],
+      "K": [
+        {"expression": "quantity > 0"}
+      ],
+      "R": [
+        {"name": "Database", "resource_type": "SHARED"}
+      ],
+      "Q": {
+        "execution_time_ms": 80.0,
+        "monetary_cost": 0.005,
+        "resource_cost": 1.0,
+        "risk": 0.01,
+        "energy_cost": 0.2
+      },
+      "Rel": 0.99,
+      "A": 1.0,
+      "M": {
+        "method": "POST",
+        "endpoint": "/cart/cancel"
+      }
+    },
+    {
+      "id": "C4",
+      "name": "SendNotification",
+      "T": "EVENT",
+      "I": [
+        {"name": "payment_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "notification_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Payment.status", "operator": "=", "value": "SUCCESS"}
+      ],
+      "E": [
+        {"name": "Notification.sent", "operator": "=", "value": true}
+      ],
+      "K": [
+        {"expression": "user.role in {CUSTOMER, ADMIN}"}
+      ],
+      "R": [
+        {"name": "ExternalService", "resource_type": "SHARED"},
+        {"name": "Network", "resource_type": "SHARED"}
+      ],
+      "Q": {
+        "execution_time_ms": 60.0,
+        "monetary_cost": 0.005,
+        "resource_cost": 1.0,
+        "risk": 0.01,
+        "energy_cost": 0.3
+      },
+      "Rel": 0.95,
+      "A": 1.0,
+      "M": {
+        "trigger": "OrderCreated",
+        "handler": "SendNotification"
+      }
+    },
+    {
+      "id": "C5",
+      "name": "CheckInventory",
+      "T": "SERVICE",
+      "I": [
+        {"name": "sku", "type": "STRING", "required": true}
+      ],
+      "O": [
+        {"name": "inventory_txn_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Cart.exists", "operator": "=", "value": true}
+      ],
+      "E": [
+        {"name": "Inventory.available", "operator": "=", "value": true}
+      ],
+      "K": [
+        {"expression": "quantity > 0"}
+      ],
+      "R": [
+        {"name": "Database", "resource_type": "SHARED"}
+      ],
+      "Q": {
+        "execution_time_ms": 30.0,
+        "monetary_cost": 0.001,
+        "resource_cost": 1.0,
+        "risk": 0.01,
+        "energy_cost": 0.1
+      },
+      "Rel": 0.995,
+      "A": 1.0,
+      "M": {
+        "service": "inventory.check"
+      }
+    },
+    {
+      "id": "C6",
+      "name": "ReserveInventory",
+      "T": "SERVICE",
+      "I": [
+        {"name": "order_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "reservation_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Order.exists", "operator": "=", "value": true},
+        {"name": "Inventory.available", "operator": "=", "value": true}
+      ],
+      "E": [
+        {"name": "Inventory.reserved", "operator": "=", "value": true}
+      ],
+      "K": [
+        {"expression": "quantity <= inventory_available"}
+      ],
+      "R": [
+        {"name": "Database", "resource_type": "SHARED"},
+        {"name": "Network", "resource_type": "SHARED"}
+      ],
+      "Q": {
+        "execution_time_ms": 50.0,
+        "monetary_cost": 0.002,
+        "resource_cost": 1.0,
+        "risk": 0.02,
+        "energy_cost": 0.2
+      },
+      "Rel": 0.99,
+      "A": 1.0,
+      "M": {
+        "service": "inventory.reserve"
+      }
+    },
+    {
+      "id": "C7",
+      "name": "ShipOrder",
+      "T": "FUNCTION",
+      "I": [
+        {"name": "order_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "archive_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Payment.status", "operator": "=", "value": "SUCCESS"}
+      ],
+      "E": [
+        {"name": "Order.status", "operator": "=", "value": "COMPLETED"}
+      ],
+      "K": [
+        {"expression": "quantity > 0"}
+      ],
+      "R": [
+        {"name": "ExternalService", "resource_type": "SHARED"}
+      ],
+      "Q": {
+        "execution_time_ms": 300.0,
+        "monetary_cost": 0.05,
+        "resource_cost": 2.0,
+        "risk": 0.04,
+        "energy_cost": 1.5
+      },
+      "Rel": 0.94,
+      "A": 1.0,
+      "M": {
+        "function": "logistics.ship"
+      }
+    },
+    {
+      "id": "C8",
+      "name": "ArchiveOrder",
+      "T": "DATABASE",
+      "I": [
+        {"name": "order_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "archive_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Order.exists", "operator": "=", "value": true},
+        {"name": "Payment.status", "operator": "=", "value": "SUCCESS"}
+      ],
+      "E": [
+        {"name": "Order.archived", "operator": "=", "value": true}
+      ],
+      "K": [
+        {"expression": "retention_days >= 30"}
+      ],
+      "R": [
+        {"name": "Database", "resource_type": "SHARED"}
+      ],
+      "Q": {
+        "execution_time_ms": 40.0,
+        "monetary_cost": 0.001,
+        "resource_cost": 1.0,
+        "risk": 0.01,
+        "energy_cost": 0.2
+      },
+      "Rel": 0.999,
+      "A": 1.0,
+      "M": {
+        "operation": "INSERT",
+        "table": "archive_orders"
+      }
+    },
+    {
+      "id": "C9",
+      "name": "RefundPayment",
+      "T": "API",
+      "I": [
+        {"name": "payment_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "refund_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Payment.status", "operator": "=", "value": "SUCCESS"}
+      ],
+      "E": [
+        {"name": "Payment.status", "operator": "=", "value": "REFUNDED"}
+      ],
+      "K": [
+        {"expression": "refund_amount <= paid_amount"}
+      ],
+      "R": [
+        {"name": "PaymentGateway", "resource_type": "EXCLUSIVE"},
+        {"name": "Network", "resource_type": "SHARED"}
+      ],
+      "Q": {
+        "execution_time_ms": 220.0,
+        "monetary_cost": 0.02,
+        "resource_cost": 2.0,
+        "risk": 0.05,
+        "energy_cost": 0.8
+      },
+      "Rel": 0.97,
+      "A": 1.0,
+      "M": {
+        "method": "POST",
+        "endpoint": "/refunds"
+      }
+    },
+    {
+      "id": "C10",
+      "name": "API_CreateOrder",
+      "T": "API",
+      "I": [
+        {"name": "cart_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "order_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Cart.exists", "operator": "=", "value": true},
+        {"name": "Inventory.available", "operator": "=", "value": true}
+      ],
+      "E": [
+        {"name": "Order.exists", "operator": "=", "value": true},
+        {"name": "Cart.locked", "operator": "=", "value": true},
+        {"name": "Order.status", "operator": "=", "value": "CREATED"}
+      ],
+      "K": [
+        {"expression": "quantity > 0"}
+      ],
+      "R": [
+        {"name": "Database", "resource_type": "SHARED"},
+        {"name": "AuthenticationToken", "resource_type": "EXCLUSIVE"}
+      ],
+      "Q": {
+        "execution_time_ms": 120.0,
+        "monetary_cost": 0.012,
+        "resource_cost": 1.0,
+        "risk": 0.02,
+        "energy_cost": 0.6
+      },
+      "Rel": 0.985,
+      "A": 1.0,
+      "M": {
+        "method": "POST",
+        "endpoint": "/v2/orders"
+      }
+    },
+    {
+      "id": "C11",
+      "name": "DB_CreateOrder",
+      "T": "DATABASE",
+      "I": [
+        {"name": "cart_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "order_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Cart.exists", "operator": "=", "value": true},
+        {"name": "Inventory.available", "operator": "=", "value": true}
+      ],
+      "E": [
+        {"name": "Order.exists", "operator": "=", "value": true},
+        {"name": "Cart.locked", "operator": "=", "value": true},
+        {"name": "Order.status", "operator": "=", "value": "CREATED"}
+      ],
+      "K": [
+        {"expression": "quantity > 0"}
+      ],
+      "R": [
+        {"name": "Database", "resource_type": "SHARED"}
+      ],
+      "Q": {
+        "execution_time_ms": 20.0,
+        "monetary_cost": 0.001,
+        "resource_cost": 1.0,
+        "risk": 0.01,
+        "energy_cost": 0.1
+      },
+      "Rel": 0.999,
+      "A": 1.0,
+      "M": {
+        "operation": "INSERT",
+        "table": "orders"
+      }
+    },
+    {
+      "id": "C12",
+      "name": "GUI_CreateOrder",
+      "T": "GUI",
+      "I": [
+        {"name": "cart_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "order_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Cart.exists", "operator": "=", "value": true},
+        {"name": "Inventory.available", "operator": "=", "value": true}
+      ],
+      "E": [
+        {"name": "Order.exists", "operator": "=", "value": true},
+        {"name": "Cart.locked", "operator": "=", "value": true},
+        {"name": "Order.status", "operator": "=", "value": "CREATED"}
+      ],
+      "K": [
+        {"expression": "quantity > 0"}
+      ],
+      "R": [
+        {"name": "Database", "resource_type": "SHARED"},
+        {"name": "AuthenticationToken", "resource_type": "EXCLUSIVE"}
+      ],
+      "Q": {
+        "execution_time_ms": 500.0,
+        "monetary_cost": 0.000,
+        "resource_cost": 2.0,
+        "risk": 0.05,
+        "energy_cost": 2.0
+      },
+      "Rel": 0.95,
+      "A": 1.0,
+      "M": {
+        "action": "CLICK",
+        "component": "submit_order_button"
+      }
+    },
+    {
+      "id": "C13",
+      "name": "UnavailableOrderService",
+      "T": "SERVICE",
+      "I": [
+        {"name": "cart_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "order_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Cart.exists", "operator": "=", "value": true}
+      ],
+      "E": [
+        {"name": "Order.exists", "operator": "=", "value": true}
+      ],
+      "K": [],
+      "R": [
+        {"name": "Database", "resource_type": "SHARED"}
+      ],
+      "Q": {
+        "execution_time_ms": 100.0,
+        "monetary_cost": 0.01,
+        "resource_cost": 1.0,
+        "risk": 0.02,
+        "energy_cost": 0.5
+      },
+      "Rel": 0.99,
+      "A": 0.0,
+      "M": {
+        "service": "orders.maintenance"
+      }
+    },
+    {
+      "id": "C14",
+      "name": "SlowExpensivePayment",
+      "T": "API",
+      "I": [
+        {"name": "order_id", "type": "UUID", "required": true}
+      ],
+      "O": [
+        {"name": "payment_id", "type": "UUID"}
+      ],
+      "P": [
+        {"name": "Order.exists", "operator": "=", "value": true}
+      ],
+      "E": [
+        {"name": "Payment.status", "operator": "=", "value": "SUCCESS"}
+      ],
+      "K": [
+        {"expression": "payment_amount <= transaction_limit"}
+      ],
+      "R": [
+        {"name": "PaymentGateway", "resource_type": "EXCLUSIVE"},
+        {"name": "Network", "resource_type": "SHARED"}
+      ],
+      "Q": {
+        "execution_time_ms": 900.0,
+        "monetary_cost": 0.08,
+        "resource_cost": 4.0,
+        "risk": 0.005,
+        "energy_cost": 4.0
+      },
+      "Rel": 0.9999,
+      "A": 1.0,
+      "M": {
+        "method": "POST",
+        "endpoint": "/payments/secure_enterprise"
+      }
+    }
+  ],
+  "states": [
+    {
+      "id": "S0",
+      "values": {
+        "User.authenticated": true,
+        "User.role": "CUSTOMER",
+        "Cart.exists": true,
+        "Cart.locked": false,
+        "Cart.item_count": 3,
+        "Order.exists": false,
+        "Inventory.available": true,
+        "Inventory.reserved": false,
+        "Payment.status": "NOT_STARTED",
+        "Notification.sent": false,
+        "Order.archived": false
+      }
+    },
+    {
+      "id": "S1",
+      "values": {
+        "User.authenticated": true,
+        "Cart.exists": true,
+        "Cart.locked": true,
+        "Order.exists": true,
+        "Order.status": "CREATED",
+        "Inventory.available": true,
+        "Payment.status": "NOT_STARTED"
+      }
+    },
+    {
+      "id": "S2",
+      "values": {
+        "User.authenticated": true,
+        "Order.exists": true,
+        "Payment.status": "SUCCESS",
+        "Notification.sent": false
+      }
+    },
+    {
+      "id": "S3",
+      "values": {
+        "Order.exists": true,
+        "Order.status": "COMPLETED",
+        "Payment.status": "SUCCESS",
+        "Notification.sent": true
+      }
+    }
+  ],
+  "goals": [
+    {
+      "id": "Goal_A",
+      "conditions": [
+        {"name": "Order.exists", "operator": "=", "value": true},
+        {"name": "Payment.status", "operator": "=", "value": "SUCCESS"}
+      ]
+    },
+    {
+      "id": "Goal_B",
+      "conditions": [
+        {"name": "Notification.sent", "operator": "=", "value": true}
+      ]
+    },
+    {
+      "id": "Goal_C",
+      "conditions": [
+        {"name": "Order.status", "operator": "=", "value": "COMPLETED"}
+      ]
+    },
+    {
+      "id": "Goal_D",
+      "conditions": [
+        {"name": "Order.archived", "operator": "=", "value": true}
+      ]
+    },
+    {
+      "id": "Goal_Master",
+      "conditions": [
+        {"name": "Order.exists", "operator": "=", "value": true},
+        {"name": "Payment.status", "operator": "=", "value": "SUCCESS"},
+        {"name": "Notification.sent", "operator": "=", "value": true}
+      ]
+    }
+  ]
+}

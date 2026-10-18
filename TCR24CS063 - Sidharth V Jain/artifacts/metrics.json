@@ -1,0 +1,30 @@
+{
+  "compatibility_metrics": {
+    "tp": 4,
+    "tn": 4,
+    "fp": 0,
+    "fn": 0,
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "alternative_mean": 0.3114498131217429,
+  "irrelevant_score": -0.35302291185353313,
+  "composite_component_scores": [
+    0.2976528360727702,
+    0.1565680625761898,
+    0.1563251877768458
+  ],
+  "dimensions": {
+    "state_goal": 12,
+    "capability": 70
+  },
+  "composite_reliability": 0.9410939999999999,
+  "composite_cost": {
+    "time_ms": 550,
+    "resource": 7,
+    "money": 0.23,
+    "risk": 0.4
+  }
+}

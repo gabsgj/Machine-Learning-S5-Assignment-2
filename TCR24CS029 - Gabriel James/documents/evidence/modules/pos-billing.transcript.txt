@@ -1,0 +1,102 @@
+TRANSCRIPT pos-billing live run
+database: documents/evidence/modules/pos-billing.db
+server log: documents/evidence/modules/pos-billing.server.log
+python: 3.12.14
+
+$ GET /health
+  (module health)
+  http status: 200
+  response: {"database": "../../documents/evidence/modules/pos-billing.db", "module": "pos-billing", "port": 5005, "status": "ok"}
+
+$ GET /spec
+  http status: 200
+  capability ids: ["BILL-GenerateInvoice", "BILL-ProcessPayment", "BILL-GetReceipt", "BILL-SendReceiptNotice", "BILL-Form"]
+  state variables: ["Invoice.generated", "Invoice.paid", "Invoice.amount", "Notification.sent"]
+
+$ GET /state
+  (state before any capability call)
+  http status: 200
+  response: {"module": "pos-billing", "state": {"Invoice.amount": 0.0, "Invoice.generated": false, "Invoice.paid": false, "Notification.sent": false}, "status": "ok"}
+
+$ GET /ui/
+  (UI page)
+  http status: 200
+  response (3080 bytes of HTML): <!doctype html>
+
+$ GET /ui/invoices
+  (UI page)
+  http status: 200
+  response (1432 bytes of HTML): <!doctype html>
+
+$ GET /ui/invoices/new
+  (UI page)
+  http status: 200
+  response (1580 bytes of HTML): <!doctype html>
+
+$ GET /ui/payments/new
+  (UI page)
+  http status: 200
+  response (1983 bytes of HTML): <!doctype html>
+
+$ GET /ui/capabilities
+  (UI page)
+  http status: 200
+  response (9745 bytes of HTML): <!doctype html>
+
+$ POST /api/generate_invoice
+  (generate an invoice)
+  request body: {"amount": 42.5, "description": "Consultation fee", "patient_mrn": "MRN-6001"}
+  http status: 200
+  response: {"capability": "BILL-GenerateInvoice", "effects": [{"op": "SET", "value": true, "variable": "Invoice.generated"}], "outputs": {"amount": 42.5, "generated_at": "2026-10-18T15:32:56+00:00", "invoice_id": "INV-06449C94"}, "state": {"Invoice.amount": 42.5, "Invoice.generated": true, "Invoice.paid": false, "Notification.sent": false}, "status": "ok", "trace": ["BILL-GenerateInvoice executed"]}
+
+$ POST /api/process_payment
+  (a cash tender below the amount is rejected)
+  request body: {"amount_tendered": 40.0, "invoice_id": "INV-06449C94", "method": "CASH"}
+  http status: 400
+  response: {"capability": "BILL-ProcessPayment", "error": "input \"amount_tendered\" of 40.0 is below the invoice amount 42.5", "status": "error"}
+
+$ POST /api/process_payment
+  (pay the invoice with cash)
+  request body: {"amount_tendered": 50.0, "invoice_id": "INV-06449C94", "method": "CASH"}
+  http status: 200
+  response: {"capability": "BILL-ProcessPayment", "effects": [{"op": "SET", "value": true, "variable": "Invoice.paid"}], "outputs": {"change_due": 7.5, "paid": true, "paid_at": "2026-10-18T15:32:56+00:00"}, "state": {"Invoice.amount": 0.0, "Invoice.generated": true, "Invoice.paid": true, "Notification.sent": false}, "status": "ok", "trace": ["BILL-ProcessPayment executed"]}
+
+$ POST /api/process_payment
+  (paying the invoice twice is rejected)
+  request body: {"invoice_id": "INV-06449C94", "method": "CARD"}
+  http status: 409
+  response: {"capability": "BILL-ProcessPayment", "error": "invoice \"INV-06449C94\" is already paid", "status": "error"}
+
+$ POST /api/get_receipt
+  (read the receipt)
+  request body: {"invoice_id": "INV-06449C94"}
+  http status: 200
+  response: {"capability": "BILL-GetReceipt", "effects": [], "outputs": {"amount": 42.5, "paid": true, "receipt_text": "Invoice INV-06449C94 for patient MRN-6001, amount 42.50, paid on 2026-10-18T15:32:56+00:00 by CASH"}, "state": {"Invoice.amount": 0.0, "Invoice.generated": true, "Invoice.paid": true, "Notification.sent": false}, "status": "ok", "trace": ["BILL-GetReceipt executed"]}
+
+$ POST /api/send_receipt_notice
+  (send the receipt notice)
+  request body: {"channel": "EMAIL", "destination": "patient contact", "invoice_id": "INV-06449C94"}
+  http status: 200
+  response: {"capability": "BILL-SendReceiptNotice", "effects": [{"op": "SET", "value": true, "variable": "Notification.sent"}], "outputs": {"sent": true, "sent_at": "2026-10-18T15:32:56+00:00"}, "state": {"Invoice.amount": 0.0, "Invoice.generated": true, "Invoice.paid": true, "Notification.sent": true}, "status": "ok", "trace": ["BILL-SendReceiptNotice executed"]}
+
+$ POST /api/generate_invoice
+  (generate a second invoice)
+  request body: {"amount": 13.75, "description": "Pharmacy dispense", "patient_mrn": "MRN-6002"}
+  http status: 200
+  response: {"capability": "BILL-GenerateInvoice", "effects": [{"op": "SET", "value": true, "variable": "Invoice.generated"}], "outputs": {"amount": 13.75, "generated_at": "2026-10-18T15:32:56+00:00", "invoice_id": "INV-4AEB2058"}, "state": {"Invoice.amount": 13.75, "Invoice.generated": true, "Invoice.paid": true, "Notification.sent": true}, "status": "ok", "trace": ["BILL-GenerateInvoice executed"]}
+
+$ GET /state
+  (state snapshot after the calls)
+  http status: 200
+  response: {"module": "pos-billing", "state": {"Invoice.amount": 13.75, "Invoice.generated": true, "Invoice.paid": true, "Notification.sent": true}, "status": "ok"}
+
+$ POST /ui/payments/new
+  (GUI capability form submission)
+  request body: {"invoice_id": "INV-4AEB2058", "method": "CARD"}
+  http status: 200
+  response: {"capability": "BILL-Form", "effects": [{"op": "SET", "value": true, "variable": "Invoice.paid"}], "outputs": {"change_due": 0.0, "paid": true, "paid_at": "2026-10-18T15:32:56+00:00"}, "state": {"Invoice.amount": 0.0, "Invoice.generated": true, "Invoice.paid": true, "Notification.sent": true}, "status": "ok", "trace": ["BILL-Form submitted through /ui/payments/new"]}
+
+$ GET /ui/invoices/INV-4AEB2058
+  (UI detail page)
+  http status: 200
+  response (2460 bytes of HTML): <!doctype html>

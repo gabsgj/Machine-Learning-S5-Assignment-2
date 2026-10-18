@@ -1,0 +1,123 @@
+{
+  "within": [
+    {
+      "a": "C4_API",
+      "b": "C4_DB",
+      "same_contract": true,
+      "functional": 0.8150347088064466,
+      "implementation": -0.0627313032746315,
+      "operational": 0.9989748001098633,
+      "overall": 0.7364551121635097
+    },
+    {
+      "a": "C4_API",
+      "b": "C4_GUI",
+      "same_contract": true,
+      "functional": 0.7263676353863308,
+      "implementation": 0.037313900887966156,
+      "operational": 0.9919243454933167,
+      "overall": 0.6707400974418436
+    },
+    {
+      "a": "C4_DB",
+      "b": "C4_GUI",
+      "same_contract": true,
+      "functional": 0.8585168825728553,
+      "implementation": 0.10485332645475864,
+      "operational": 0.9909096956253052,
+      "overall": 0.7897701676136683
+    }
+  ],
+  "negative_controls": [
+    {
+      "a": "C4_API",
+      "b": "C5",
+      "same_contract": false,
+      "functional": 0.7686010218624558,
+      "implementation": 0.912908136844635,
+      "operational": 0.9946327805519104,
+      "overall": 0.7943333212951464
+    },
+    {
+      "a": "C4_API",
+      "b": "C12",
+      "same_contract": false,
+      "functional": 0.8440607615879604,
+      "implementation": 0.7527512907981873,
+      "operational": 0.998697817325592,
+      "overall": 0.8426616672958646
+    },
+    {
+      "a": "C4_API",
+      "b": "C14",
+      "same_contract": false,
+      "functional": 0.71353608582701,
+      "implementation": 0.5632547065615654,
+      "operational": 0.9964714050292969,
+      "overall": 0.71265471386058
+    },
+    {
+      "a": "C4_DB",
+      "b": "C5",
+      "same_contract": false,
+      "functional": 0.8613266689436776,
+      "implementation": -0.0665670856833458,
+      "operational": 0.9898412227630615,
+      "overall": 0.7749630211719445
+    },
+    {
+      "a": "C4_DB",
+      "b": "C12",
+      "same_contract": false,
+      "functional": 0.7390340788323166,
+      "implementation": 0.19614219665527344,
+      "operational": 0.9994854927062988,
+      "overall": 0.6977674613083114
+    },
+    {
+      "a": "C4_DB",
+      "b": "C14",
+      "same_contract": false,
+      "functional": 0.6090906006949288,
+      "implementation": 0.1370689868927002,
+      "operational": 0.9976035952568054,
+      "overall": 0.5813140890427998
+    },
+    {
+      "a": "C4_GUI",
+      "b": "C5",
+      "same_contract": false,
+      "functional": 0.7509387284517288,
+      "implementation": -0.032992951571941376,
+      "operational": 0.9922677278518677,
+      "overall": 0.6846120104193687
+    },
+    {
+      "a": "C4_GUI",
+      "b": "C12",
+      "same_contract": false,
+      "functional": 0.5969718864985875,
+      "implementation": 0.051231592893600464,
+      "operational": 0.9921022653579712,
+      "overall": 0.5621543760810579
+    },
+    {
+      "a": "C4_GUI",
+      "b": "C14",
+      "same_contract": false,
+      "functional": 0.4775830698864801,
+      "implementation": -0.2731161415576935,
+      "operational": 0.9862579107284546,
+      "overall": 0.4279468907841615
+    }
+  ],
+  "summary": {
+    "within_functional_mean": 0.7999730755885442,
+    "negative_functional_mean": 0.706793655842794,
+    "functional_gap": 0.09317941974575028,
+    "within_overall_mean": 0.7323217924063404,
+    "negative_overall_mean": 0.6753786168065816,
+    "overall_gap": 0.05694317559975881,
+    "within_implementation_mean": 0.0264786413560311
+  }
+}

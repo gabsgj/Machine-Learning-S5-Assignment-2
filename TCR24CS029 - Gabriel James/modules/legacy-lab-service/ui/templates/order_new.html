@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}New lab order{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Order a test</h1>
+  <p id="capability_hint">
+    Submits the GUI capability <code id="capability_id">LAB-Form</code>, the same code path as
+    the API capability <code id="api_capability_id">LAB-OrderTest</code>.
+  </p>
+  <form id="order_form" data-capability-endpoint="/ui/orders/new" data-result-target="result_output">
+    <label for="patient_mrn_input">Patient MRN</label>
+    <input type="text" id="patient_mrn_input" name="patient_mrn" required placeholder="MRN-1001">
+    <label for="test_code_select">Test code</label>
+    <select id="test_code_select" name="test_code" required>
+      {% for test in test_codes %}
+      <option value="{{ test.test_code }}">{{ test.test_code }} &middot; {{ test.name }}</option>
+      {% else %}
+      <option value="">No test codes in catalogue</option>
+      {% endfor %}
+    </select>
+    <label for="urgency_select">Urgency level</label>
+    <select id="urgency_select" name="urgency_level">
+      {% for level in urgency_levels %}
+      <option value="{{ level }}" {% if level == "ROUTINE" %}selected{% endif %}>{{ level }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" id="submit_button">Order test</button>
+  </form>
+  <pre id="result_output" class="result" aria-live="polite"></pre>
+</section>
+{% endblock %}

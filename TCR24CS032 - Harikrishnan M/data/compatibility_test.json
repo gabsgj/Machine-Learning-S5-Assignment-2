@@ -1,0 +1,47 @@
+{
+    "test_name": "compatibility_test",
+    "dimension": 4,
+    "capabilities": [
+        {
+            "id": "C1",
+            "name": "AuthService",
+            "type": "API",
+            "preconditions": [
+                1.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "effects": [
+                0.0,
+                1.0,
+                0.0,
+                0.0
+            ],
+            "cost": 2.0,
+            "reliability": 0.99,
+            "availability": 0.98
+        },
+        {
+            "id": "C2",
+            "name": "DataFetcher",
+            "type": "API",
+            "preconditions": [
+                0.0,
+                1.0,
+                0.0,
+                0.0
+            ],
+            "effects": [
+                0.0,
+                0.0,
+                1.0,
+                0.0
+            ],
+            "cost": 5.0,
+            "reliability": 0.97,
+            "availability": 0.95
+        }
+    ],
+    "expected_compatibility": 1.0
+}

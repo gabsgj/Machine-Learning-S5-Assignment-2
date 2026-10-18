@@ -1,0 +1,273 @@
+{
+    "initial_state": {
+        "User.authenticated": true,
+        "Cart.exists": true,
+        "Cart.item_count": 3,
+        "Order.exists": false,
+        "Order.status": "NONE",
+        "Payment.status": "NOT_STARTED",
+        "Inventory.available": true,
+        "Invoice.exists": false,
+        "Notification.sent": false
+    },
+    "goal": {
+        "Order.exists": true,
+        "Payment.status": "SUCCESS",
+        "Invoice.exists": true,
+        "Notification.sent": true
+    },
+    "capabilities": {
+        "AddToCart": {
+            "type": "FUNCTION",
+            "inputs": [
+                "product_id",
+                "quantity"
+            ],
+            "outputs": [
+                "cart_id"
+            ],
+            "preconditions": [
+                "User.authenticated=true",
+                "Product.exists=true",
+                "Product.available=true"
+            ],
+            "effects": [
+                "Cart.exists=true",
+                "Cart.item_count=increases"
+            ],
+            "constraints": [
+                "quantity>0"
+            ],
+            "resources": [
+                "Database",
+                "Network"
+            ],
+            "cost": 0.0,
+            "reliability": 0.99,
+            "availability": 1.0,
+            "mechanism": "FUNCTION"
+        },
+        "CheckInventory": {
+            "type": "DATABASE",
+            "inputs": [
+                "product_id"
+            ],
+            "outputs": [
+                "availability_status"
+            ],
+            "preconditions": [
+                "Product.exists=true"
+            ],
+            "effects": [
+                "Inventory.checked=true"
+            ],
+            "constraints": [],
+            "resources": [
+                "Database"
+            ],
+            "cost": 0.0,
+            "reliability": 0.995,
+            "availability": 1.0,
+            "mechanism": "DATABASE"
+        },
+        "CreateOrder": {
+            "type": "API",
+            "inputs": [
+                "cart_id"
+            ],
+            "outputs": [
+                "order_id"
+            ],
+            "preconditions": [
+                "Cart.exists=true",
+                "Cart.item_count>0",
+                "Inventory.available=true"
+            ],
+            "effects": [
+                "Order.exists=true",
+                "Order.status=CREATED",
+                "Cart.locked=true"
+            ],
+            "constraints": [
+                "Cart.item_count>0"
+            ],
+            "resources": [
+                "Database",
+                "Authentication",
+                "Network"
+            ],
+            "cost": 0.01,
+            "reliability": 0.98,
+            "availability": 1.0,
+            "mechanism": "API"
+        },
+        "MakePayment": {
+            "type": "SERVICE",
+            "inputs": [
+                "order_id",
+                "payment_amount"
+            ],
+            "outputs": [
+                "transaction_id"
+            ],
+            "preconditions": [
+                "Order.exists=true",
+                "Order.status=CREATED"
+            ],
+            "effects": [
+                "Payment.status=SUCCESS"
+            ],
+            "constraints": [
+                "payment_amount>0"
+            ],
+            "resources": [
+                "Payment Gateway",
+                "Network",
+                "Authentication Token"
+            ],
+            "cost": 0.5,
+            "reliability": 0.97,
+            "availability": 1.0,
+            "mechanism": "PAYMENT_SERVICE"
+        },
+        "GenerateInvoice": {
+            "type": "FUNCTION",
+            "inputs": [
+                "order_id",
+                "transaction_id"
+            ],
+            "outputs": [
+                "invoice_id"
+            ],
+            "preconditions": [
+                "Payment.status=SUCCESS"
+            ],
+            "effects": [
+                "Invoice.exists=true"
+            ],
+            "constraints": [],
+            "resources": [
+                "Database",
+                "File System"
+            ],
+            "cost": 0.01,
+            "reliability": 0.99,
+            "availability": 1.0,
+            "mechanism": "FUNCTION"
+        },
+        "SendNotification": {
+            "type": "MESSAGE",
+            "inputs": [
+                "user_id",
+                "message"
+            ],
+            "outputs": [
+                "notification_id"
+            ],
+            "preconditions": [
+                "Payment.status=SUCCESS"
+            ],
+            "effects": [
+                "Notification.sent=true"
+            ],
+            "constraints": [],
+            "resources": [
+                "Network",
+                "External Notification Service"
+            ],
+            "cost": 0.02,
+            "reliability": 0.95,
+            "availability": 1.0,
+            "mechanism": "MESSAGE"
+        },
+        "CancelCart": {
+            "type": "FUNCTION",
+            "inputs": [
+                "cart_id"
+            ],
+            "outputs": [
+                "status"
+            ],
+            "preconditions": [
+                "Cart.exists=true",
+                "Order.exists=false"
+            ],
+            "effects": [
+                "Cart.cancelled=true",
+                "Cart.exists=false"
+            ],
+            "constraints": [],
+            "resources": [
+                "Database"
+            ],
+            "cost": 0.0,
+            "reliability": 0.99,
+            "availability": 1.0,
+            "mechanism": "FUNCTION"
+        },
+        "UpdateProfile": {
+            "type": "GUI",
+            "inputs": [
+                "user_id",
+                "profile_data"
+            ],
+            "outputs": [
+                "status"
+            ],
+            "preconditions": [
+                "User.authenticated=true"
+            ],
+            "effects": [
+                "User.profile_updated=true"
+            ],
+            "constraints": [],
+            "resources": [
+                "Database",
+                "Network"
+            ],
+            "cost": 0.0,
+            "reliability": 0.99,
+            "availability": 1.0,
+            "mechanism": "GUI"
+        }
+    },
+    "experiments": {
+        "compatibility": [
+            [
+                "CreateOrder",
+                "MakePayment"
+            ],
+            [
+                "CreateOrder",
+                "CancelCart"
+            ],
+            [
+                "MakePayment",
+                "GenerateInvoice"
+            ],
+            [
+                "MakePayment",
+                "SendNotification"
+            ]
+        ],
+        "composition": [
+            "CreateOrder",
+            "MakePayment",
+            "GenerateInvoice"
+        ],
+        "alternative_implementations": [
+            "API",
+            "DATABASE",
+            "GUI"
+        ],
+        "irrelevant_capabilities": [
+            "UpdateProfile",
+            "CancelCart"
+        ],
+        "operational_attributes": [
+            "cost",
+            "reliability",
+            "availability"
+        ]
+    }
+}

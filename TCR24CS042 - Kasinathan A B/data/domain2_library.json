@@ -1,0 +1,151 @@
+{
+  "domain": "library_checkout",
+  "description": "Library management domain covering book search, checkout, renewal, return, and fine payment workflows.",
+  "state_variables": [
+    "member_active", "book_searched", "book_available", "book_reserved",
+    "book_checked_out", "book_returned", "fine_pending", "fine_paid",
+    "renewal_requested", "renewal_approved", "hold_placed", "account_suspended"
+  ],
+  "resource_vocabulary": ["catalog_db", "member_db", "rfid_scanner", "email_service", "payment_terminal"],
+  "initial_state": {
+    "member_active": true,
+    "book_searched": false,
+    "book_available": true,
+    "book_reserved": false,
+    "book_checked_out": false,
+    "book_returned": false,
+    "fine_pending": false,
+    "fine_paid": false,
+    "renewal_requested": false,
+    "renewal_approved": false,
+    "hold_placed": false,
+    "account_suspended": false
+  },
+  "goal": {
+    "book_checked_out": true,
+    "member_active": true,
+    "account_suspended": false
+  },
+  "capabilities": [
+    {
+      "name": "SearchCatalog",
+      "type": "DATABASE",
+      "inputs": [
+        {"name": "query", "type": "string", "domain": "free_text", "required": true},
+        {"name": "filters", "type": "dict", "domain": "search_filters", "required": false}
+      ],
+      "outputs": [
+        {"name": "results", "type": "list", "domain": "book_list"},
+        {"name": "result_count", "type": "int", "domain": "non_negative_int"}
+      ],
+      "preconditions": {"member_active": true},
+      "effects": {"book_searched": true},
+      "constraints": ["query must be non-empty"],
+      "resources": ["catalog_db"],
+      "cost": {"time_ms": 150, "money": 0.0, "resource": 0.1, "risk": 0.01, "energy": 0.05},
+      "reliability": 0.99,
+      "availability": true,
+      "mechanism": {"engine": "elasticsearch", "index": "library_catalog", "protocol": "REST"}
+    },
+    {
+      "name": "CheckoutBook",
+      "type": "EVENT",
+      "inputs": [
+        {"name": "book_id", "type": "string", "domain": "ISBN", "required": true},
+        {"name": "member_id", "type": "string", "domain": "UUID", "required": true}
+      ],
+      "outputs": [
+        {"name": "loan_id", "type": "string", "domain": "UUID"},
+        {"name": "due_date", "type": "string", "domain": "ISO8601"}
+      ],
+      "preconditions": {"member_active": true, "book_available": true, "account_suspended": false},
+      "effects": {"book_checked_out": true, "book_available": false},
+      "constraints": ["member must have no overdue fines above threshold", "max 5 books per member"],
+      "resources": ["catalog_db", "member_db", "rfid_scanner"],
+      "cost": {"time_ms": 80, "money": 0.0, "resource": 0.2, "risk": 0.05, "energy": 0.1},
+      "reliability": 0.98,
+      "availability": {"start": "09:00", "end": "21:00"},
+      "mechanism": {"trigger": "rfid_scan", "desk_system": "koha_ils", "transaction": "atomic"}
+    },
+    {
+      "name": "ReturnBook",
+      "type": "EVENT",
+      "inputs": [
+        {"name": "loan_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "book_id", "type": "string", "domain": "ISBN", "required": true}
+      ],
+      "outputs": [
+        {"name": "return_timestamp", "type": "string", "domain": "ISO8601"},
+        {"name": "fine_amount", "type": "float", "domain": "non_negative_real"}
+      ],
+      "preconditions": {"book_checked_out": true},
+      "effects": {"book_returned": true, "book_available": true, "book_checked_out": false, "fine_pending": true},
+      "constraints": ["book must be in system as checked out"],
+      "resources": ["catalog_db", "member_db", "rfid_scanner"],
+      "cost": {"time_ms": 60, "money": 0.0, "resource": 0.15, "risk": 0.03, "energy": 0.08},
+      "reliability": 0.99,
+      "availability": {"start": "09:00", "end": "21:00"},
+      "mechanism": {"trigger": "rfid_scan", "desk_system": "koha_ils", "fine_calculator": "per_day_rate"}
+    },
+    {
+      "name": "PayFine",
+      "type": "API",
+      "inputs": [
+        {"name": "member_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "amount", "type": "float", "domain": "positive_real", "required": true},
+        {"name": "payment_method", "type": "string", "domain": "enum", "required": true}
+      ],
+      "outputs": [
+        {"name": "receipt_id", "type": "string", "domain": "UUID"}
+      ],
+      "preconditions": {"fine_pending": true, "member_active": true},
+      "effects": {"fine_paid": true, "fine_pending": false, "account_suspended": false},
+      "constraints": ["amount must equal or exceed fine balance"],
+      "resources": ["member_db", "payment_terminal"],
+      "cost": {"time_ms": 400, "money": 0.05, "resource": 0.3, "risk": 0.1, "energy": 0.15},
+      "reliability": 0.96,
+      "availability": {"start": "09:00", "end": "18:00"},
+      "mechanism": {"terminal": "ingenico", "protocols": ["chip_and_pin", "contactless"]}
+    },
+    {
+      "name": "RenewLoan",
+      "type": "FUNCTION",
+      "inputs": [
+        {"name": "loan_id", "type": "string", "domain": "UUID", "required": true},
+        {"name": "member_id", "type": "string", "domain": "UUID", "required": true}
+      ],
+      "outputs": [
+        {"name": "new_due_date", "type": "string", "domain": "ISO8601"},
+        {"name": "renewals_remaining", "type": "int", "domain": "non_negative_int"}
+      ],
+      "preconditions": {"book_checked_out": true, "fine_pending": false, "account_suspended": false},
+      "effects": {"renewal_approved": true, "renewal_requested": true},
+      "constraints": ["max 2 renewals per loan", "no holds by other members"],
+      "resources": ["catalog_db", "member_db"],
+      "cost": {"time_ms": 120, "money": 0.0, "resource": 0.1, "risk": 0.05, "energy": 0.06},
+      "reliability": 0.97,
+      "availability": true,
+      "mechanism": {"logic": "extend_due_date_by_loan_period", "hold_check": "catalog_db_query"}
+    },
+    {
+      "name": "PlaceHold",
+      "type": "DATABASE",
+      "inputs": [
+        {"name": "book_id", "type": "string", "domain": "ISBN", "required": true},
+        {"name": "member_id", "type": "string", "domain": "UUID", "required": true}
+      ],
+      "outputs": [
+        {"name": "hold_position", "type": "int", "domain": "positive_int"},
+        {"name": "estimated_available", "type": "string", "domain": "ISO8601"}
+      ],
+      "preconditions": {"member_active": true, "book_searched": true, "book_available": false},
+      "effects": {"hold_placed": true},
+      "constraints": ["member may not hold a book they have checked out"],
+      "resources": ["catalog_db", "member_db", "email_service"],
+      "cost": {"time_ms": 100, "money": 0.0, "resource": 0.1, "risk": 0.02, "energy": 0.05},
+      "reliability": 0.98,
+      "availability": true,
+      "mechanism": {"queue": "fifo_hold_queue", "notification": "email_on_availability"}
+    }
+  ]
+}

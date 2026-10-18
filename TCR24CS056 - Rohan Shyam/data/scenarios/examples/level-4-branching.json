@@ -1,0 +1,32 @@
+{
+  "id": "level-4-branching",
+  "name": "Two valid next capabilities",
+  "states": [
+    { "id": "cart-ready", "values": { "Cart.exists": true, "Cart.item_count": 2, "Order.exists": false, "Payment.status": "NOT_STARTED" } },
+    { "id": "order-created", "values": { "Cart.exists": true, "Cart.item_count": 0, "Order.exists": true, "Payment.status": "NOT_STARTED" } }
+  ],
+  "goals": [{ "id": "payment-success", "conditions": [{ "name": "Payment.status", "value": "SUCCESS" }] }],
+  "capabilities": [
+    {
+      "id": "create-order", "name": "CreateOrder", "type": "API",
+      "mechanism": { "method": "POST", "endpoint": "/orders" }, "inputs": [], "outputs": [],
+      "preconditions": [{ "name": "Cart.exists", "value": true }, { "name": "Cart.item_count", "operator": ">", "value": 0 }],
+      "effects": [{ "name": "Order.exists", "value": true }], "constraints": [], "resources": ["database", "network"],
+      "cost": { "time_ms": 120, "money": 0.01, "resource": 1, "risk": 0.02, "energy": 0.2 }, "reliability": 0.99, "availability": 0.98, "components": []
+    },
+    {
+      "id": "make-payment", "name": "MakePayment", "type": "SERVICE",
+      "mechanism": { "provider": "payment-gateway" }, "inputs": [], "outputs": [],
+      "preconditions": [{ "name": "Order.exists", "value": true }], "effects": [{ "name": "Payment.status", "value": "SUCCESS" }],
+      "constraints": [], "resources": ["payment-gateway", "network"],
+      "cost": { "time_ms": 800, "money": 0.3, "resource": 1, "risk": 0.08, "energy": 0.4 }, "reliability": 0.97, "availability": 0.96, "components": []
+    },
+    {
+      "id": "cancel-cart", "name": "CancelCart", "type": "FUNCTION",
+      "mechanism": { "function": "cancel_cart" }, "inputs": [], "outputs": [],
+      "preconditions": [{ "name": "Order.exists", "value": true }], "effects": [{ "name": "Order.cancelled", "value": true }],
+      "constraints": [], "resources": ["database"],
+      "cost": { "time_ms": 25, "money": 0, "resource": 0.2, "risk": 0.01, "energy": 0.05 }, "reliability": 0.999, "availability": 1, "components": []
+    }
+  ]
+}

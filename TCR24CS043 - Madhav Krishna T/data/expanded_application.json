@@ -1,0 +1,1502 @@
+{
+  "metadata": {
+    "name": "Capability Embedding Expanded Dataset v1",
+    "domain": "E-commerce purchase workflow",
+    "purpose": "Phase 3 dataset for full assignment experiments after SCE-128 v1.1 core validation",
+    "assignment": "PCCST503 Assignment 2",
+    "capability_count": 18,
+    "logical_capability_count": 15,
+    "alternative_implementation_variants": [
+      "C4_API",
+      "C4_DB",
+      "C4_GUI"
+    ],
+    "representation_note": "Ground-truth labels are evaluation metadata and must not be used as encoder features."
+  },
+  "initial_state": {
+    "User.authenticated": true,
+    "User.role": "CUSTOMER",
+    "Cart.exists": true,
+    "Cart.item_count": 0,
+    "Cart.locked": false,
+    "Order.exists": false,
+    "Order.status": "NONE",
+    "Payment.status": "NOT_STARTED",
+    "Payment.verified": false,
+    "Inventory.available": true,
+    "Inventory.checked": false,
+    "Inventory.reserved": false,
+    "Reservation.exists": false,
+    "Notification.sent": false,
+    "Release.required": false,
+    "Report.period.valid": false
+  },
+  "goal": [
+    {
+      "attribute": "Order.exists",
+      "operator": "==",
+      "value": true
+    },
+    {
+      "attribute": "Payment.status",
+      "operator": "==",
+      "value": "SUCCESS"
+    },
+    {
+      "attribute": "Notification.sent",
+      "operator": "==",
+      "value": true
+    }
+  ],
+  "resources": [
+    "Database",
+    "Network",
+    "Authentication token",
+    "Payment gateway",
+    "Inventory service",
+    "Notification service",
+    "File system",
+    "CPU",
+    "Transaction manager",
+    "GUI"
+  ],
+  "global_constraints": [
+    "Only authenticated customers may modify carts and orders.",
+    "Reserved inventory must be released on cancellation.",
+    "Payment amount must not exceed transaction limit.",
+    "A successful purchase requires order creation, payment success, and notification."
+  ],
+  "capabilities": [
+    {
+      "id": "C1",
+      "name": "AddToCart",
+      "type": "FUNCTION",
+      "inputs": [
+        {
+          "name": "product_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "quantity",
+          "type": "INTEGER",
+          "domain": "> 0",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        },
+        {
+          "name": "item_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "User.authenticated",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Cart.item_count",
+          "operator": "==",
+          "value": 1
+        },
+        {
+          "attribute": "Cart.locked",
+          "operator": "==",
+          "value": false
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "quantity > 0"
+        }
+      ],
+      "resources": [
+        "Database",
+        "Authentication token",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 60,
+        "resource_cost": 1,
+        "monetary_cost": 0.002,
+        "risk": 0.03,
+        "energy_cost": 0.01
+      },
+      "reliability": 0.995,
+      "availability": 1,
+      "mechanism": {
+        "operation": "ADD",
+        "component": "cart_service"
+      },
+      "relevant_to_goal": true,
+      "experiment_role": "chain_start"
+    },
+    {
+      "id": "C2",
+      "name": "CheckInventory",
+      "type": "SERVICE",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        },
+        {
+          "name": "inventory_check_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Cart.item_count",
+          "operator": ">",
+          "value": 0
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Inventory.available",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Inventory.checked",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "requested quantity <= available quantity"
+        }
+      ],
+      "resources": [
+        "Inventory service",
+        "Database",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 90,
+        "resource_cost": 2,
+        "monetary_cost": 0.004,
+        "risk": 0.04,
+        "energy_cost": 0.02
+      },
+      "reliability": 0.99,
+      "availability": 1,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/inventory/check"
+      },
+      "relevant_to_goal": true,
+      "experiment_role": "chain"
+    },
+    {
+      "id": "C3",
+      "name": "ReserveInventory",
+      "type": "SERVICE",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "inventory_check_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        },
+        {
+          "name": "reservation_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Inventory.available",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Inventory.checked",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Inventory.reserved",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Reservation.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Cart.locked",
+          "operator": "==",
+          "value": false
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "quantity <= inventory_available"
+        }
+      ],
+      "resources": [
+        "Inventory service",
+        "Database",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 130,
+        "resource_cost": 2,
+        "monetary_cost": 0.006,
+        "risk": 0.06,
+        "energy_cost": 0.03
+      },
+      "reliability": 0.985,
+      "availability": 1,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/inventory/reservations"
+      },
+      "relevant_to_goal": true,
+      "experiment_role": "chain"
+    },
+    {
+      "id": "C4",
+      "name": "CreateOrder",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "reservation_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Cart.locked",
+          "operator": "==",
+          "value": false
+        },
+        {
+          "attribute": "Reservation.exists",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        },
+        {
+          "attribute": "Cart.locked",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "quantity > 0"
+        }
+      ],
+      "resources": [
+        "Database",
+        "Authentication token",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 100,
+        "resource_cost": 2,
+        "monetary_cost": 0.01,
+        "risk": 0.1,
+        "energy_cost": 0.03
+      },
+      "reliability": 0.99,
+      "availability": 1,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/orders"
+      },
+      "functional_group": "CreateOrder",
+      "alternative_implementation": false,
+      "relevant_to_goal": true,
+      "experiment_role": "canonical"
+    },
+    {
+      "id": "C4_API",
+      "name": "CreateOrder_API",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "reservation_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Cart.locked",
+          "operator": "==",
+          "value": false
+        },
+        {
+          "attribute": "Reservation.exists",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        },
+        {
+          "attribute": "Cart.locked",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "quantity > 0"
+        }
+      ],
+      "resources": [
+        "Database",
+        "Authentication token",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 100,
+        "resource_cost": 2,
+        "monetary_cost": 0.01,
+        "risk": 0.1,
+        "energy_cost": 0.03
+      },
+      "reliability": 0.99,
+      "availability": 1,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/orders"
+      },
+      "functional_group": "CreateOrder",
+      "alternative_implementation": true,
+      "relevant_to_goal": true,
+      "experiment_role": "alternative_implementation"
+    },
+    {
+      "id": "C4_DB",
+      "name": "CreateOrder_DATABASE",
+      "type": "DATABASE",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "reservation_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Cart.locked",
+          "operator": "==",
+          "value": false
+        },
+        {
+          "attribute": "Reservation.exists",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        },
+        {
+          "attribute": "Cart.locked",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "quantity > 0"
+        }
+      ],
+      "resources": [
+        "Database",
+        "Transaction manager"
+      ],
+      "quality": {
+        "execution_time_ms": 70,
+        "resource_cost": 2,
+        "monetary_cost": 0.004,
+        "risk": 0.08,
+        "energy_cost": 0.02
+      },
+      "reliability": 0.99,
+      "availability": 1,
+      "mechanism": {
+        "operation": "INSERT",
+        "table": "orders"
+      },
+      "functional_group": "CreateOrder",
+      "alternative_implementation": true,
+      "relevant_to_goal": true,
+      "experiment_role": "alternative_implementation"
+    },
+    {
+      "id": "C4_GUI",
+      "name": "CreateOrder_GUI",
+      "type": "GUI",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "reservation_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Cart.locked",
+          "operator": "==",
+          "value": false
+        },
+        {
+          "attribute": "Reservation.exists",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        },
+        {
+          "attribute": "Cart.locked",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "quantity > 0"
+        }
+      ],
+      "resources": [
+        "GUI",
+        "Network",
+        "Authentication token"
+      ],
+      "quality": {
+        "execution_time_ms": 350,
+        "resource_cost": 3,
+        "monetary_cost": 0.0,
+        "risk": 0.12,
+        "energy_cost": 0.05
+      },
+      "reliability": 0.96,
+      "availability": 1,
+      "mechanism": {
+        "action": "CLICK",
+        "component": "submit_order_button"
+      },
+      "functional_group": "CreateOrder",
+      "alternative_implementation": true,
+      "relevant_to_goal": true,
+      "experiment_role": "alternative_implementation"
+    },
+    {
+      "id": "C5",
+      "name": "MakePayment",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "payment_amount",
+          "type": "REAL",
+          "domain": "> 0",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        },
+        {
+          "name": "transaction_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Payment.status",
+          "operator": "==",
+          "value": "SUCCESS"
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "PAID"
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "payment_amount <= transaction_limit"
+        }
+      ],
+      "resources": [
+        "Payment gateway",
+        "Network",
+        "Authentication token"
+      ],
+      "quality": {
+        "execution_time_ms": 250,
+        "resource_cost": 3,
+        "monetary_cost": 0.02,
+        "risk": 0.15,
+        "energy_cost": 0.04
+      },
+      "reliability": 0.98,
+      "availability": 1,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/payments"
+      },
+      "relevant_to_goal": true,
+      "experiment_role": "chain"
+    },
+    {
+      "id": "C6",
+      "name": "VerifyPayment",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "transaction_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        },
+        {
+          "name": "verification_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Payment.status",
+          "operator": "==",
+          "value": "SUCCESS"
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "PAID"
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Payment.verified",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Payment gateway",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 110,
+        "resource_cost": 2,
+        "monetary_cost": 0.008,
+        "risk": 0.04,
+        "energy_cost": 0.02
+      },
+      "reliability": 0.992,
+      "availability": 1,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/payments/verify"
+      },
+      "relevant_to_goal": true,
+      "experiment_role": "chain"
+    },
+    {
+      "id": "C7",
+      "name": "SendNotification",
+      "type": "EVENT",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "notification_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Payment.verified",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Notification.sent",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Notification service",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 80,
+        "resource_cost": 1,
+        "monetary_cost": 0.005,
+        "risk": 0.02,
+        "energy_cost": 0.01
+      },
+      "reliability": 0.995,
+      "availability": 1,
+      "mechanism": {
+        "trigger": "PaymentVerified",
+        "handler": "NotificationHandler"
+      },
+      "relevant_to_goal": true,
+      "experiment_role": "chain_end"
+    },
+    {
+      "id": "C8",
+      "name": "RefundPayment",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "transaction_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "refund_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Payment.status",
+          "operator": "==",
+          "value": "SUCCESS"
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "PAID"
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Payment.status",
+          "operator": "==",
+          "value": "REFUNDED"
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "REFUNDED"
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "refund_amount <= captured_amount"
+        }
+      ],
+      "resources": [
+        "Payment gateway",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 220,
+        "resource_cost": 3,
+        "monetary_cost": 0.02,
+        "risk": 0.18,
+        "energy_cost": 0.04
+      },
+      "reliability": 0.975,
+      "availability": 1,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/payments/refund"
+      },
+      "relevant_to_goal": false,
+      "experiment_role": "branch"
+    },
+    {
+      "id": "C9",
+      "name": "CancelOrder",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cancellation_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "CANCELLED"
+        },
+        {
+          "attribute": "Release.required",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Reservation.exists",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Database",
+        "Network",
+        "Authentication token"
+      ],
+      "quality": {
+        "execution_time_ms": 120,
+        "resource_cost": 2,
+        "monetary_cost": 0.006,
+        "risk": 0.08,
+        "energy_cost": 0.02
+      },
+      "reliability": 0.985,
+      "availability": 1,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/orders/cancel"
+      },
+      "relevant_to_goal": false,
+      "experiment_role": "branch"
+    },
+    {
+      "id": "C10",
+      "name": "ReleaseInventory",
+      "type": "SERVICE",
+      "inputs": [
+        {
+          "name": "reservation_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "release_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Reservation.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Release.required",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Reservation.exists",
+          "operator": "==",
+          "value": false
+        },
+        {
+          "attribute": "Inventory.reserved",
+          "operator": "==",
+          "value": false
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Inventory service",
+        "Database",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 100,
+        "resource_cost": 2,
+        "monetary_cost": 0.004,
+        "risk": 0.05,
+        "energy_cost": 0.02
+      },
+      "reliability": 0.99,
+      "availability": 1,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/inventory/release"
+      },
+      "relevant_to_goal": false,
+      "experiment_role": "branch"
+    },
+    {
+      "id": "C11",
+      "name": "RemoveFromCart",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "item_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Cart.item_count",
+          "operator": ">",
+          "value": 0
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Cart.item_count",
+          "operator": "==",
+          "value": 0
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "item_id must belong to cart"
+        }
+      ],
+      "resources": [
+        "Database",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 75,
+        "resource_cost": 1,
+        "monetary_cost": 0.002,
+        "risk": 0.03,
+        "energy_cost": 0.01
+      },
+      "reliability": 0.995,
+      "availability": 1,
+      "mechanism": {
+        "method": "DELETE",
+        "endpoint": "/cart/items/{id}"
+      },
+      "relevant_to_goal": false,
+      "experiment_role": "branch"
+    },
+    {
+      "id": "C12",
+      "name": "UpdateOrder",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Order.exists",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Order.updated",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "only mutable order fields may be changed"
+        }
+      ],
+      "resources": [
+        "Database",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 95,
+        "resource_cost": 2,
+        "monetary_cost": 0.004,
+        "risk": 0.04,
+        "energy_cost": 0.02
+      },
+      "reliability": 0.99,
+      "availability": 1,
+      "mechanism": {
+        "method": "PATCH",
+        "endpoint": "/orders/{id}"
+      },
+      "relevant_to_goal": true,
+      "experiment_role": "support"
+    },
+    {
+      "id": "C13",
+      "name": "GetOrder",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_status",
+          "type": "STRING",
+          "domain": "order status values"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Order.exists",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Order.read",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Database",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 30,
+        "resource_cost": 1,
+        "monetary_cost": 0.001,
+        "risk": 0.01,
+        "energy_cost": 0.005
+      },
+      "reliability": 0.999,
+      "availability": 1,
+      "mechanism": {
+        "method": "GET",
+        "endpoint": "/orders/{id}"
+      },
+      "relevant_to_goal": true,
+      "experiment_role": "support"
+    },
+    {
+      "id": "C14",
+      "name": "UpdateProfile",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "user_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "profile_update_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "User.authenticated",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "User.profile_updated",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Database",
+        "Network",
+        "Authentication token"
+      ],
+      "quality": {
+        "execution_time_ms": 90,
+        "resource_cost": 1,
+        "monetary_cost": 0.003,
+        "risk": 0.03,
+        "energy_cost": 0.015
+      },
+      "reliability": 0.995,
+      "availability": 1,
+      "mechanism": {
+        "method": "PATCH",
+        "endpoint": "/users/{id}"
+      },
+      "relevant_to_goal": false,
+      "experiment_role": "irrelevant"
+    },
+    {
+      "id": "C15",
+      "name": "GenerateSalesReport",
+      "type": "COMPUTATION",
+      "inputs": [
+        {
+          "name": "report_period",
+          "type": "STRING",
+          "domain": "valid reporting period",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Report.period.valid",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Report.generated",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Database",
+        "File system",
+        "CPU"
+      ],
+      "quality": {
+        "execution_time_ms": 1200,
+        "resource_cost": 6,
+        "monetary_cost": 0.02,
+        "risk": 0.01,
+        "energy_cost": 0.15
+      },
+      "reliability": 0.999,
+      "availability": 1,
+      "mechanism": {
+        "operation": "AGGREGATE",
+        "report": "sales"
+      },
+      "relevant_to_goal": false,
+      "experiment_role": "irrelevant"
+    }
+  ],
+  "composition_chains": [
+    {
+      "id": "purchase_success_chain",
+      "capabilities": [
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "C5",
+        "C6",
+        "C7"
+      ],
+      "goal_relevant": true
+    },
+    {
+      "id": "cancel_and_release_chain",
+      "capabilities": [
+        "C4",
+        "C9",
+        "C10"
+      ],
+      "goal_relevant": false
+    }
+  ],
+  "alternative_implementation_groups": [
+    {
+      "group_id": "CREATE_ORDER_IMPLEMENTATIONS",
+      "capabilities": [
+        "C4_API",
+        "C4_DB",
+        "C4_GUI"
+      ],
+      "shared_function": "CreateOrder",
+      "expected": "high functional similarity but non-identical implementation representation"
+    }
+  ],
+  "goal_relevance": {
+    "C1": true,
+    "C2": true,
+    "C3": true,
+    "C4": true,
+    "C4_API": true,
+    "C4_DB": true,
+    "C4_GUI": true,
+    "C5": true,
+    "C6": true,
+    "C7": true,
+    "C8": false,
+    "C9": false,
+    "C10": false,
+    "C11": false,
+    "C12": true,
+    "C13": true,
+    "C14": false,
+    "C15": false
+  },
+  "expected_relations": [
+    {
+      "from": "C1",
+      "to": "C2",
+      "relation": "compatible",
+      "reason": "AddToCart creates a non-empty cart required by CheckInventory"
+    },
+    {
+      "from": "C2",
+      "to": "C3",
+      "relation": "compatible",
+      "reason": "CheckInventory establishes availability and a checked inventory"
+    },
+    {
+      "from": "C3",
+      "to": "C4",
+      "relation": "compatible",
+      "reason": "ReserveInventory provides reservation and preserves cart existence"
+    },
+    {
+      "from": "C4",
+      "to": "C5",
+      "relation": "compatible",
+      "reason": "CreateOrder establishes CREATED order state"
+    },
+    {
+      "from": "C5",
+      "to": "C6",
+      "relation": "compatible",
+      "reason": "MakePayment establishes successful paid order and returns transaction/order ids"
+    },
+    {
+      "from": "C6",
+      "to": "C7",
+      "relation": "compatible",
+      "reason": "VerifyPayment establishes verified payment and returns order id"
+    },
+    {
+      "from": "C4",
+      "to": "C9",
+      "relation": "compatible",
+      "reason": "Created order can be cancelled"
+    },
+    {
+      "from": "C9",
+      "to": "C10",
+      "relation": "compatible",
+      "reason": "Cancelled order requests inventory release"
+    },
+    {
+      "from": "C1",
+      "to": "C4",
+      "relation": "not_directly_compatible",
+      "reason": "AddToCart does not establish Reservation.exists required by CreateOrder"
+    },
+    {
+      "from": "C1",
+      "to": "C7",
+      "relation": "not_directly_compatible",
+      "reason": "AddToCart does not establish verified payment"
+    },
+    {
+      "from": "C4",
+      "to": "C8",
+      "relation": "not_directly_compatible",
+      "reason": "RefundPayment requires successful paid order, not merely CREATED"
+    },
+    {
+      "from": "C1",
+      "to": "C14",
+      "relation": "not_directly_compatible",
+      "reason": "Cart creation does not establish authenticated user state as an effect"
+    },
+    {
+      "from": "C1",
+      "to": "C15",
+      "relation": "not_directly_compatible",
+      "reason": "Cart state does not satisfy report period precondition"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Billing home{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1 id="module_title">Point of Sale Billing</h1>
+  <p id="module_description">{{ spec.module.description }}</p>
+  <ul class="facts">
+    <li>Module id: <code id="module_id">{{ spec.module.module_id }}</code></li>
+    <li>Version: <code>{{ spec.module.version }}</code></li>
+    <li>Invoices generated: <code id="count_invoices">{{ counts.invoices }}</code></li>
+    <li>Invoices paid: <code id="count_paid">{{ counts.paid }}</code></li>
+    <li>Outstanding amount: <code id="count_outstanding">{{ counts.outstanding_amount }}</code></li>
+    <li>Receipt notices sent: <code id="count_notices">{{ counts.notices }}</code></li>
+  </ul>
+  <p>
+    <a class="button" id="new_invoice_link" href="{{ url_for('ui.invoice_new') }}">Generate an invoice</a>
+    <a class="button secondary" id="payment_link" href="{{ url_for('ui.payment_new') }}">Take a payment</a>
+  </p>
+</section>
+
+<section class="panel">
+  <h2>Capabilities</h2>
+  <table id="capability_table" class="grid">
+    <thead>
+      <tr><th>Id</th><th>Name</th><th>Type</th><th>Mechanism</th><th>Reliability</th></tr>
+    </thead>
+    <tbody>
+      {% for capability in spec.capabilities %}
+      <tr>
+        <td><code>{{ capability.id }}</code></td>
+        <td>{{ capability.name }}</td>
+        <td>{{ capability.type }}</td>
+        <td>
+          {% if capability.mechanism.endpoint %}<code>{{ capability.mechanism.method }} {{ capability.mechanism.endpoint }}</code>
+          {% elif capability.mechanism.page %}<code>{{ capability.mechanism.page }}</code>
+          {% else %}<code>{{ capability.mechanism.kind }}</code>{% endif %}
+        </td>
+        <td>{{ capability.reliability }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

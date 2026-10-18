@@ -1,0 +1,368 @@
+# Formal capability specification sheet, YAML rendering.
+# Generated from spec.json by the careweave_cli spec-yaml command; the two files are
+# always equivalent, and the round trip is proved by the command and by the test suite.
+capabilities:
+  - availability: true
+    constraints: []
+    description: Start an outpatient encounter for a patient; one active encounter at a time.
+    effects:
+      - op: SET
+        value: true
+        variable: Encounter.active
+    id: EHR-StartEncounter
+    inputs:
+      - domain: medical record number
+        name: patient_mrn
+        required: true
+        type: string
+      - domain: clinician name
+        name: clinician
+        required: true
+        type: string
+      - domain:
+          - CONSULTATION
+          - FOLLOW_UP
+          - EMERGENCY
+        name: visit_type
+        required: false
+        type: enumerated
+    mechanism:
+      endpoint: /api/start_encounter
+      kind: API
+      method: POST
+    name: start_encounter
+    outputs:
+      - domain: generated encounter identifier
+        name: encounter_id
+        type: string
+      - domain:
+          - CONSULTATION
+          - FOLLOW_UP
+          - EMERGENCY
+        name: visit_type
+        type: enumerated
+      - domain: ISO 8601 timestamp
+        name: started_at
+        type: string
+    preconditions:
+      - op: =
+        value: false
+        variable: Encounter.active
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.01
+      time_ms: 130.0
+    reliability: 0.99
+    resources:
+      - ehr_db
+    roles:
+      - clerk
+      - nurse
+    type: API
+  - availability: true
+    constraints: []
+    description: "Record temperature, heart rate and optional systolic pressure for an active encounter."
+    effects:
+      - op: SET
+        value: true
+        variable: Vitals.recorded
+    id: EHR-RecordVitals
+    inputs:
+      - domain: active encounter identifier
+        name: encounter_id
+        required: true
+        type: string
+      - domain:
+          - "25.0"
+          - "45.0"
+        name: temperature_c
+        required: true
+        type: real
+      - domain:
+          - "20"
+          - "300"
+        name: heart_rate
+        required: true
+        type: integer
+      - domain:
+          - "60"
+          - "260"
+        name: systolic
+        required: false
+        type: integer
+    mechanism:
+      endpoint: /api/record_vitals
+      kind: API
+      method: POST
+    name: record_vitals
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: recorded
+        type: boolean
+      - domain: generated vitals identifier
+        name: vitals_id
+        type: string
+      - domain: ISO 8601 timestamp
+        name: recorded_at
+        type: string
+    preconditions:
+      - op: =
+        value: true
+        variable: Encounter.active
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.01
+      risk: 0.02
+      time_ms: 90.0
+    reliability: 0.99
+    resources:
+      - ehr_db
+    roles:
+      - nurse
+      - physician
+    type: API
+  - availability: true
+    constraints: []
+    description: "Issue a prescription for an active encounter with drug, dose and instructions."
+    effects:
+      - op: SET
+        value: true
+        variable: Prescription.issued
+      - op: INCREMENT
+        value: 1
+        variable: Prescription.count
+    id: EHR-IssuePrescription
+    inputs:
+      - domain: active encounter identifier
+        name: encounter_id
+        required: true
+        type: string
+      - domain: drug name
+        name: drug
+        required: true
+        type: string
+      - domain:
+          - "0.1"
+          - "5000.0"
+        name: dose_mg
+        required: true
+        type: real
+      - domain: dosing instructions
+        name: instructions
+        required: false
+        type: string
+    mechanism:
+      endpoint: /api/issue_prescription
+      kind: API
+      method: POST
+    name: issue_prescription
+    outputs:
+      - domain: generated prescription identifier
+        name: prescription_id
+        type: string
+      - domain: ISO 8601 timestamp
+        name: issued_at
+        type: string
+    preconditions:
+      - op: =
+        value: true
+        variable: Encounter.active
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.06
+      time_ms: 100.0
+    reliability: 0.99
+    resources:
+      - ehr_db
+    roles:
+      - physician
+    type: API
+  - availability: true
+    constraints: []
+    description: Close an active encounter with an optional summary.
+    effects:
+      - op: SET
+        value: false
+        variable: Encounter.active
+      - op: SET
+        value: true
+        variable: Encounter.closed
+    id: EHR-CloseEncounter
+    inputs:
+      - domain: active encounter identifier
+        name: encounter_id
+        required: true
+        type: string
+      - domain: closing summary text
+        name: summary
+        required: false
+        type: string
+    mechanism:
+      endpoint: /api/close_encounter
+      kind: API
+      method: POST
+    name: close_encounter
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: closed
+        type: boolean
+      - domain: ISO 8601 timestamp
+        name: closed_at
+        type: string
+    preconditions:
+      - op: =
+        value: true
+        variable: Encounter.active
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.01
+      risk: 0.01
+      time_ms: 80.0
+    reliability: 0.99
+    resources:
+      - ehr_db
+    roles:
+      - physician
+      - nurse
+    type: API
+  - availability: true
+    constraints: []
+    description: Encounter start form screen that registers a new outpatient encounter.
+    effects:
+      - op: SET
+        value: true
+        variable: Encounter.active
+    id: EHR-Form
+    inputs:
+      - domain: medical record number
+        name: patient_mrn
+        required: true
+        type: string
+      - domain: clinician name
+        name: clinician
+        required: true
+        type: string
+      - domain:
+          - CONSULTATION
+          - FOLLOW_UP
+          - EMERGENCY
+        name: visit_type
+        required: false
+        type: enumerated
+    mechanism:
+      action: SUBMIT
+      component: encounter_form
+      kind: GUI
+      page: /ui/encounters/new
+    name: start_encounter_form
+    outputs:
+      - domain: generated encounter identifier
+        name: encounter_id
+        type: string
+    preconditions:
+      - op: =
+        value: false
+        variable: Encounter.active
+    quality:
+      energy: 0.002
+      money: 0.0
+      resource: 0.02
+      risk: 0.01
+      time_ms: 250.0
+    reliability: 0.97
+    resources:
+      - ehr_db
+    roles:
+      - clerk
+      - nurse
+    type: GUI
+
+constraints:
+  - enforced_by: services.ehr.start_encounter
+    expression: Encounter.active = true excludes starting another encounter
+    id: K-One-Active-Encounter
+    kind: state
+  - enforced_by: services.ehr range checks
+    expression: "temperature 25..45 C, heart rate 20..300, systolic 60..260"
+    id: K-Vitals-Ranges
+    kind: input
+  - enforced_by: services.ehr.issue_prescription
+    expression: dose_mg in 0.1..5000
+    id: K-Dose-Range
+    kind: input
+
+goal:
+  - op: =
+    value: true
+    variable: Vitals.recorded
+  - op: =
+    value: true
+    variable: Prescription.issued
+
+initial_state:
+  Encounter.active: false
+  Encounter.closed: false
+  Prescription.count: 0
+  Prescription.issued: false
+  Vitals.recorded: false
+
+module:
+  base_url: "http://127.0.0.1:5003"
+  database_file: data/opd_ehr.db
+  description: "Outpatient department EHR: encounter lifecycle with vitals capture and prescription issuing."
+  domain: hospital
+  health: /health
+  language: python
+  module_id: opd-ehr
+  port: 5003
+  ui: /ui/
+  version: 1.0.0
+
+resources:
+  - available: true
+    details: SQLite database in WAL mode owned by this module
+    id: ehr_db
+    kind: database
+  - available: true
+    details: Loopback HTTP interface used by the gateway and the dashboard
+    id: network
+    kind: network
+
+spec_version: "1.0"
+
+state_schema:
+  - domain:
+      - "false"
+      - "true"
+    name: Encounter.active
+    type: boolean
+  - domain:
+      - "false"
+      - "true"
+    name: Encounter.closed
+    type: boolean
+  - domain:
+      - "false"
+      - "true"
+    name: Vitals.recorded
+    type: boolean
+  - domain:
+      - "false"
+      - "true"
+    name: Prescription.issued
+    type: boolean
+  - domain:
+      - 0.0
+      - 1000.0
+    name: Prescription.count
+    type: integer

@@ -1,0 +1,156 @@
+{
+  "problem_id": "document-summarize",
+  "domain": "documents",
+  "description": "The third domain problem: a summary requirement over the document pipeline, the intake operation in three personas, ordering cases around parsing and a negative case in the audit application.",
+  "pool": [
+    "specs/app/document_processing.yaml",
+    "specs/app/ecommerce_purchase.yaml",
+    "specs/app/hospital_clinic_visit.yaml",
+    "specs/app/hospital_alias_resolution.yaml",
+    "specs/app/compliance_audit.yaml"
+  ],
+  "required_mappings": [
+    {
+      "case_id": "documents-summarize",
+      "requirement_spec": "specs/app/requirements/summarize_document.yaml",
+      "candidate_specs": [
+        "specs/app/document_processing.yaml"
+      ],
+      "expectation": "selected",
+      "expected_capability_ids": [
+        "DOC-Summarize"
+      ],
+      "notes": "Measured: 0.9305, margin 0.3574. Fields bind exactly and the desired effect Summary.generated is shared."
+    }
+  ],
+  "negative_cases": [
+    {
+      "case_id": "summarize-in-audit-app",
+      "requirement_spec": "specs/app/requirements/summarize_document.yaml",
+      "candidate_specs": [
+        "specs/app/compliance_audit.yaml"
+      ],
+      "expectation": "rejected",
+      "notes": "Measured: best 0.4092 (the audit policy computation, integer fields partially bind), below the 0.45 threshold. This case calibrated the threshold: weak partial matches peak around 0.41 while every intended mapping scores 0.79 or above."
+    }
+  ],
+  "full_pool_cases": [
+    {
+      "case_id": "full-pool-summarize",
+      "requirement_spec": "specs/app/requirements/summarize_document.yaml",
+      "expectation": "top1",
+      "expected_capability_ids": [
+        "DOC-Summarize"
+      ],
+      "notes": "Against all 53 capabilities: top 1 DOC-Summarize (0.9305), runner up DOC-IndexRecord (0.5731), margin 0.3574."
+    }
+  ],
+  "ambiguity_cases": [],
+  "compatibility_cases": [
+    {
+      "case_id": "docs-parse-summarize",
+      "app": "specs/app/document_processing.yaml",
+      "sequence": [
+        "DOC-ParseDocument",
+        "DOC-Summarize"
+      ],
+      "expectation": "compatible",
+      "expected_check": "precondition-entailment",
+      "notes": "Parsing establishes Document.parsed and carries the page count the summary computation needs."
+    },
+    {
+      "case_id": "docs-parse-index",
+      "app": "specs/app/document_processing.yaml",
+      "sequence": [
+        "DOC-ParseDocument",
+        "DOC-IndexRecord"
+      ],
+      "expectation": "uncertain",
+      "expected_check": "input-output",
+      "notes": "The page count binds, but the document identifier of the row insert binds to nothing."
+    },
+    {
+      "case_id": "docs-index-notify",
+      "app": "specs/app/document_processing.yaml",
+      "sequence": [
+        "DOC-IndexRecord",
+        "DOC-NotifyReviewer"
+      ],
+      "expectation": "uncertain",
+      "expected_check": "precondition-entailment",
+      "notes": "Indexing updates the index table only, so the review notification precondition stays unprovable; the pair must go through parsing first."
+    },
+    {
+      "case_id": "docs-notify-summarize",
+      "app": "specs/app/document_processing.yaml",
+      "sequence": [
+        "DOC-NotifyReviewer",
+        "DOC-Summarize"
+      ],
+      "expectation": "uncertain",
+      "expected_check": "precondition-entailment",
+      "notes": "Queuing the review request does not parse the document, so the summary cannot be proven to follow it directly."
+    }
+  ],
+  "equivalence_groups": [
+    {
+      "logical_operation": "accept an uploaded document into the pipeline",
+      "members": [
+        {
+          "app": "specs/app/document_processing.yaml",
+          "capability_id": "DOC-UploadDocument",
+          "persona": "FILE"
+        },
+        {
+          "app": "specs/app/document_processing.yaml",
+          "capability_id": "DOC-UploadForm",
+          "persona": "GUI"
+        },
+        {
+          "app": "specs/app/document_processing.yaml",
+          "capability_id": "DOC-IntakeHandler",
+          "persona": "EVENT"
+        }
+      ],
+      "notes": "One logical intake offered as a file read, a screen submission and an event handler; all three establish Document.uploaded."
+    }
+  ],
+  "name_pairs": [
+    {
+      "left": "upload_document",
+      "right": "upload_form",
+      "label": "equivalent",
+      "notes": "The intake as a file step and as a screen."
+    },
+    {
+      "left": "on_document_received",
+      "right": "upload_document",
+      "label": "equivalent",
+      "notes": "The event handler of the same intake."
+    },
+    {
+      "left": "parse_document",
+      "right": "estimate_pages",
+      "label": "mechanism",
+      "notes": "Both estimate the page count through different mechanisms: the names share no vocabulary."
+    },
+    {
+      "left": "summarize",
+      "right": "parse_document",
+      "label": "distinct",
+      "notes": "Reading the document against condensing it."
+    },
+    {
+      "left": "archive_file",
+      "right": "notify_reviewer",
+      "label": "distinct",
+      "notes": "Writing to disk against publishing a request."
+    },
+    {
+      "left": "index_record",
+      "right": "summarize",
+      "label": "distinct",
+      "notes": "Storing a row against computing a length."
+    }
+  ]
+}

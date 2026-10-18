@@ -1,0 +1,35 @@
+{
+  "baseline": "C5 MakePayment",
+  "rows": [
+    {
+      "variant": "high_monetary_cost",
+      "whole_cosine": 0.9886257648468018,
+      "operational_cosine": 0.8862568140029907,
+      "non_operational_mean_cosine": 0.9999999867545234
+    },
+    {
+      "variant": "low_reliability",
+      "whole_cosine": 0.9891692399978638,
+      "operational_cosine": 0.8916909098625183,
+      "non_operational_mean_cosine": 0.9999999867545234
+    },
+    {
+      "variant": "unavailable",
+      "whole_cosine": 0.9355407953262329,
+      "operational_cosine": 0.3554072082042694,
+      "non_operational_mean_cosine": 0.9999999867545234
+    },
+    {
+      "variant": "high_risk",
+      "whole_cosine": 0.9952075481414795,
+      "operational_cosine": 0.9520750641822815,
+      "non_operational_mean_cosine": 0.9999999867545234
+    }
+  ],
+  "summary": {
+    "mean_whole_vector_cosine": 0.9771358370780945,
+    "mean_operational_block_cosine": 0.771357499063015,
+    "mean_non_operational_cosine": 0.9999999867545234,
+    "largest_operational_change": "unavailable"
+  }
+}

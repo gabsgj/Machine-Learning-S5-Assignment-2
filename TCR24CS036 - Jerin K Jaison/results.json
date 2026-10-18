@@ -1,0 +1,104 @@
+{
+  "vocab_sizes": {
+    "predicate_vocab": 18,
+    "io_vocab": 8,
+    "resource_vocab": 4,
+    "total_dim": 121
+  },
+  "experiment_1": {
+    "CreateOrder->MakePayment": {
+      "effect_coverage": 1.0,
+      "io_coverage": 0.5,
+      "contradiction": false,
+      "score": 0.8,
+      "compatible": true
+    },
+    "CreateOrder->CancelCart": {
+      "effect_coverage": 0.0,
+      "io_coverage": 0.0,
+      "contradiction": true,
+      "score": 0.0,
+      "compatible": false
+    }
+  },
+  "experiment_2": {
+    "composite_preconditions": [
+      "Cart.exists=True",
+      "Cart.item_count>0",
+      "User.authenticated=True"
+    ],
+    "composite_effects": {
+      "Order.exists": true,
+      "Order.status": "PAID",
+      "Cart.locked": true,
+      "Payment.status": "SUCCESS",
+      "Notification.sent": true
+    },
+    "composite_reliability": 0.9554984999999999,
+    "composite_cost": {
+      "time": 380.0,
+      "money": 0.01,
+      "resource": 3.2,
+      "risk": 0.15355000000000008,
+      "energy": 2.7
+    },
+    "similarity_to_constituents": {
+      "CreateOrder": 0.6020092066167896,
+      "MakePayment": 0.4521930469402249,
+      "SendNotification": 0.25354627641855493
+    }
+  },
+  "experiment_3": {
+    "CreateOrder_API vs CreateOrder_DB": {
+      "pure_function_similarity": 0.9534625892455924,
+      "implementation_similarity": 0.0,
+      "full_similarity": 0.8291457503247379
+    },
+    "CreateOrder_API vs CreateOrder_GUI": {
+      "pure_function_similarity": 1.0,
+      "implementation_similarity": 0.0,
+      "full_similarity": 0.8270986253930557
+    },
+    "CreateOrder_DB vs CreateOrder_GUI": {
+      "pure_function_similarity": 0.9534625892455924,
+      "implementation_similarity": 0.0,
+      "full_similarity": 0.802994686781026
+    }
+  },
+  "experiment_4": {
+    "goal_relevance": {
+      "CreateOrder": 0.3333333333333333,
+      "MakePayment": 0.3333333333333333,
+      "SendNotification": 0.3333333333333333,
+      "GetWeatherForecast": 0.0,
+      "LogAnalyticsEvent": 0.0
+    },
+    "compatibility_with_CreateOrder": {
+      "GetWeatherForecast": {
+        "effect_coverage": 1.0,
+        "io_coverage": 0.0,
+        "contradiction": false,
+        "score": 0.6,
+        "compatible": true
+      },
+      "LogAnalyticsEvent": {
+        "effect_coverage": 1.0,
+        "io_coverage": 0.0,
+        "contradiction": false,
+        "score": 0.6,
+        "compatible": true
+      }
+    }
+  },
+  "experiment_5": {
+    "functional_similarity": 1.0,
+    "full_similarity": 0.9901598971860951,
+    "composite_reliability_healthy": 0.9554984999999999,
+    "composite_reliability_degraded": 0.5417775
+  },
+  "state_awareness": {
+    "applicable": true,
+    "score": 1.0,
+    "missing": []
+  }
+}

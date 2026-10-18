@@ -1,0 +1,213 @@
+{
+  "spec_version": "1.0",
+  "module": {
+    "module_id": "opd-ehr",
+    "version": "1.0.0",
+    "domain": "hospital",
+    "port": 5003,
+    "base_url": "http://127.0.0.1:5003",
+    "health": "/health",
+    "description": "Outpatient department EHR: encounter lifecycle with vitals capture and prescription issuing.",
+    "language": "python",
+    "database_file": "data/opd_ehr.db",
+    "ui": "/ui/"
+  },
+  "state_schema": [
+    {"name": "Encounter.active", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Encounter.closed", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Vitals.recorded", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Prescription.issued", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Prescription.count", "type": "integer", "domain": [0, 1000], "kind": "counter"}
+  ],
+  "initial_state": {
+    "Encounter.active": false,
+    "Encounter.closed": false,
+    "Vitals.recorded": false,
+    "Prescription.issued": false,
+    "Prescription.count": 0
+  },
+  "resources": [
+    {
+      "id": "ehr_db",
+      "kind": "database",
+      "available": true,
+      "details": "SQLite database in WAL mode owned by this module"
+    },
+    {
+      "id": "network",
+      "kind": "network",
+      "available": true,
+      "details": "Loopback HTTP interface used by the gateway and the dashboard"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "K-One-Active-Encounter",
+      "kind": "state",
+      "expression": "Encounter.active = true excludes starting another encounter",
+      "enforced_by": "services.ehr.start_encounter"
+    },
+    {
+      "id": "K-Vitals-Ranges",
+      "kind": "input",
+      "expression": "temperature 25..45 C, heart rate 20..300, systolic 60..260",
+      "enforced_by": "services.ehr range checks"
+    },
+    {
+      "id": "K-Dose-Range",
+      "kind": "input",
+      "expression": "dose_mg in 0.1..5000",
+      "enforced_by": "services.ehr.issue_prescription"
+    }
+  ],
+  "goal": [
+    {"variable": "Vitals.recorded", "op": "=", "value": true},
+    {"variable": "Prescription.issued", "op": "=", "value": true}
+  ],
+  "capabilities": [
+    {
+      "id": "EHR-StartEncounter",
+      "name": "start_encounter",
+      "type": "API",
+      "description": "Start an outpatient encounter for a patient; one active encounter at a time.",
+      "inputs": [
+        {"name": "patient_mrn", "type": "string", "domain": "medical record number", "required": true},
+        {"name": "clinician", "type": "string", "domain": "clinician name", "required": true},
+        {"name": "visit_type", "type": "enumerated", "domain": ["CONSULTATION", "FOLLOW_UP", "EMERGENCY"], "required": false}
+      ],
+      "outputs": [
+        {"name": "encounter_id", "type": "string", "domain": "generated encounter identifier"},
+        {"name": "visit_type", "type": "enumerated", "domain": ["CONSULTATION", "FOLLOW_UP", "EMERGENCY"]},
+        {"name": "started_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Encounter.active", "op": "=", "value": false}
+      ],
+      "effects": [
+        {"variable": "Encounter.active", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["ehr_db"],
+      "quality": {"time_ms": 130, "money": 0, "resource": 0.02, "risk": 0.01, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/start_encounter"},
+      "roles": ["clerk", "nurse"]
+    },
+    {
+      "id": "EHR-RecordVitals",
+      "name": "record_vitals",
+      "type": "API",
+      "description": "Record temperature, heart rate and optional systolic pressure for an active encounter.",
+      "inputs": [
+        {"name": "encounter_id", "type": "string", "domain": "active encounter identifier", "required": true},
+        {"name": "temperature_c", "type": "real", "domain": [25.0, 45.0], "required": true},
+        {"name": "heart_rate", "type": "integer", "domain": [20, 300], "required": true},
+        {"name": "systolic", "type": "integer", "domain": [60, 260], "required": false}
+      ],
+      "outputs": [
+        {"name": "recorded", "type": "boolean", "domain": [false, true]},
+        {"name": "vitals_id", "type": "string", "domain": "generated vitals identifier"},
+        {"name": "recorded_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Encounter.active", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Vitals.recorded", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["ehr_db"],
+      "quality": {"time_ms": 90, "money": 0, "resource": 0.01, "risk": 0.02, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/record_vitals"},
+      "roles": ["nurse", "physician"]
+    },
+    {
+      "id": "EHR-IssuePrescription",
+      "name": "issue_prescription",
+      "type": "API",
+      "description": "Issue a prescription for an active encounter with drug, dose and instructions.",
+      "inputs": [
+        {"name": "encounter_id", "type": "string", "domain": "active encounter identifier", "required": true},
+        {"name": "drug", "type": "string", "domain": "drug name", "required": true},
+        {"name": "dose_mg", "type": "real", "domain": [0.1, 5000.0], "required": true},
+        {"name": "instructions", "type": "string", "domain": "dosing instructions", "required": false}
+      ],
+      "outputs": [
+        {"name": "prescription_id", "type": "string", "domain": "generated prescription identifier"},
+        {"name": "issued_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Encounter.active", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Prescription.issued", "op": "SET", "value": true},
+        {"variable": "Prescription.count", "op": "INCREMENT", "value": 1}
+      ],
+      "constraints": [],
+      "resources": ["ehr_db"],
+      "quality": {"time_ms": 100, "money": 0, "resource": 0.02, "risk": 0.06, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/issue_prescription"},
+      "roles": ["physician"]
+    },
+    {
+      "id": "EHR-CloseEncounter",
+      "name": "close_encounter",
+      "type": "API",
+      "description": "Close an active encounter with an optional summary.",
+      "inputs": [
+        {"name": "encounter_id", "type": "string", "domain": "active encounter identifier", "required": true},
+        {"name": "summary", "type": "string", "domain": "closing summary text", "required": false}
+      ],
+      "outputs": [
+        {"name": "closed", "type": "boolean", "domain": [false, true]},
+        {"name": "closed_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Encounter.active", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Encounter.active", "op": "SET", "value": false},
+        {"variable": "Encounter.closed", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["ehr_db"],
+      "quality": {"time_ms": 80, "money": 0, "resource": 0.01, "risk": 0.01, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/close_encounter"},
+      "roles": ["physician", "nurse"]
+    },
+    {
+      "id": "EHR-Form",
+      "name": "start_encounter_form",
+      "type": "GUI",
+      "description": "Encounter start form screen that registers a new outpatient encounter.",
+      "inputs": [
+        {"name": "patient_mrn", "type": "string", "domain": "medical record number", "required": true},
+        {"name": "clinician", "type": "string", "domain": "clinician name", "required": true},
+        {"name": "visit_type", "type": "enumerated", "domain": ["CONSULTATION", "FOLLOW_UP", "EMERGENCY"], "required": false}
+      ],
+      "outputs": [
+        {"name": "encounter_id", "type": "string", "domain": "generated encounter identifier"}
+      ],
+      "preconditions": [
+        {"variable": "Encounter.active", "op": "=", "value": false}
+      ],
+      "effects": [
+        {"variable": "Encounter.active", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["ehr_db"],
+      "quality": {"time_ms": 250, "money": 0, "resource": 0.02, "risk": 0.01, "energy": 0.002},
+      "reliability": 0.97,
+      "availability": {"always": true},
+      "mechanism": {"kind": "GUI", "action": "SUBMIT", "component": "encounter_form", "page": "/ui/encounters/new"},
+      "roles": ["clerk", "nurse"]
+    }
+  ]
+}

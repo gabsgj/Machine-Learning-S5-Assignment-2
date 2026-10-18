@@ -1,0 +1,4 @@
+goal_id,conditions
+G1,Order.exists=true; Payment.status=SUCCESS; Notification.sent=true
+G2,Order.exists=true; Payment.status=SUCCESS
+G3,Order.exists=false; Cart.status=CANCELLED

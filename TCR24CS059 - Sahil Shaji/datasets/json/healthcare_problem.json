@@ -1,0 +1,226 @@
+{
+  "domain": "healthcare",
+  "initial_state": {
+    "Patient.triaged": true,
+    "Lab.ordered": false,
+    "Lab.completed": false,
+    "Diagnosis.ready": false,
+    "Prescription.issued": false,
+    "Pharmacy.dispensed": false
+  },
+  "goal": {
+    "Diagnosis.ready": true,
+    "Prescription.issued": true,
+    "Pharmacy.dispensed": true
+  },
+  "capabilities": {
+    "OrderLabTests": {
+      "name": "OrderLabTests",
+      "type": "SERVICE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Patient.triaged": true
+      },
+      "effects": {
+        "Lab.ordered": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "EHR_System",
+          "resource_type": "DATABASE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 200.0,
+        "monetary_cost": 5.0,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.999,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "SERVICE",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "AnalyzeBiomarkers": {
+      "name": "AnalyzeBiomarkers",
+      "type": "COMPUTATION",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Lab.ordered": true
+      },
+      "effects": {
+        "Lab.completed": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "LabAnalyzer",
+          "resource_type": "HARDWARE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 1800000.0,
+        "monetary_cost": 45.0,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.992,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "COMPUTATION",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "GenerateDiagnosis": {
+      "name": "GenerateDiagnosis",
+      "type": "FUNCTION",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Lab.completed": true
+      },
+      "effects": {
+        "Diagnosis.ready": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "ClinicalRulesEngine",
+          "resource_type": "SERVICE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 150.0,
+        "monetary_cost": 2.0,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.985,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "FUNCTION",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "IssuePrescription": {
+      "name": "IssuePrescription",
+      "type": "API",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Diagnosis.ready": true
+      },
+      "effects": {
+        "Prescription.issued": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "PrescriptionDB",
+          "resource_type": "STORAGE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 300.0,
+        "monetary_cost": 1.5,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.998,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "API",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "DispenseMedication": {
+      "name": "DispenseMedication",
+      "type": "SERVICE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Prescription.issued": true
+      },
+      "effects": {
+        "Pharmacy.dispensed": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "RoboticDispenser",
+          "resource_type": "HARDWARE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 45000.0,
+        "monetary_cost": 12.0,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.99,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "SERVICE",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "ArchivePatientHistory": {
+      "name": "ArchivePatientHistory",
+      "type": "FILE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {},
+      "effects": {
+        "Archive.saved": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "ColdStorage",
+          "resource_type": "STORAGE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 5000.0,
+        "monetary_cost": 0.5,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.999,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "FILE",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    }
+  }
+}

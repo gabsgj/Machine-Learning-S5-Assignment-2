@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Capabilities{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Capabilities</h1>
+  <p>The formal capability tuple of every capability this module exposes, from <code>spec.json</code>.</p>
+  {% for capability in spec.capabilities %}
+  <article class="capability" id="capability_{{ capability.id }}">
+    <h2><code>{{ capability.id }}</code> &middot; {{ capability.name }}</h2>
+    <p>{{ capability.description }}</p>
+    <ul class="facts">
+      <li>Type: <code>{{ capability.type }}</code></li>
+      <li>Mechanism:
+        {% if capability.mechanism.endpoint %}
+        <code>{{ capability.mechanism.method }} {{ capability.mechanism.endpoint }}</code>
+        {% elif capability.mechanism.page %}
+        <code>{{ capability.mechanism.page }}</code> ({{ capability.mechanism.action }}, {{ capability.mechanism.component }})
+        {% endif %}
+      </li>
+      <li>Reliability: <code>{{ capability.reliability }}</code>,
+          availability: <code>{{ "always" if capability.availability.always else "windowed" }}</code></li>
+      <li>Quality: time {{ capability.quality.time_ms }} ms, money {{ capability.quality.money }},
+          resource {{ capability.quality.resource }}, risk {{ capability.quality.risk }},
+          energy {{ capability.quality.energy }}</li>
+    </ul>
+    <h3>Inputs</h3>
+    <table class="grid">
+      <thead><tr><th>Name</th><th>Type</th><th>Domain</th><th>Required</th></tr></thead>
+      <tbody>
+        {% for item in capability.inputs %}
+        <tr><td><code>{{ item.name }}</code></td><td>{{ item.type }}</td><td>{{ item.domain }}</td><td>{{ "yes" if item.required else "no" }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h3>Outputs</h3>
+    <table class="grid">
+      <thead><tr><th>Name</th><th>Type</th><th>Domain</th></tr></thead>
+      <tbody>
+        {% for item in capability.outputs %}
+        <tr><td><code>{{ item.name }}</code></td><td>{{ item.type }}</td><td>{{ item.domain }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h3>Effects</h3>
+    <table class="grid">
+      <thead><tr><th>Variable</th><th>Operator</th><th>Value</th></tr></thead>
+      <tbody>
+        {% for effect in capability.effects %}
+        <tr><td><code>{{ effect.variable }}</code></td><td>{{ effect.op }}</td><td>{{ effect.value }}</td></tr>
+        {% else %}
+        <tr><td colspan="3">No state effects.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+  {% endfor %}
+</section>
+{% endblock %}

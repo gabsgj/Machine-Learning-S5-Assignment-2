@@ -1,0 +1,498 @@
+DESIGN OF A VECTOR EMBEDDING FOR CAPABILITY COMPOSITION
+
+Project Title: Capability Embedding for Capability Composition
+Student: Aakash P D
+University Register number: TCR24CS001
+Implementation Language: C++
+
+This project presents the design and implementation of a problem-specific vector embedding framework for representing, comparing, and composing formally specified application capabilities.Unlike conventional word embeddings that represent semantic relationships between words, this project focuses on functional relationships between capabilities. A capability is represented using structured information such as its type, inputs, outputs, preconditions, effects, resources, cost, reliability, availability, and risk.
+The proposed system converts application states, goals, and capabilities into fixed-dimensional numerical vectors. Similarity between vectors is calculated using a normalized dot product, while explicit precondition-effect relationships are used to determine capability compatibility. Compatible capabilities can then be combined to form composite capabilities.
+The implementation is evaluated using three application examples: Story Orchestrator, Arithmetic State Transition, and E-Commerce Capability Composition. Additional experiments investigate capability compatibility, capability composition, alternative implementations, irrelevant capabilities, and operational attributes.
+The results demonstrate how vector representations can be used as a foundation for analysing functional relationships between capabilities while maintaining explicit symbolic compatibility rules.
+
+1. Problem Definition
+
+Modern software applications consist of multiple reusable operations, services, and functions. These operations may have different implementations while performing related tasks.
+For example, an e-commerce application may contain capabilities such as CreateOrder, MakePayment, CancelCart, and SendNotification. Each capability has specific inputs, outputs, preconditions, effects, resources, and operational characteristics.
+The objective of this project is to design a vector representation for such formally specified capabilities.
+The assignment defines a capability as:
+
+Cᵢ = (Tᵢ, Iᵢ, Oᵢ, Pᵢ, Eᵢ, Kᵢ, Rᵢ, Qᵢ, Relᵢ, Aᵢ, Mᵢ)
+
+where:
+
+Tᵢ = capability type
+Iᵢ = input specifications
+Oᵢ = output specifications
+Pᵢ = preconditions
+Eᵢ = effects
+Kᵢ = capability-specific constraints
+Rᵢ = resource requirements
+Qᵢ = cost and quality attributes
+Relᵢ = reliability
+Aᵢ = availability
+Mᵢ = execution mechanism
+
+The central problem is to determine whether these structured capabilities can be represented in a vector space while preserving relationships required for compatibility, similarity, and composition.
+The primary research question is:
+“How can formally specified states, goals, and executable capabilities be represented in a vector space such that the representation preserves the relationships required for capability compatibility, composition, and the construction of complex application functionality?”
+
+
+2. Design Requirements
+The proposed embedding system should satisfy the following requirements.
+
+2.1 Capability Identity
+Different capabilities should produce distinguishable representations.
+For example, CreateOrder, MakePayment, and CancelCart should not be represented identically.
+
+2.2 State Awareness
+The representation should capture the relationship between capabilities and the states on which they operate.
+
+2.3 Precondition-Effect Compatibility
+The system should represent relationships where the effects of one capability satisfy the preconditions of another capability.
+
+If:
+Eᵢ satisfies Pⱼ
+then:
+Cᵢ → Cⱼ
+may be a valid composition.
+
+2.4 Input-Output Compatibility
+The representation should allow relationships between outputs produced by one capability and inputs required by another capability to be investigated.
+
+2.5 Similarity and Composability
+Similarity and composability are different concepts.
+Two capabilities can be functionally similar but may not be composable because their preconditions and effects are incompatible.
+Therefore, vector similarity should support capability analysis but should not replace explicit compatibility checking.
+
+2.6 Capability Composition
+The system should support the representation of composite capabilities such as:
+C₁₂ = C₂ ◦ C₁
+and potentially longer compositions.
+
+2.7 Goal Relevance
+The system should allow the relationship between capabilities and application goals to be investigated.
+
+2.8 Operational Properties
+The representation should consider operational properties such as:
+Cost
+Reliability
+Availability
+Risk
+Resource requirements
+
+
+
+3. Related Embedding Approaches
+
+Traditional word embedding techniques such as Word2Vec represent words using numerical vectors. Words with similar meanings or usage patterns are positioned close to each other in the vector space.
+The objective of this project is different.
+Instead of representing:
+Word → Semantic Vector
+the project investigates:
+Capability → Functional Vector
+
+A capability embedding must represent structured functional information such as:
+Inputs
+Outputs
+Preconditions
+Effects
+Resources
+Constraints
+Operational attributes
+
+A generic language embedding alone is therefore not sufficient for capability composition because capability composition depends on explicit functional relationships.
+The proposed approach is a problem-specific structured embedding designed specifically for capability representation and composition.
+
+4. Proposed Representation
+
+The proposed system represents states, goals, and capabilities using fixed-dimensional numerical vectors.
+For a capability C, the embedding function is represented as:
+
+φC : C → Rᵈ
+
+where d represents the embedding dimension.
+The capability vector contains information derived from:
+Inputs
+Outputs
+Preconditions
+Effects
+Cost
+Reliability
+Availability
+Risk
+
+The resulting vector is normalized before similarity calculations.
+The approach is deterministic, meaning the same structured capability produces the same vector representation when encoded using the same configuration.
+The representation is designed to provide an interpretable and reproducible starting point rather than a learned neural representation.
+
+5. Mathematical Formulation
+5.1 State Representation
+A state is represented as:
+
+S = {(x₁,v₁), (x₂,v₂), ..., (xₙ,vₙ)}
+
+where xᵢ represents a state variable and vᵢ represents its current value.
+
+The state encoding function is:
+
+φS : S → Rᵈ
+
+The state values are mapped into a fixed-dimensional vector and normalized.
+
+5.2 Goal Representation
+
+A goal is represented as:
+
+G = {g₁,g₂,...,gₘ}
+
+The goal encoding function is:
+
+φG : G → Rᵈ
+
+The goal vector represents the desired conditions of the application.
+
+5.3 Capability Representation
+
+A capability is represented as:
+
+C = (T,I,O,P,E,K,R,Q,Rel,A,M)
+
+The capability encoding function is:
+
+φC : C → Rᵈ
+
+The vector contains numerical representations of the relevant capability properties.
+
+5.4 Vector Normalization
+
+For a vector:
+
+v = [v₁,v₂,...,vᵈ]
+
+its magnitude is:
+
+||v|| = √(Σvᵢ²)
+
+The normalized vector is:
+
+v̂ = v / ||v||
+
+Normalization ensures that the magnitude of the vector does not dominate similarity calculations.
+
+5.5 Similarity
+
+Similarity between two normalized vectors is calculated using the dot product:
+
+sim(x,y) = x̂ · ŷ
+
+This is equivalent to cosine similarity for normalized vectors.
+
+A higher value indicates greater alignment between the represented features.
+
+6. Capability Compatibility
+
+Capability compatibility is determined using preconditions and effects.
+
+Consider two capabilities:
+
+C₁ : S₀ → S₁
+
+C₂ : S₁ → S₂
+
+If the effects of C₁ satisfy the preconditions of C₂, then the two capabilities can be composed.
+
+For example:
+
+CreateOrder
+
+Effect:
+
+OrderExists = true
+
+MakePayment
+
+Precondition:
+
+OrderExists = true
+
+Therefore:
+
+CreateOrder → MakePayment
+
+is compatible.
+
+However:
+
+CancelCart
+
+Precondition:
+
+OrderExists = false
+
+The effect of CreateOrder does not satisfy this condition.
+
+Therefore:
+
+CreateOrder → CancelCart
+
+is incompatible.
+
+This demonstrates that similarity and compatibility are different concepts.
+
+Similarity is a vector-space measurement, while compatibility is based on formal functional relationships.
+
+
+
+
+7. Capability Composition Model
+
+If:
+
+C₁ : S₀ → S₁
+
+and:
+
+C₂ : S₁ → S₂
+
+then the composite capability is:
+
+C₁₂ = C₂ ◦ C₁
+
+with:
+
+C₁₂ : S₀ → S₂
+
+The composite capability combines the relevant properties of the component capabilities.
+
+For example:
+
+CompletePurchase = MakePayment ◦ CreateOrder
+
+CreateOrder produces:
+
+OrderExists = true
+
+which satisfies the precondition of MakePayment.
+
+Therefore, the two capabilities form a valid composition.
+
+Operational attributes are combined using the following rules.
+
+Cost
+
+Cost(C₁₂) = Cost(C₁) + Cost(C₂)
+
+Reliability
+
+Reliability(C₁₂) = Reliability(C₁) × Reliability(C₂)
+
+Availability
+
+Availability(C₁₂) = Availability(C₁) × Availability(C₂)
+
+Risk
+
+Risk(C₁₂) = Risk(C₁) + Risk(C₂)
+
+The resulting composite capability can then be encoded into a vector.
+
+8. Implementation
+
+The proposed system is implemented in C++.
+
+The project is organized into separate header and source files.
+
+8.1 State
+
+State.h represents application state variables using key-value pairs.
+
+8.2 Goal
+
+Goal.h represents desired target conditions.
+
+8.3 Capability
+
+Capability.h stores capability information including:
+
+Capability ID
+Capability type
+Inputs
+Outputs
+Preconditions
+Effects
+Resources
+Cost
+Reliability
+Availability
+Risk
+8.4 Embedding
+
+Embedding.h stores the numerical vector representation.
+
+8.5 Embedding System
+
+EmbeddingSystem.h and EmbeddingSystem.cpp implement the major operations:
+
+encode(state)
+encode(goal)
+encode(capability)
+similarity()
+isCompatible()
+compose()
+composeEmbeddings()
+8.6 Main Program
+
+main.cpp contains the experimental scenarios and prints the results.
+
+9. Experimental Methodology
+
+The system was evaluated using three application examples and five experimental categories.
+
+The three main examples are:
+
+Story Orchestrator
+Arithmetic State Transition
+E-Commerce Capability Composition
+
+The five experiments are:
+
+Capability Compatibility
+Capability Composition
+Alternative Implementations
+Irrelevant Capabilities
+Operational Attributes
+10. Application Examples
+10.1 Story Orchestrator
+
+The first example demonstrates capability composition in a story-generation scenario.
+
+The capabilities are:
+
+CreateCharacter
+
+and:
+
+CreateScene
+
+CreateCharacter produces the effect:
+
+CharacterExists = true
+
+CreateScene requires:
+
+CharacterExists = true
+
+Therefore:
+
+CreateCharacter → CreateScene
+
+is compatible.
+
+The two capabilities are then composed into a composite story capability and represented using the embedding system.
+
+10.2 Arithmetic State Transition
+
+The second example demonstrates state transformation using arithmetic capabilities.
+
+Initial state:
+
+x = 5
+
+The first capability is:
+
+Add3
+
+which produces:
+
+x = 8
+
+The second capability is:
+
+Multiply2
+
+which produces:
+
+x = 16
+
+Therefore:
+
+Add3 → Multiply2
+
+transforms:
+
+x = 5 → x = 8 → x = 16
+
+The initial state and goal state are also encoded and compared using the embedding system.
+
+10.3 E-Commerce Capability Composition
+
+The third example models an e-commerce workflow.
+
+The main capabilities are:
+
+CreateOrder
+MakePayment
+CancelCart
+
+CreateOrder produces:
+
+OrderExists = true
+
+MakePayment requires:
+
+OrderExists = true
+
+Therefore:
+
+CreateOrder → MakePayment
+
+is compatible.
+
+CancelCart requires:
+
+OrderExists = false
+
+Therefore:
+
+CreateOrder → CancelCart
+
+is incompatible.
+
+The compatible capabilities are composed into:
+
+CompletePurchase = MakePayment ◦ CreateOrder
+
+
+
+
+This project presented a problem-specific vector embedding framework for formally specified application capabilities.
+
+The system represents application states, goals, and capabilities using fixed-dimensional numerical vectors and provides operations for encoding, similarity measurement, compatibility checking, and capability composition.
+
+Three application examples were implemented:
+
+Story Orchestrator
+Arithmetic State Transition
+E-Commerce Capability Composition
+
+The e-commerce example demonstrates the central concept of capability composition:
+
+CreateOrder → MakePayment
+
+because the effect of CreateOrder satisfies the precondition of MakePayment.
+
+The two capabilities can therefore be composed into:
+
+CompletePurchase = MakePayment ◦ CreateOrder
+
+The experiments also investigate alternative implementations, irrelevant capabilities, and operational attributes.
+
+The results show that vector representations can provide a useful basis for comparing and composing capabilities, but vector similarity alone is not sufficient to establish functional compatibility. Explicit precondition-effect reasoning remains important for reliable capability composition.
+
+Overall, the project demonstrates a foundation for representing formally specified application functionality in a vector space and provides a starting point for future systems combining vector embeddings, symbolic reasoning, and automated capability composition.
+
+References
+PCCST503 Assignment 2 – Design of a Vector Embedding for Capability Composition.
+Mikolov et al., Distributed Representations of Words and Phrases and their Compositionality.
+Course materials on formal state representation, capability composition, vector representation, and functional relationships.

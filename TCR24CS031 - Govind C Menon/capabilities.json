@@ -1,0 +1,1359 @@
+{
+  "name": "ECommerceOrderProcessingApp",
+  "state_space_schema": {
+    "User.authenticated": {
+      "type": "bool",
+      "default": true
+    },
+    "User.role": {
+      "type": "enum",
+      "values": [
+        "GUEST",
+        "CUSTOMER",
+        "ADMIN"
+      ],
+      "default": "CUSTOMER"
+    },
+    "Cart.exists": {
+      "type": "bool",
+      "default": true
+    },
+    "Cart.item_count": {
+      "type": "int",
+      "default": 3
+    },
+    "Cart.locked": {
+      "type": "bool",
+      "default": false
+    },
+    "Order.exists": {
+      "type": "bool",
+      "default": false
+    },
+    "Order.status": {
+      "type": "enum",
+      "values": [
+        "NONE",
+        "CREATED",
+        "PAID",
+        "FULFILLED",
+        "CANCELLED"
+      ],
+      "default": "NONE"
+    },
+    "Payment.status": {
+      "type": "enum",
+      "values": [
+        "NOT_STARTED",
+        "PENDING",
+        "SUCCESS",
+        "FAILED"
+      ],
+      "default": "NOT_STARTED"
+    },
+    "Inventory.available": {
+      "type": "bool",
+      "default": true
+    },
+    "Invoice.generated": {
+      "type": "bool",
+      "default": false
+    },
+    "Notification.sent": {
+      "type": "bool",
+      "default": false
+    },
+    "Profile.updated": {
+      "type": "bool",
+      "default": false
+    },
+    "Report.generated": {
+      "type": "bool",
+      "default": false
+    },
+    "Music.playing": {
+      "type": "bool",
+      "default": false
+    }
+  },
+  "capabilities": {
+    "CreateOrder": {
+      "name": "CreateOrder",
+      "capability_type": "FUNCTION",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Cart.item_count",
+          "operator": ">",
+          "value": 0
+        },
+        {
+          "variable": "Cart.locked",
+          "operator": "==",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "value": true,
+          "operation": "SET"
+        },
+        {
+          "variable": "Order.status",
+          "value": "CREATED",
+          "operation": "SET"
+        },
+        {
+          "variable": "Cart.locked",
+          "value": true,
+          "operation": "SET"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "cart_has_items",
+          "expression": "Cart.item_count > 0",
+          "constraint_type": "input"
+        }
+      ],
+      "resources": [
+        {
+          "name": "Database",
+          "resource_type": "system",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.01,
+        "execution_time_ms": 80.0,
+        "resource_cost": 2.0,
+        "risk": 0.05,
+        "energy_cost": 0.01
+      },
+      "reliability": 0.99,
+      "availability": 1.0,
+      "mechanism": {
+        "mechanism_type": "FUNCTION_CALL",
+        "endpoint_or_target": "create_order_function",
+        "protocol_or_action": "EXECUTE",
+        "details": {}
+      },
+      "description": "Creates an order from an active unlocked cart with items.",
+      "is_composite": false
+    },
+    "MakePayment": {
+      "name": "MakePayment",
+      "capability_type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "payment_details",
+          "data_type": "dict",
+          "domain": "payment payload",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_receipt",
+          "data_type": "string",
+          "domain": "receipt token"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        },
+        {
+          "variable": "Payment.status",
+          "operator": "==",
+          "value": "NOT_STARTED"
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Payment.status",
+          "value": "SUCCESS",
+          "operation": "SET"
+        },
+        {
+          "variable": "Order.status",
+          "value": "PAID",
+          "operation": "SET"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "transaction_limit",
+          "expression": "payment_amount <= transaction_limit",
+          "constraint_type": "domain"
+        }
+      ],
+      "resources": [
+        {
+          "name": "PaymentGateway",
+          "resource_type": "service",
+          "quantity": 1.0
+        },
+        {
+          "name": "Network",
+          "resource_type": "network",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.1,
+        "execution_time_ms": 250.0,
+        "resource_cost": 4.0,
+        "risk": 0.1,
+        "energy_cost": 0.02
+      },
+      "reliability": 0.97,
+      "availability": 0.99,
+      "mechanism": {
+        "mechanism_type": "REST_API",
+        "endpoint_or_target": "/api/v1/payments",
+        "protocol_or_action": "POST",
+        "details": {}
+      },
+      "description": "Processes payment for a created order via payment gateway.",
+      "is_composite": false
+    },
+    "SendNotification": {
+      "name": "SendNotification",
+      "capability_type": "MESSAGE",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "notification_payload",
+          "data_type": "string",
+          "domain": "text",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "notification_receipt",
+          "data_type": "string",
+          "domain": "delivery id"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Payment.status",
+          "operator": "==",
+          "value": "SUCCESS"
+        },
+        {
+          "variable": "Notification.sent",
+          "operator": "==",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Notification.sent",
+          "value": true,
+          "operation": "SET"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "valid_recipient",
+          "expression": "user.role in {CUSTOMER, ADMIN}",
+          "constraint_type": "security"
+        }
+      ],
+      "resources": [
+        {
+          "name": "EmailService",
+          "resource_type": "service",
+          "quantity": 1.0
+        },
+        {
+          "name": "Network",
+          "resource_type": "network",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.005,
+        "execution_time_ms": 40.0,
+        "resource_cost": 1.0,
+        "risk": 0.01,
+        "energy_cost": 0.005
+      },
+      "reliability": 0.995,
+      "availability": 1.0,
+      "mechanism": {
+        "mechanism_type": "MESSAGE_QUEUE",
+        "endpoint_or_target": "notifications.topic",
+        "protocol_or_action": "PUBLISH",
+        "details": {}
+      },
+      "description": "Dispatches email / SMS confirmation once payment is successful.",
+      "is_composite": false
+    },
+    "CancelCart": {
+      "name": "CancelCart",
+      "capability_type": "FUNCTION",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cart_status",
+          "data_type": "string",
+          "domain": "CANCELLED"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "operator": "==",
+          "value": false
+        },
+        {
+          "variable": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Cart.locked",
+          "operator": "==",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Cart.exists",
+          "value": false,
+          "operation": "SET"
+        },
+        {
+          "variable": "Cart.item_count",
+          "value": 0,
+          "operation": "SET"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "Database",
+          "resource_type": "system",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.0,
+        "execution_time_ms": 20.0,
+        "resource_cost": 1.0,
+        "risk": 0.01,
+        "energy_cost": 0.002
+      },
+      "reliability": 0.999,
+      "availability": 1.0,
+      "mechanism": {
+        "mechanism_type": "FUNCTION_CALL",
+        "endpoint_or_target": "cancel_cart_function",
+        "protocol_or_action": "EXECUTE",
+        "details": {}
+      },
+      "description": "Cancels the active shopping cart (only permitted if no order exists).",
+      "is_composite": false
+    },
+    "CheckInventory": {
+      "name": "CheckInventory",
+      "capability_type": "SERVICE",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "inventory_status",
+          "data_type": "string",
+          "domain": "AVAILABLE"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Inventory.available",
+          "value": true,
+          "operation": "SET"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "Database",
+          "resource_type": "system",
+          "quantity": 1.0
+        },
+        {
+          "name": "Network",
+          "resource_type": "network",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.002,
+        "execution_time_ms": 30.0,
+        "resource_cost": 1.5,
+        "risk": 0.02,
+        "energy_cost": 0.005
+      },
+      "reliability": 0.99,
+      "availability": 1.0,
+      "mechanism": {
+        "mechanism_type": "MICROSERVICE",
+        "endpoint_or_target": "/inventory/check",
+        "protocol_or_action": "GET",
+        "details": {}
+      },
+      "description": "Verifies stock availability for cart items.",
+      "is_composite": false
+    },
+    "GenerateInvoice": {
+      "name": "GenerateInvoice",
+      "capability_type": "FILE",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "payment_receipt",
+          "data_type": "string",
+          "domain": "receipt token",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "invoice_pdf",
+          "data_type": "binary",
+          "domain": "PDF stream"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Payment.status",
+          "operator": "==",
+          "value": "SUCCESS"
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Invoice.generated",
+          "value": true,
+          "operation": "SET"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "FileSystem",
+          "resource_type": "hardware",
+          "quantity": 1.0
+        },
+        {
+          "name": "Database",
+          "resource_type": "system",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.02,
+        "execution_time_ms": 120.0,
+        "resource_cost": 3.0,
+        "risk": 0.03,
+        "energy_cost": 0.015
+      },
+      "reliability": 0.98,
+      "availability": 0.99,
+      "mechanism": {
+        "mechanism_type": "FILE_IO",
+        "endpoint_or_target": "/storage/invoices",
+        "protocol_or_action": "WRITE",
+        "details": {}
+      },
+      "description": "Renders and stores a tax invoice for a paid order.",
+      "is_composite": false
+    },
+    "UpdateProfile": {
+      "name": "UpdateProfile",
+      "capability_type": "GUI",
+      "inputs": [
+        {
+          "name": "user_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "user_profile",
+          "data_type": "dict",
+          "domain": "profile payload",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "profile_data",
+          "data_type": "dict",
+          "domain": "updated profile"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "User.authenticated",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Profile.updated",
+          "value": true,
+          "operation": "SET"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "Database",
+          "resource_type": "system",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.0,
+        "execution_time_ms": 50.0,
+        "resource_cost": 1.0,
+        "risk": 0.01,
+        "energy_cost": 0.005
+      },
+      "reliability": 0.99,
+      "availability": 1.0,
+      "mechanism": {
+        "mechanism_type": "UI_COMPONENT",
+        "endpoint_or_target": "profile_form",
+        "protocol_or_action": "SUBMIT",
+        "details": {}
+      },
+      "description": "Updates user preferences, address, and profile data.",
+      "is_composite": false
+    },
+    "GenerateReport": {
+      "name": "GenerateReport",
+      "capability_type": "COMPUTATION",
+      "inputs": [
+        {
+          "name": "report_type",
+          "data_type": "string",
+          "domain": "financial/sales",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report_file",
+          "data_type": "binary",
+          "domain": "XLSX/PDF"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "User.authenticated",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "User.role",
+          "operator": "==",
+          "value": "ADMIN"
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Report.generated",
+          "value": true,
+          "operation": "SET"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "GPU",
+          "resource_type": "hardware",
+          "quantity": 1.0
+        },
+        {
+          "name": "Database",
+          "resource_type": "system",
+          "quantity": 2.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.5,
+        "execution_time_ms": 1500.0,
+        "resource_cost": 8.0,
+        "risk": 0.15,
+        "energy_cost": 0.2
+      },
+      "reliability": 0.94,
+      "availability": 0.95,
+      "mechanism": {
+        "mechanism_type": "BATCH_JOB",
+        "endpoint_or_target": "analytics_worker",
+        "protocol_or_action": "COMPUTE",
+        "details": {}
+      },
+      "description": "Runs heavy analytical aggregation queries for executive reports.",
+      "is_composite": false
+    },
+    "PlayMusic": {
+      "name": "PlayMusic",
+      "capability_type": "SERVICE",
+      "inputs": [
+        {
+          "name": "track_id",
+          "data_type": "string",
+          "domain": "media id",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio_stream",
+          "data_type": "stream",
+          "domain": "audio buffer"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "User.authenticated",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Music.playing",
+          "value": true,
+          "operation": "SET"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "Network",
+          "resource_type": "network",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.0,
+        "execution_time_ms": 15.0,
+        "resource_cost": 0.5,
+        "risk": 0.0,
+        "energy_cost": 0.001
+      },
+      "reliability": 0.999,
+      "availability": 1.0,
+      "mechanism": {
+        "mechanism_type": "AUDIO_STREAM",
+        "endpoint_or_target": "media_player",
+        "protocol_or_action": "PLAY",
+        "details": {}
+      },
+      "description": "Plays background ambient audio stream in web client.",
+      "is_composite": false
+    },
+    "CreateOrderAPI": {
+      "name": "CreateOrderAPI",
+      "capability_type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Cart.item_count",
+          "operator": ">",
+          "value": 0
+        },
+        {
+          "variable": "Cart.locked",
+          "operator": "==",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "value": true,
+          "operation": "SET"
+        },
+        {
+          "variable": "Order.status",
+          "value": "CREATED",
+          "operation": "SET"
+        },
+        {
+          "variable": "Cart.locked",
+          "value": true,
+          "operation": "SET"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "rate_limit",
+          "expression": "requests_per_sec <= 100",
+          "constraint_type": "network"
+        }
+      ],
+      "resources": [
+        {
+          "name": "Network",
+          "resource_type": "network",
+          "quantity": 1.0
+        },
+        {
+          "name": "Database",
+          "resource_type": "system",
+          "quantity": 1.0
+        },
+        {
+          "name": "AuthToken",
+          "resource_type": "security",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.03,
+        "execution_time_ms": 120.0,
+        "resource_cost": 2.5,
+        "risk": 0.08,
+        "energy_cost": 0.015
+      },
+      "reliability": 0.98,
+      "availability": 0.99,
+      "mechanism": {
+        "mechanism_type": "REST_API",
+        "endpoint_or_target": "/api/orders/create",
+        "protocol_or_action": "POST",
+        "details": {}
+      },
+      "description": "Creates order via external REST API service.",
+      "is_composite": false
+    },
+    "CreateOrderDatabase": {
+      "name": "CreateOrderDatabase",
+      "capability_type": "DATABASE",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Cart.item_count",
+          "operator": ">",
+          "value": 0
+        },
+        {
+          "variable": "Cart.locked",
+          "operator": "==",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "value": true,
+          "operation": "SET"
+        },
+        {
+          "variable": "Order.status",
+          "value": "CREATED",
+          "operation": "SET"
+        },
+        {
+          "variable": "Cart.locked",
+          "value": true,
+          "operation": "SET"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "db_connection_pool",
+          "expression": "active_conns < max_conns",
+          "constraint_type": "resource"
+        }
+      ],
+      "resources": [
+        {
+          "name": "Database",
+          "resource_type": "system",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.005,
+        "execution_time_ms": 35.0,
+        "resource_cost": 1.5,
+        "risk": 0.02,
+        "energy_cost": 0.005
+      },
+      "reliability": 0.995,
+      "availability": 1.0,
+      "mechanism": {
+        "mechanism_type": "DATABASE_INSERT",
+        "endpoint_or_target": "orders_table",
+        "protocol_or_action": "INSERT",
+        "details": {}
+      },
+      "description": "Creates order via direct atomic database stored transaction.",
+      "is_composite": false
+    },
+    "CreateOrderGUI": {
+      "name": "CreateOrderGUI",
+      "capability_type": "GUI",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Cart.item_count",
+          "operator": ">",
+          "value": 0
+        },
+        {
+          "variable": "Cart.locked",
+          "operator": "==",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "value": true,
+          "operation": "SET"
+        },
+        {
+          "variable": "Order.status",
+          "value": "CREATED",
+          "operation": "SET"
+        },
+        {
+          "variable": "Cart.locked",
+          "value": true,
+          "operation": "SET"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "FileSystem",
+          "resource_type": "hardware",
+          "quantity": 0.5
+        },
+        {
+          "name": "Network",
+          "resource_type": "network",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.0,
+        "execution_time_ms": 250.0,
+        "resource_cost": 3.0,
+        "risk": 0.1,
+        "energy_cost": 0.02
+      },
+      "reliability": 0.96,
+      "availability": 0.98,
+      "mechanism": {
+        "mechanism_type": "GUI_INTERACTION",
+        "endpoint_or_target": "checkout_submit_btn",
+        "protocol_or_action": "CLICK",
+        "details": {}
+      },
+      "description": "Creates order via browser UI form submission click.",
+      "is_composite": false
+    },
+    "MakePayment_HighCost_LowRel": {
+      "name": "MakePayment_HighCost_LowRel",
+      "capability_type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "payment_details",
+          "data_type": "dict",
+          "domain": "payment payload",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_receipt",
+          "data_type": "string",
+          "domain": "receipt token"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        },
+        {
+          "variable": "Payment.status",
+          "operator": "==",
+          "value": "NOT_STARTED"
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Payment.status",
+          "value": "SUCCESS",
+          "operation": "SET"
+        },
+        {
+          "variable": "Order.status",
+          "value": "PAID",
+          "operation": "SET"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "transaction_limit",
+          "expression": "payment_amount <= transaction_limit",
+          "constraint_type": "domain"
+        }
+      ],
+      "resources": [
+        {
+          "name": "PaymentGateway",
+          "resource_type": "service",
+          "quantity": 1.0
+        },
+        {
+          "name": "Network",
+          "resource_type": "network",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.5,
+        "execution_time_ms": 500.0,
+        "resource_cost": 6.0,
+        "risk": 0.3,
+        "energy_cost": 0.05
+      },
+      "reliability": 0.8,
+      "availability": 1.0,
+      "mechanism": {
+        "mechanism_type": "REST_API",
+        "endpoint_or_target": "/api/v1/payments",
+        "protocol_or_action": "POST",
+        "details": {}
+      },
+      "description": "Payment capability variant with high monetary cost ($0.50) and reduced reliability (0.80).",
+      "is_composite": false
+    },
+    "MakePayment_Economy": {
+      "name": "MakePayment_Economy",
+      "capability_type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "payment_details",
+          "data_type": "dict",
+          "domain": "payment payload",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_receipt",
+          "data_type": "string",
+          "domain": "receipt token"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        },
+        {
+          "variable": "Payment.status",
+          "operator": "==",
+          "value": "NOT_STARTED"
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Payment.status",
+          "value": "SUCCESS",
+          "operation": "SET"
+        },
+        {
+          "variable": "Order.status",
+          "value": "PAID",
+          "operation": "SET"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "transaction_limit",
+          "expression": "payment_amount <= transaction_limit",
+          "constraint_type": "domain"
+        }
+      ],
+      "resources": [
+        {
+          "name": "PaymentGateway",
+          "resource_type": "service",
+          "quantity": 1.0
+        },
+        {
+          "name": "Network",
+          "resource_type": "network",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.01,
+        "execution_time_ms": 300.0,
+        "resource_cost": 2.0,
+        "risk": 0.15,
+        "energy_cost": 0.01
+      },
+      "reliability": 0.92,
+      "availability": 0.95,
+      "mechanism": {
+        "mechanism_type": "REST_API",
+        "endpoint_or_target": "/api/v1/payments",
+        "protocol_or_action": "POST",
+        "details": {}
+      },
+      "description": "Budget payment gateway with lowest cost but modest reliability.",
+      "is_composite": false
+    },
+    "MakePayment_Enterprise": {
+      "name": "MakePayment_Enterprise",
+      "capability_type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "payment_details",
+          "data_type": "dict",
+          "domain": "payment payload",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_receipt",
+          "data_type": "string",
+          "domain": "receipt token"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        },
+        {
+          "variable": "Payment.status",
+          "operator": "==",
+          "value": "NOT_STARTED"
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Payment.status",
+          "value": "SUCCESS",
+          "operation": "SET"
+        },
+        {
+          "variable": "Order.status",
+          "value": "PAID",
+          "operation": "SET"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "transaction_limit",
+          "expression": "payment_amount <= transaction_limit",
+          "constraint_type": "domain"
+        }
+      ],
+      "resources": [
+        {
+          "name": "PaymentGateway",
+          "resource_type": "service",
+          "quantity": 1.0
+        },
+        {
+          "name": "Network",
+          "resource_type": "network",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "monetary_cost": 0.15,
+        "execution_time_ms": 100.0,
+        "resource_cost": 5.0,
+        "risk": 0.02,
+        "energy_cost": 0.03
+      },
+      "reliability": 0.999,
+      "availability": 1.0,
+      "mechanism": {
+        "mechanism_type": "REST_API",
+        "endpoint_or_target": "/api/v1/payments",
+        "protocol_or_action": "POST",
+        "details": {}
+      },
+      "description": "Enterprise multi-region payment gateway with ultra-high reliability and low latency.",
+      "is_composite": false
+    }
+  },
+  "initial_state": {
+    "name": "SI_InitialOrderState",
+    "variables": {
+      "User.authenticated": true,
+      "User.role": "CUSTOMER",
+      "Cart.exists": true,
+      "Cart.item_count": 3,
+      "Cart.locked": false,
+      "Order.exists": false,
+      "Order.status": "NONE",
+      "Payment.status": "NOT_STARTED",
+      "Inventory.available": true,
+      "Invoice.generated": false,
+      "Notification.sent": false,
+      "Profile.updated": false,
+      "Report.generated": false,
+      "Music.playing": false
+    }
+  },
+  "goal": {
+    "name": "PurchaseAndNotifyGoal",
+    "conditions": [
+      {
+        "variable": "Order.exists",
+        "operator": "==",
+        "value": true
+      },
+      {
+        "variable": "Payment.status",
+        "operator": "==",
+        "value": "SUCCESS"
+      },
+      {
+        "variable": "Notification.sent",
+        "operator": "==",
+        "value": true
+      }
+    ]
+  },
+  "available_resources": [
+    {
+      "name": "Database",
+      "resource_type": "system",
+      "quantity": 10.0
+    },
+    {
+      "name": "PaymentGateway",
+      "resource_type": "service",
+      "quantity": 5.0
+    },
+    {
+      "name": "Network",
+      "resource_type": "network",
+      "quantity": 100.0
+    },
+    {
+      "name": "EmailService",
+      "resource_type": "service",
+      "quantity": 20.0
+    },
+    {
+      "name": "FileSystem",
+      "resource_type": "hardware",
+      "quantity": 50.0
+    },
+    {
+      "name": "GPU",
+      "resource_type": "hardware",
+      "quantity": 2.0
+    },
+    {
+      "name": "AuthToken",
+      "resource_type": "security",
+      "quantity": 1.0
+    }
+  ],
+  "global_constraints": [
+    {
+      "name": "authenticated_user",
+      "expression": "User.authenticated == True",
+      "constraint_type": "security"
+    },
+    {
+      "name": "valid_inventory",
+      "expression": "Inventory.available == True",
+      "constraint_type": "state"
+    },
+    {
+      "name": "cart_non_empty",
+      "expression": "Cart.item_count > 0",
+      "constraint_type": "input"
+    }
+  ]
+}

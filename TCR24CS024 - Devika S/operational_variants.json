@@ -1,0 +1,47 @@
+[
+  {
+    "variant": "baseline",
+    "timeMs": 70,
+    "money": 0.01,
+    "resource": 2,
+    "risk": 0.01,
+    "reliability": 0.997,
+    "availability": 1.0
+  },
+  {
+    "variant": "higher_cost",
+    "timeMs": 70,
+    "money": 0.04,
+    "resource": 2,
+    "risk": 0.01,
+    "reliability": 0.997,
+    "availability": 1.0
+  },
+  {
+    "variant": "lower_reliability",
+    "timeMs": 70,
+    "money": 0.01,
+    "resource": 2,
+    "risk": 0.01,
+    "reliability": 0.8,
+    "availability": 1.0
+  },
+  {
+    "variant": "unavailable",
+    "timeMs": 70,
+    "money": 0.01,
+    "resource": 2,
+    "risk": 0.01,
+    "reliability": 0.997,
+    "availability": 0.0
+  },
+  {
+    "variant": "higher_risk",
+    "timeMs": 70,
+    "money": 0.01,
+    "resource": 2,
+    "risk": 0.5,
+    "reliability": 0.997,
+    "availability": 1.0
+  }
+]

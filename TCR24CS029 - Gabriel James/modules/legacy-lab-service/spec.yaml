@@ -1,0 +1,350 @@
+# Formal capability specification sheet, YAML rendering.
+# Generated from spec.json by the careweave_cli spec-yaml command; the two files are
+# always equivalent, and the round trip is proved by the command and by the test suite.
+capabilities:
+  - availability: true
+    constraints: []
+    description: "Order a laboratory test for a patient with the legacy vocabulary patient_mrn, test_code, urgency_level."
+    effects:
+      - op: SET
+        value: true
+        variable: Lab.ordered
+    id: LAB-OrderTest
+    inputs:
+      - domain: medical record number
+        name: patient_mrn
+        required: true
+        type: string
+      - domain: code in the test catalogue
+        name: test_code
+        required: true
+        type: string
+      - domain:
+          - ROUTINE
+          - URGENT
+          - STAT
+        name: urgency_level
+        required: false
+        type: enumerated
+    mechanism:
+      endpoint: /api/order_test
+      kind: API
+      method: POST
+    name: order_test
+    outputs:
+      - domain: generated lab order identifier
+        name: lab_order_id
+        type: string
+      - domain: code in the test catalogue
+        name: test_code
+        type: string
+      - domain: catalogue test name
+        name: test_name
+        type: string
+      - domain:
+          - ROUTINE
+          - URGENT
+          - STAT
+        name: urgency_level
+        type: enumerated
+      - domain: ISO 8601 timestamp
+        name: ordered_at
+        type: string
+    preconditions: []
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.02
+      time_ms: 120.0
+    reliability: 0.99
+    resources:
+      - lab_db
+    roles:
+      - physician
+      - nurse
+    type: API
+  - availability: true
+    constraints: []
+    description: Accept the physical sample of an ordered test at the laboratory bench.
+    effects:
+      - op: SET
+        value: true
+        variable: Sample.received
+    id: LAB-ReceiveSample
+    inputs:
+      - domain: ordered lab order identifier
+        name: lab_order_id
+        required: true
+        type: string
+      - domain: sample tube label
+        name: sample_label
+        required: false
+        type: string
+    mechanism:
+      endpoint: /api/receive_sample
+      kind: API
+      method: POST
+    name: receive_sample
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: received
+        type: boolean
+      - domain: lab order identifier
+        name: lab_order_id
+        type: string
+      - domain: ISO 8601 timestamp
+        name: received_at
+        type: string
+    preconditions:
+      - op: =
+        value: true
+        variable: Lab.ordered
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.01
+      risk: 0.01
+      time_ms: 70.0
+    reliability: 0.99
+    resources:
+      - lab_db
+    roles:
+      - technician
+    type: API
+  - availability: true
+    constraints: []
+    description: Enter the measured result of an order whose sample has been received.
+    effects:
+      - op: SET
+        value: true
+        variable: Lab.resulted
+    id: LAB-EnterResult
+    inputs:
+      - domain: received lab order identifier
+        name: lab_order_id
+        required: true
+        type: string
+      - domain:
+          - "0.0"
+          - "100000.0"
+        name: result_value
+        required: true
+        type: real
+      - domain: measurement unit
+        name: unit
+        required: false
+        type: string
+    mechanism:
+      endpoint: /api/enter_result
+      kind: API
+      method: POST
+    name: enter_result
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: resulted
+        type: boolean
+      - domain: lab order identifier
+        name: lab_order_id
+        type: string
+      - domain: ISO 8601 timestamp
+        name: resulted_at
+        type: string
+    preconditions:
+      - op: =
+        value: true
+        variable: Sample.received
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.01
+      risk: 0.03
+      time_ms: 90.0
+    reliability: 0.99
+    resources:
+      - lab_db
+    roles:
+      - technician
+    type: API
+  - availability: true
+    constraints: []
+    description: "Read the report line of an order, including its status before the result exists."
+    effects: []
+    id: LAB-GetReport
+    inputs:
+      - domain: lab order identifier
+        name: lab_order_id
+        required: true
+        type: string
+    mechanism:
+      endpoint: /api/get_report
+      kind: API
+      method: POST
+    name: get_report
+    outputs:
+      - domain: human readable report line
+        name: report_text
+        type: string
+      - domain:
+          - ordered
+          - received
+          - resulted
+        name: status
+        type: enumerated
+      - domain:
+          - "false"
+          - "true"
+        name: resulted
+        type: boolean
+      - domain: medical record number
+        name: patient_mrn
+        type: string
+      - domain: code in the test catalogue
+        name: test_code
+        type: string
+      - domain:
+          - ROUTINE
+          - URGENT
+          - STAT
+        name: urgency_level
+        type: enumerated
+    preconditions:
+      - op: =
+        value: true
+        variable: Lab.ordered
+    quality:
+      energy: 0.0005
+      money: 0.0
+      resource: 0.01
+      risk: 0.005
+      time_ms: 40.0
+    reliability: 0.995
+    resources:
+      - lab_db
+    roles:
+      - physician
+      - technician
+    type: API
+  - availability: true
+    constraints: []
+    description: Order entry screen that submits a new laboratory test order.
+    effects:
+      - op: SET
+        value: true
+        variable: Lab.ordered
+    id: LAB-Form
+    inputs:
+      - domain: medical record number
+        name: patient_mrn
+        required: true
+        type: string
+      - domain: code in the test catalogue
+        name: test_code
+        required: true
+        type: string
+      - domain:
+          - ROUTINE
+          - URGENT
+          - STAT
+        name: urgency_level
+        required: false
+        type: enumerated
+    mechanism:
+      action: SUBMIT
+      component: order_form
+      kind: GUI
+      page: /ui/orders/new
+    name: order_test_form
+    outputs:
+      - domain: generated lab order identifier
+        name: lab_order_id
+        type: string
+    preconditions: []
+    quality:
+      energy: 0.002
+      money: 0.0
+      resource: 0.02
+      risk: 0.02
+      time_ms: 240.0
+    reliability: 0.97
+    resources:
+      - lab_db
+    roles:
+      - physician
+      - nurse
+    type: GUI
+
+constraints:
+  - enforced_by: services.lab status checks in receive_sample and enter_result
+    expression: an order is ordered before its sample is received and resulted afterwards
+    id: K-Workflow-Order
+    kind: state
+  - enforced_by: services.lab.order_test catalogue lookup
+    expression: test_code must belong to the installed test catalogue
+    id: K-Test-Code-Catalogue
+    kind: domain
+  - enforced_by: services.validation.optional_enum
+    expression: "urgency_level in [ROUTINE, URGENT, STAT]"
+    id: K-Urgency-Domain
+    kind: input
+
+goal:
+  - op: =
+    value: true
+    variable: Lab.ordered
+  - op: =
+    value: true
+    variable: Sample.received
+  - op: =
+    value: true
+    variable: Lab.resulted
+
+initial_state:
+  Lab.ordered: false
+  Lab.resulted: false
+  Sample.received: false
+
+module:
+  base_url: "http://127.0.0.1:5006"
+  database_file: data/legacy_lab.db
+  description: "Legacy laboratory service: test ordering with the legacy vocabulary patient_mrn, test_code, urgency_level, sample reception, result entry and report reading."
+  domain: hospital
+  health: /health
+  language: python
+  module_id: legacy-lab-service
+  port: 5006
+  ui: /ui/
+  version: 1.0.0
+
+resources:
+  - available: true
+    details: SQLite database in WAL mode owned by this module
+    id: lab_db
+    kind: database
+  - available: true
+    details: Loopback HTTP interface used by the gateway and the dashboard
+    id: network
+    kind: network
+
+spec_version: "1.0"
+
+state_schema:
+  - domain:
+      - "false"
+      - "true"
+    name: Lab.ordered
+    type: boolean
+  - domain:
+      - "false"
+      - "true"
+    name: Sample.received
+    type: boolean
+  - domain:
+      - "false"
+      - "true"
+    name: Lab.resulted
+    type: boolean

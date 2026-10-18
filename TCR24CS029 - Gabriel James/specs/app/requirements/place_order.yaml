@@ -1,0 +1,84 @@
+# Client requirement sheet: place the order of the current cart.
+#
+# Used by the e-commerce problem of the dataset: the requirement must resolve to EC-PlaceOrder
+# of the e-commerce application, whose contract binds every field without renaming.
+spec_version: "1.0"
+
+module:
+  module_id: requirement-place-order
+  version: "1.0"
+  domain: ecommerce
+  port: 5204
+  base_url: "http://127.0.0.1:5204"
+  health: /health
+  description: Client requirement for turning the current cart into an order with a payment method.
+  language: specification
+
+state_schema:
+  - name: Order.exists
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+
+initial_state:
+  Order.exists: false
+
+resources:
+  - id: requirement_db
+    kind: database
+    available: true
+    details: Placeholder resource of the requirement, bound only when a candidate is selected
+
+constraints:
+  - id: K-Required-Inputs
+    kind: input
+    expression: payment_method is mandatory and in CARD, CASH, TRANSFER
+    enforced_by: requirement definition
+
+goal:
+  - variable: Order.exists
+    op: "="
+    value: true
+
+capabilities:
+  - id: REQ-PlaceOrder
+    name: place_order
+    type: API
+    description: Place the order of the current cart with a chosen payment method.
+    inputs:
+      - name: payment_method
+        type: enumerated
+        domain:
+          - CARD
+          - CASH
+          - TRANSFER
+        required: true
+    outputs:
+      - name: order_id
+        type: string
+        domain: generated order identifier
+    preconditions: []
+    effects:
+      - variable: Order.exists
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - requirement_db
+    quality:
+      time_ms: 150
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/orders
+    roles:
+      - customer

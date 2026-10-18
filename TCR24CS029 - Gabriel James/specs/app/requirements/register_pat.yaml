@@ -1,0 +1,86 @@
+# Client requirement sheet: register a patient in the legacy registration vocabulary.
+#
+# A requirement sheet uses the same formal language as an application sheet but declares a single
+# capability: what the client asks for, before any module has been chosen. The alias resolution
+# experiment resolves this requirement against the applications and expects the result Pat_reg.
+spec_version: "1.0"
+
+module:
+  module_id: requirement-register-pat
+  version: "1.0"
+  domain: hospital
+  port: 5201
+  base_url: "http://127.0.0.1:5201"
+  health: /health
+  description: Client requirement for a registration step phrased in the legacy vocabulary pat_no, pat_name, pat_reg.
+  language: specification
+
+state_schema:
+  - name: Patient.registered
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+
+initial_state:
+  Patient.registered: false
+
+resources:
+  - id: requirement_db
+    kind: database
+    available: true
+    details: Placeholder resource of the requirement, bound only when a candidate is selected
+
+constraints:
+  - id: K-Required-Inputs
+    kind: input
+    expression: pat_no and pat_name are mandatory
+    enforced_by: requirement definition
+
+goal:
+  - variable: Patient.registered
+    op: "="
+    value: true
+
+capabilities:
+  - id: REQ-RegisterPat
+    name: register_pat
+    type: API
+    description: Register a patient and return the assigned registration key.
+    inputs:
+      - name: pat_no
+        type: string
+        domain: external patient number
+        required: true
+      - name: pat_name
+        type: string
+        domain: patient name text
+        required: true
+    outputs:
+      - name: pat_reg
+        type: string
+        domain: assigned registration key
+    preconditions: []
+    effects:
+      - variable: Patient.registered
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - requirement_db
+    quality:
+      time_ms: 150
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/register_pat
+    roles:
+      - clerk

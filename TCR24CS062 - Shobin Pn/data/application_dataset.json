@@ -1,0 +1,25 @@
+{
+  "application": "E-commerce order processing",
+  "initial_state": {
+    "authenticated": true,
+    "cart_exists": true,
+    "cart_nonempty": true,
+    "inventory_available": true,
+    "order_exists": false,
+    "payment_success": false,
+    "notification_sent": false,
+    "cart_cancelled": false
+  },
+  "goal": {
+    "order_exists": true,
+    "payment_success": true,
+    "notification_sent": true
+  },
+  "capabilities": [
+    {"name":"CreateOrder","type":"API","inputs":["cart_id"],"outputs":["order_id"],"preconditions":{"authenticated":true,"cart_exists":true,"cart_nonempty":true,"inventory_available":true,"order_exists":false},"effects":{"order_exists":true},"resources":["Database","Authentication Token","Network"],"cost":0.02,"reliability":0.99,"availability":1},
+    {"name":"MakePayment","type":"API","inputs":["order_id","amount"],"outputs":["payment_id"],"preconditions":{"order_exists":true},"effects":{"payment_success":true},"resources":["Payment Gateway","Network"],"cost":0.50,"reliability":0.97,"availability":1},
+    {"name":"CancelCart","type":"FUNCTION","inputs":["cart_id"],"outputs":["message"],"preconditions":{"order_exists":false},"effects":{"cart_cancelled":true},"resources":["Database"],"cost":0.01,"reliability":0.99,"availability":1},
+    {"name":"SendNotification","type":"MESSAGE","inputs":["message"],"outputs":["notification_id"],"preconditions":{"payment_success":true},"effects":{"notification_sent":true},"resources":["Network","External Service"],"cost":0.05,"reliability":0.95,"availability":1},
+    {"name":"ViewProduct","type":"GUI","inputs":["product_id"],"outputs":["product_details"],"preconditions":{"authenticated":true},"effects":{},"resources":["Database","Network"],"cost":0.01,"reliability":0.99,"availability":1}
+  ]
+}

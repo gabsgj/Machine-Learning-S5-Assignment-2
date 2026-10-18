@@ -1,0 +1,1493 @@
+{
+  "schema_version": 1,
+  "problems": [
+    {
+      "name": "commerce",
+      "variables": {
+        "Order": [
+          false,
+          true
+        ],
+        "Payment": [
+          false,
+          true
+        ],
+        "Notification": [
+          false,
+          true
+        ],
+        "Unrelated": [
+          false,
+          true
+        ],
+        "Authenticated": [
+          false,
+          true
+        ],
+        "quantity": [
+          0,
+          1,
+          2
+        ]
+      },
+      "initial_state": {
+        "Order": false,
+        "Payment": false,
+        "Notification": false,
+        "Unrelated": false,
+        "Authenticated": true,
+        "quantity": 1
+      },
+      "goal": [
+        [
+          "Notification",
+          "eq",
+          true
+        ]
+      ],
+      "available_resources": [
+        "Network",
+        "Gateway",
+        "Database",
+        "Browser",
+        "FileSystem"
+      ],
+      "global_constraints": [
+        [
+          "quantity",
+          "le",
+          2
+        ]
+      ],
+      "capabilities": [
+        {
+          "name": "CreateOrder",
+          "type": "API",
+          "mechanism": {
+            "operation": "CreateOrder",
+            "target": "/createorder"
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "order_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [],
+          "effects": {
+            "Order": true
+          },
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "MakePayment",
+          "type": "API",
+          "mechanism": {
+            "operation": "MakePayment",
+            "target": "/makepayment"
+          },
+          "inputs": [
+            {
+              "name": "order_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "payment_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [
+            [
+              "Order",
+              "eq",
+              true
+            ]
+          ],
+          "effects": {
+            "Payment": true
+          },
+          "constraints": [],
+          "resources": [
+            "Network",
+            "Gateway"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.5,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "SendNotification",
+          "type": "API",
+          "mechanism": {
+            "operation": "SendNotification",
+            "target": "/sendnotification"
+          },
+          "inputs": [
+            {
+              "name": "payment_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "notification_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [
+            [
+              "Payment",
+              "eq",
+              true
+            ]
+          ],
+          "effects": {
+            "Notification": true
+          },
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "CancelCart",
+          "type": "API",
+          "mechanism": {
+            "operation": "CancelOrder",
+            "target": "/cancelorder"
+          },
+          "inputs": [
+            {
+              "name": "order_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [],
+          "preconditions": [
+            [
+              "Order",
+              "eq",
+              false
+            ]
+          ],
+          "effects": {
+            "Order": false
+          },
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "CreateOrder_DATABASE",
+          "type": "DATABASE",
+          "mechanism": {
+            "operation": "CreateOrder_DATABASE",
+            "target": "createorder_database"
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "order_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [],
+          "effects": {
+            "Order": true
+          },
+          "constraints": [],
+          "resources": [
+            "Database"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.03,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.97,
+          "available": true
+        },
+        {
+          "name": "CreateOrder_GUI",
+          "type": "GUI",
+          "mechanism": {
+            "operation": "CreateOrder_GUI",
+            "target": "createorder_gui"
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "order_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [],
+          "effects": {
+            "Order": true
+          },
+          "constraints": [],
+          "resources": [
+            "Browser"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.01,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.9,
+          "available": true
+        },
+        {
+          "name": "RotateLog",
+          "type": "FILE",
+          "mechanism": {
+            "operation": "RotateLog",
+            "target": "rotatelog"
+          },
+          "inputs": [],
+          "outputs": [],
+          "preconditions": [],
+          "effects": {
+            "Unrelated": true
+          },
+          "constraints": [],
+          "resources": [
+            "FileSystem"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "WrongInput",
+          "type": "API",
+          "mechanism": {
+            "operation": "WrongInput",
+            "target": "/wronginput"
+          },
+          "inputs": [
+            {
+              "name": "order_id",
+              "type": "INTEGER",
+              "domain": [
+                1,
+                2
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [],
+          "preconditions": [
+            [
+              "Order",
+              "eq",
+              true
+            ]
+          ],
+          "effects": {
+            "Payment": true
+          },
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "ConstrainedOrder",
+          "type": "API",
+          "mechanism": {
+            "operation": "ConstrainedOrder",
+            "target": "/constrainedorder"
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "order_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [],
+          "effects": {
+            "Order": true
+          },
+          "constraints": [
+            [
+              "quantity",
+              "gt",
+              0
+            ],
+            [
+              "Authenticated",
+              "eq",
+              true
+            ]
+          ],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        }
+      ],
+      "compositions": [
+        [
+          "CreateOrder",
+          "MakePayment",
+          "SendNotification"
+        ]
+      ]
+    },
+    {
+      "name": "document",
+      "variables": {
+        "Document": [
+          false,
+          true
+        ],
+        "Signature": [
+          false,
+          true
+        ],
+        "Archive": [
+          false,
+          true
+        ],
+        "Unrelated": [
+          false,
+          true
+        ],
+        "Authenticated": [
+          false,
+          true
+        ],
+        "quantity": [
+          0,
+          1,
+          2
+        ]
+      },
+      "initial_state": {
+        "Document": false,
+        "Signature": false,
+        "Archive": false,
+        "Unrelated": false,
+        "Authenticated": true,
+        "quantity": 1
+      },
+      "goal": [
+        [
+          "Archive",
+          "eq",
+          true
+        ]
+      ],
+      "available_resources": [
+        "Network",
+        "Gateway",
+        "Database",
+        "Browser",
+        "FileSystem"
+      ],
+      "global_constraints": [
+        [
+          "quantity",
+          "le",
+          2
+        ]
+      ],
+      "capabilities": [
+        {
+          "name": "CreateDocument",
+          "type": "API",
+          "mechanism": {
+            "operation": "CreateDocument",
+            "target": "/createdocument"
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "document_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [],
+          "effects": {
+            "Document": true
+          },
+          "constraints": [
+            [
+              "quantity",
+              "gt",
+              0
+            ],
+            [
+              "Authenticated",
+              "eq",
+              true
+            ]
+          ],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "MakeSignature",
+          "type": "API",
+          "mechanism": {
+            "operation": "MakeSignature",
+            "target": "/makesignature"
+          },
+          "inputs": [
+            {
+              "name": "document_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "signature_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [
+            [
+              "Document",
+              "eq",
+              true
+            ]
+          ],
+          "effects": {
+            "Signature": true
+          },
+          "constraints": [],
+          "resources": [
+            "Network",
+            "Gateway"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.5,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "SendArchive",
+          "type": "API",
+          "mechanism": {
+            "operation": "SendArchive",
+            "target": "/sendarchive"
+          },
+          "inputs": [
+            {
+              "name": "signature_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "archive_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [
+            [
+              "Signature",
+              "eq",
+              true
+            ]
+          ],
+          "effects": {
+            "Archive": true
+          },
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "CancelDocument",
+          "type": "API",
+          "mechanism": {
+            "operation": "CancelDocument",
+            "target": "/canceldocument"
+          },
+          "inputs": [
+            {
+              "name": "document_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [],
+          "preconditions": [
+            [
+              "Document",
+              "eq",
+              false
+            ]
+          ],
+          "effects": {
+            "Document": false
+          },
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "CreateDocument_DATABASE",
+          "type": "DATABASE",
+          "mechanism": {
+            "operation": "CreateDocument_DATABASE",
+            "target": "createdocument_database"
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "document_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [],
+          "effects": {
+            "Document": true
+          },
+          "constraints": [
+            [
+              "quantity",
+              "gt",
+              0
+            ],
+            [
+              "Authenticated",
+              "eq",
+              true
+            ]
+          ],
+          "resources": [
+            "Database"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.03,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.97,
+          "available": true
+        },
+        {
+          "name": "CreateDocument_GUI",
+          "type": "GUI",
+          "mechanism": {
+            "operation": "CreateDocument_GUI",
+            "target": "createdocument_gui"
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "document_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [],
+          "effects": {
+            "Document": true
+          },
+          "constraints": [
+            [
+              "quantity",
+              "gt",
+              0
+            ],
+            [
+              "Authenticated",
+              "eq",
+              true
+            ]
+          ],
+          "resources": [
+            "Browser"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.01,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.9,
+          "available": true
+        },
+        {
+          "name": "RotateLog",
+          "type": "FILE",
+          "mechanism": {
+            "operation": "RotateLog",
+            "target": "rotatelog"
+          },
+          "inputs": [],
+          "outputs": [],
+          "preconditions": [],
+          "effects": {
+            "Unrelated": true
+          },
+          "constraints": [],
+          "resources": [
+            "FileSystem"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "WrongInput",
+          "type": "API",
+          "mechanism": {
+            "operation": "WrongInput",
+            "target": "/wronginput"
+          },
+          "inputs": [
+            {
+              "name": "document_id",
+              "type": "INTEGER",
+              "domain": [
+                1,
+                2
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [],
+          "preconditions": [
+            [
+              "Document",
+              "eq",
+              true
+            ]
+          ],
+          "effects": {
+            "Signature": true
+          },
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "ConstrainedDocument",
+          "type": "API",
+          "mechanism": {
+            "operation": "ConstrainedDocument",
+            "target": "/constraineddocument"
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "document_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [],
+          "effects": {
+            "Document": true
+          },
+          "constraints": [
+            [
+              "quantity",
+              "gt",
+              0
+            ],
+            [
+              "Authenticated",
+              "eq",
+              true
+            ]
+          ],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        }
+      ],
+      "compositions": [
+        [
+          "CreateDocument",
+          "MakeSignature",
+          "SendArchive"
+        ]
+      ]
+    },
+    {
+      "name": "data",
+      "variables": {
+        "Extract": [
+          false,
+          true
+        ],
+        "Transform": [
+          false,
+          true
+        ],
+        "Publish": [
+          false,
+          true
+        ],
+        "Unrelated": [
+          false,
+          true
+        ],
+        "Authenticated": [
+          false,
+          true
+        ],
+        "quantity": [
+          0,
+          1,
+          2
+        ]
+      },
+      "initial_state": {
+        "Extract": false,
+        "Transform": false,
+        "Publish": false,
+        "Unrelated": false,
+        "Authenticated": true,
+        "quantity": 1
+      },
+      "goal": [
+        [
+          "Publish",
+          "eq",
+          true
+        ]
+      ],
+      "available_resources": [
+        "Network",
+        "Gateway",
+        "Database",
+        "Browser",
+        "FileSystem"
+      ],
+      "global_constraints": [
+        [
+          "quantity",
+          "le",
+          2
+        ]
+      ],
+      "capabilities": [
+        {
+          "name": "CreateExtract",
+          "type": "API",
+          "mechanism": {
+            "operation": "CreateExtract",
+            "target": "/createextract"
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "extract_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [],
+          "effects": {
+            "Extract": true
+          },
+          "constraints": [
+            [
+              "quantity",
+              "gt",
+              0
+            ],
+            [
+              "Authenticated",
+              "eq",
+              true
+            ]
+          ],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "MakeTransform",
+          "type": "API",
+          "mechanism": {
+            "operation": "MakeTransform",
+            "target": "/maketransform"
+          },
+          "inputs": [
+            {
+              "name": "extract_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "transform_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [
+            [
+              "Extract",
+              "eq",
+              true
+            ]
+          ],
+          "effects": {
+            "Transform": true
+          },
+          "constraints": [],
+          "resources": [
+            "Network",
+            "Gateway"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.5,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "SendPublish",
+          "type": "API",
+          "mechanism": {
+            "operation": "SendPublish",
+            "target": "/sendpublish"
+          },
+          "inputs": [
+            {
+              "name": "transform_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "publish_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [
+            [
+              "Transform",
+              "eq",
+              true
+            ]
+          ],
+          "effects": {
+            "Publish": true
+          },
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "CancelExtract",
+          "type": "API",
+          "mechanism": {
+            "operation": "CancelExtract",
+            "target": "/cancelextract"
+          },
+          "inputs": [
+            {
+              "name": "extract_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [],
+          "preconditions": [
+            [
+              "Extract",
+              "eq",
+              false
+            ]
+          ],
+          "effects": {
+            "Extract": false
+          },
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "CreateExtract_DATABASE",
+          "type": "DATABASE",
+          "mechanism": {
+            "operation": "CreateExtract_DATABASE",
+            "target": "createextract_database"
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "extract_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [],
+          "effects": {
+            "Extract": true
+          },
+          "constraints": [
+            [
+              "quantity",
+              "gt",
+              0
+            ],
+            [
+              "Authenticated",
+              "eq",
+              true
+            ]
+          ],
+          "resources": [
+            "Database"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.03,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.97,
+          "available": true
+        },
+        {
+          "name": "CreateExtract_GUI",
+          "type": "GUI",
+          "mechanism": {
+            "operation": "CreateExtract_GUI",
+            "target": "createextract_gui"
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "extract_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [],
+          "effects": {
+            "Extract": true
+          },
+          "constraints": [
+            [
+              "quantity",
+              "gt",
+              0
+            ],
+            [
+              "Authenticated",
+              "eq",
+              true
+            ]
+          ],
+          "resources": [
+            "Browser"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.01,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.9,
+          "available": true
+        },
+        {
+          "name": "RotateLog",
+          "type": "FILE",
+          "mechanism": {
+            "operation": "RotateLog",
+            "target": "rotatelog"
+          },
+          "inputs": [],
+          "outputs": [],
+          "preconditions": [],
+          "effects": {
+            "Unrelated": true
+          },
+          "constraints": [],
+          "resources": [
+            "FileSystem"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "WrongInput",
+          "type": "API",
+          "mechanism": {
+            "operation": "WrongInput",
+            "target": "/wronginput"
+          },
+          "inputs": [
+            {
+              "name": "extract_id",
+              "type": "INTEGER",
+              "domain": [
+                1,
+                2
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [],
+          "preconditions": [
+            [
+              "Extract",
+              "eq",
+              true
+            ]
+          ],
+          "effects": {
+            "Transform": true
+          },
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        },
+        {
+          "name": "ConstrainedExtract",
+          "type": "API",
+          "mechanism": {
+            "operation": "ConstrainedExtract",
+            "target": "/constrainedextract"
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "extract_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "preconditions": [],
+          "effects": {
+            "Extract": true
+          },
+          "constraints": [
+            [
+              "quantity",
+              "gt",
+              0
+            ],
+            [
+              "Authenticated",
+              "eq",
+              true
+            ]
+          ],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 100,
+            "resource_cost": 1,
+            "money": 0.1,
+            "risk": 0.01,
+            "energy": 0.1
+          },
+          "reliability": 0.99,
+          "available": true
+        }
+      ],
+      "compositions": [
+        [
+          "CreateExtract",
+          "MakeTransform",
+          "SendPublish"
+        ]
+      ]
+    }
+  ]
+}

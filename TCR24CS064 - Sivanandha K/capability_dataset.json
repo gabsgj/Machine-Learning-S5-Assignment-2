@@ -1,0 +1,172 @@
+{
+    "states": {
+        "initial_state": {
+            "authenticated": true,
+            "cart_exists": true,
+            "cart_items": true,
+            "order_exists": false,
+            "payment_pending": false,
+            "notification_sent": false
+        }
+    },
+
+    "goals": {
+        "complete_purchase": {
+            "order_exists": true,
+            "payment_success": true,
+            "notification_sent": true
+        }
+    },
+
+    "capabilities": {
+
+        "CreateOrder": {
+            "type": "API",
+            "inputs": ["cart_id"],
+            "outputs": ["order_id"],
+            "preconditions": [
+                "cart_exists",
+                "cart_items"
+            ],
+            "effects": [
+                "order_exists",
+                "order_created"
+            ],
+            "resources": [
+                "database",
+                "network"
+            ],
+            "mechanism": "POST",
+            "cost": 0.10,
+            "risk": 0.05,
+            "reliability": 0.99,
+            "availability": 1.0
+        },
+
+        "MakePayment": {
+            "type": "API",
+            "inputs": ["order_id"],
+            "outputs": [
+                "order_id",
+                "payment_id",
+                "payment_status"
+            ],
+            "preconditions": [
+                "order_exists"
+            ],
+            "effects": [
+                "payment_success"
+            ],
+            "resources": [
+                "payment_gateway",
+                "network"
+            ],
+            "mechanism": "POST",
+            "cost": 0.50,
+            "risk": 0.10,
+            "reliability": 0.98,
+            "availability": 1.0
+        },
+
+        "SendNotification": {
+            "type": "EVENT",
+            "inputs": ["order_id"],
+            "outputs": ["notification"],
+            "preconditions": [
+                "payment_success"
+            ],
+            "effects": [
+                "notification_sent"
+            ],
+            "resources": [
+                "network"
+            ],
+            "mechanism": "EVENT",
+            "cost": 0.05,
+            "risk": 0.02,
+            "reliability": 0.97,
+            "availability": 1.0
+        },
+
+        "CancelCart": {
+            "type": "FUNCTION",
+            "inputs": ["cart_id"],
+            "outputs": [],
+            "preconditions": [
+                "order_not_exists"
+            ],
+            "effects": [
+                "cart_cancelled"
+            ],
+            "resources": [
+                "database"
+            ],
+            "mechanism": "",
+            "cost": 0.05,
+            "risk": 0.03,
+            "reliability": 0.99,
+            "availability": 1.0
+        },
+
+        "CreateOrderDatabase": {
+            "type": "DATABASE",
+            "inputs": ["cart_id"],
+            "outputs": ["order_id"],
+            "preconditions": [
+                "cart_exists",
+                "cart_items"
+            ],
+            "effects": [
+                "order_exists",
+                "order_created"
+            ],
+            "resources": [
+                "database"
+            ],
+            "mechanism": "INSERT",
+            "cost": 0.08,
+            "risk": 0.04,
+            "reliability": 0.995,
+            "availability": 1.0
+        },
+
+        "CreateOrderGUI": {
+            "type": "GUI",
+            "inputs": ["cart_id"],
+            "outputs": ["order_id"],
+            "preconditions": [
+                "cart_exists",
+                "cart_items"
+            ],
+            "effects": [
+                "order_exists",
+                "order_created"
+            ],
+            "resources": [
+                "database",
+                "network"
+            ],
+            "mechanism": "CLICK",
+            "cost": 0.20,
+            "risk": 0.08,
+            "reliability": 0.95,
+            "availability": 1.0
+        },
+
+        "CheckInventory": {
+            "type": "DATABASE",
+            "inputs": ["quantity"],
+            "outputs": [],
+            "preconditions": [],
+            "effects": [],
+            "resources": [
+                "database"
+            ],
+            "mechanism": "INSERT",
+            "cost": 0.05,
+            "risk": 0.01,
+            "reliability": 0.99,
+            "availability": 1.0
+        }
+    }
+}

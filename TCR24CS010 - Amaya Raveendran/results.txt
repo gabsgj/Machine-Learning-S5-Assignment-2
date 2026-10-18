@@ -1,0 +1,54 @@
+======================================================================
+ASSIGNMENT 2: VECTOR EMBEDDING FOR CAPABILITY COMPOSITION
+======================================================================
+
+1. CAPABILITY COMPATIBILITY
+C1 = CreateOrder
+C2 = MakePayment
+C3 = CancelCart
+C1 -> C2 compatibility = 1.000
+C1 -> C3 compatibility = 0.000
+Expected: C1 -> C2 compatible; C1 -> C3 incompatible.
+Result: PASS
+
+2. CAPABILITY COMPOSITION
+C1_CreateOrder -> C2_MakePayment -> C3_SendNotification
+Composite: C1_CreateOrder ∘ C2_MakePayment ∘ C3_SendNotification
+Similarity(composite, C1) = 0.751
+Similarity(composite, C2) = 0.452
+Similarity(composite, C3) = 0.333
+Composite reliability = 0.9411
+Composite availability = 1
+
+3. ALTERNATIVE IMPLEMENTATIONS
+CreateOrder(API) vs CreateOrderDB = 0.623
+CreateOrder(API) vs CreateOrderGUI = 0.671
+
+4. IRRELEVANT CAPABILITIES
+Goal relevance(CreateOrder) = 0.333
+Goal relevance(MakePayment) = 0.333
+Goal relevance(UpdateInventory) = 0.000
+
+5. OPERATIONAL ATTRIBUTES
+Original reliability = 0.99
+Alternative reliability = 0.70
+Original execution time = 0.04
+Alternative execution time = 0.50
+Original risk = 0.03
+Alternative risk = 0.50
+Vector similarity = 0.976
+
+6. ENCODING INTERFACE
+encode(state) shape = (128,)
+encode(goal) shape = (128,)
+encode(capability) shape = (128,)
+Spreadsheet runtime warmup failed during python startup
+Traceback (most recent call last):
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py", line 26, in warm_spreadsheet_runtime_on_startup
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py", line 785, in warm_spreadsheet_runtime
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py", line 720, in _warm_feature_flows
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py", line 704, in _warm_collaboration_flows
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py", line 32317, in hydrate_crdt_from_proto
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py", line 749, in __call__
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py", line 150, in call
+artifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.

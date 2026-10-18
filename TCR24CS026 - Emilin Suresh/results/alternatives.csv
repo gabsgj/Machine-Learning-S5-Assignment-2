@@ -1,0 +1,4 @@
+capability_1,capability_2,type_1,type_2,mechanism_1,mechanism_2,similarity
+CreateOrder_API,CreateOrder_DATABASE,API,DATABASE,REST API,SQL INSERT,0.822061
+CreateOrder_API,CreateOrder_GUI,API,GUI,REST API,Graphical Interface,0.930244
+CreateOrder_DATABASE,CreateOrder_GUI,DATABASE,GUI,SQL INSERT,Graphical Interface,0.772373

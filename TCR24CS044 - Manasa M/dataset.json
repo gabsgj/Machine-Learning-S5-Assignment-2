@@ -1,0 +1,144 @@
+{
+    "initial_state": {
+        "Cart.exists": true,
+        "Cart.item_count_positive": true,
+        "Inventory.available": true,
+        "Order.exists": false,
+        "Order.status.CREATED": false,
+        "Payment.status.SUCCESS": false,
+        "Notification.sent": false,
+        "User.authenticated": true,
+        "Cart.cancelled": false,
+        "Product.search_completed": false
+    },
+    "goal": {
+        "Order.exists": true,
+        "Order.status.CREATED": true,
+        "Payment.status.SUCCESS": true,
+        "Notification.sent": true
+    },
+    "capabilities": [
+        {
+            "name": "CreateOrder",
+            "type": "API",
+            "inputs": {
+                "cart_id": "UUID"
+            },
+            "outputs": {
+                "order_id": "UUID"
+            },
+            "preconditions": {
+                "Cart.exists": true,
+                "Cart.item_count_positive": true,
+                "Inventory.available": true
+            },
+            "effects": {
+                "Order.exists": true,
+                "Order.status": "CREATED"
+            },
+            "cost": 0.01,
+            "reliability": 0.99,
+            "availability": 1
+        },
+        {
+            "name": "MakePayment",
+            "type": "API",
+            "inputs": {
+                "order_id": "UUID",
+                "payment_details": "PaymentInfo"
+            },
+            "outputs": {
+                "payment_id": "UUID"
+            },
+            "preconditions": {
+                "Order.exists": true,
+                "Order.status": "CREATED"
+            },
+            "effects": {
+                "Payment.status": "SUCCESS"
+            },
+            "cost": 0.05,
+            "reliability": 0.97,
+            "availability": 1
+        },
+        {
+            "name": "SendNotification",
+            "type": "SERVICE",
+            "inputs": {
+                "order_id": "UUID"
+            },
+            "outputs": {
+                "notification_id": "UUID"
+            },
+            "preconditions": {
+                "Payment.status": "SUCCESS"
+            },
+            "effects": {
+                "Notification.sent": true
+            },
+            "cost": 0.02,
+            "reliability": 0.98,
+            "availability": 1
+        },
+        {
+            "name": "CancelCart",
+            "type": "FUNCTION",
+            "inputs": {
+                "cart_id": "UUID"
+            },
+            "outputs": {
+                "cancel_status": "BOOLEAN"
+            },
+            "preconditions": {
+                "Order.exists": false
+            },
+            "effects": {
+                "Cart.cancelled": true
+            },
+            "cost": 0.005,
+            "reliability": 0.99,
+            "availability": 1
+        },
+        {
+            "name": "UpdateProfile",
+            "type": "DATABASE",
+            "inputs": {
+                "user_id": "UUID"
+            },
+            "outputs": {
+                "profile_status": "BOOLEAN"
+            },
+            "preconditions": {
+                "User.authenticated": true
+            },
+            "effects": {
+                "User.profile_updated": true
+            },
+            "cost": 0.01,
+            "reliability": 0.99,
+            "availability": 1
+        },
+        {
+            "name": "SearchProduct",
+            "type": "API",
+            "inputs": {
+                "keyword": "STRING"
+            },
+            "outputs": {
+                "product_list": "LIST"
+            },
+            "preconditions": {},
+            "effects": {
+                "Product.search_completed": true
+            },
+            "cost": 0.01,
+            "reliability": 0.98,
+            "availability": 1
+        }
+    ],
+    "composition": [
+        "CreateOrder",
+        "MakePayment",
+        "SendNotification"
+    ]
+}

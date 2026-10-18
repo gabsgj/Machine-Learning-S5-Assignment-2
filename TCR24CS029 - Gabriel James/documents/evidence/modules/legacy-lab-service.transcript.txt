@@ -1,0 +1,92 @@
+TRANSCRIPT legacy-lab-service live run
+database: documents/evidence/modules/legacy-lab-service.db
+server log: documents/evidence/modules/legacy-lab-service.server.log
+python: 3.12.14
+prepared reference data: 2 statements
+
+$ GET /health
+  (module health)
+  http status: 200
+  response: {"database": "../../documents/evidence/modules/legacy-lab-service.db", "module": "legacy-lab-service", "port": 5006, "status": "ok"}
+
+$ GET /spec
+  http status: 200
+  capability ids: ["LAB-OrderTest", "LAB-ReceiveSample", "LAB-EnterResult", "LAB-GetReport", "LAB-Form"]
+  state variables: ["Lab.ordered", "Sample.received", "Lab.resulted"]
+
+$ GET /state
+  (state before any capability call)
+  http status: 200
+  response: {"module": "legacy-lab-service", "state": {"Lab.ordered": false, "Lab.resulted": false, "Sample.received": false}, "status": "ok"}
+
+$ GET /ui/
+  (UI page)
+  http status: 200
+  response (3060 bytes of HTML): <!doctype html>
+
+$ GET /ui/orders
+  (UI page)
+  http status: 200
+  response (1429 bytes of HTML): <!doctype html>
+
+$ GET /ui/orders/new
+  (UI page)
+  http status: 200
+  response (2004 bytes of HTML): <!doctype html>
+
+$ GET /ui/capabilities
+  (UI page)
+  http status: 200
+  response (10426 bytes of HTML): <!doctype html>
+
+$ POST /api/order_test
+  (order a test)
+  request body: {"patient_mrn": "MRN-7001", "test_code": "GLU", "urgency_level": "URGENT"}
+  http status: 200
+  response: {"capability": "LAB-OrderTest", "effects": [{"op": "SET", "value": true, "variable": "Lab.ordered"}], "outputs": {"lab_order_id": "LAB-2A94B4BF", "ordered_at": "2026-10-18T15:32:54+00:00", "test_code": "GLU", "test_name": "Fasting glucose", "urgency_level": "URGENT"}, "state": {"Lab.ordered": true, "Lab.resulted": false, "Sample.received": false}, "status": "ok", "trace": ["LAB-OrderTest executed"]}
+
+$ POST /api/order_test
+  (ordering an unknown test code is rejected)
+  request body: {"patient_mrn": "MRN-7001", "test_code": "HBA1C"}
+  http status: 404
+  response: {"capability": "LAB-OrderTest", "error": "unknown test code \"HBA1C\"", "status": "error"}
+
+$ POST /api/enter_result
+  (entering a result before the sample is rejected)
+  request body: {"lab_order_id": "LAB-2A94B4BF", "result_value": 5.4}
+  http status: 409
+  response: {"capability": "LAB-EnterResult", "error": "lab order \"LAB-2A94B4BF\" has no received sample yet", "status": "error"}
+
+$ POST /api/receive_sample
+  (receive the sample)
+  request body: {"lab_order_id": "LAB-2A94B4BF", "sample_label": "Tube 7"}
+  http status: 200
+  response: {"capability": "LAB-ReceiveSample", "effects": [{"op": "SET", "value": true, "variable": "Sample.received"}], "outputs": {"lab_order_id": "LAB-2A94B4BF", "received": true, "received_at": "2026-10-18T15:32:54+00:00"}, "state": {"Lab.ordered": true, "Lab.resulted": false, "Sample.received": true}, "status": "ok", "trace": ["LAB-ReceiveSample executed"]}
+
+$ POST /api/enter_result
+  (enter the result)
+  request body: {"lab_order_id": "LAB-2A94B4BF", "result_value": 5.4}
+  http status: 200
+  response: {"capability": "LAB-EnterResult", "effects": [{"op": "SET", "value": true, "variable": "Lab.resulted"}], "outputs": {"lab_order_id": "LAB-2A94B4BF", "resulted": true, "resulted_at": "2026-10-18T15:32:54+00:00"}, "state": {"Lab.ordered": true, "Lab.resulted": true, "Sample.received": true}, "status": "ok", "trace": ["LAB-EnterResult executed"]}
+
+$ POST /api/get_report
+  (read the report)
+  request body: {"lab_order_id": "LAB-2A94B4BF"}
+  http status: 200
+  response: {"capability": "LAB-GetReport", "effects": [], "outputs": {"patient_mrn": "MRN-7001", "report_text": "Fasting glucose (GLU): 5.40 mmol/L, reference 3.90 to 5.50", "resulted": true, "status": "resulted", "test_code": "GLU", "urgency_level": "URGENT"}, "state": {"Lab.ordered": true, "Lab.resulted": true, "Sample.received": true}, "status": "ok", "trace": ["LAB-GetReport executed"]}
+
+$ GET /state
+  (state snapshot after the calls)
+  http status: 200
+  response: {"module": "legacy-lab-service", "state": {"Lab.ordered": true, "Lab.resulted": true, "Sample.received": true}, "status": "ok"}
+
+$ POST /ui/orders/new
+  (GUI capability form submission)
+  request body: {"patient_mrn": "MRN-7002", "test_code": "CBC", "urgency_level": "ROUTINE"}
+  http status: 200
+  response: {"capability": "LAB-Form", "effects": [{"op": "SET", "value": true, "variable": "Lab.ordered"}], "outputs": {"lab_order_id": "LAB-2988C4E7", "ordered_at": "2026-10-18T15:32:54+00:00", "test_code": "CBC", "test_name": "Complete blood count", "urgency_level": "ROUTINE"}, "state": {"Lab.ordered": true, "Lab.resulted": true, "Sample.received": true}, "status": "ok", "trace": ["LAB-Form submitted through /ui/orders/new"]}
+
+$ GET /ui/orders/LAB-2988C4E7
+  (UI detail page)
+  http status: 200
+  response (1971 bytes of HTML): <!doctype html>

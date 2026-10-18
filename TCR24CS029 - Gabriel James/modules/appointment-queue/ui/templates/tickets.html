@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Queue{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Waiting room</h1>
+  <form id="search_form" method="get" action="{{ url_for('ui.tickets') }}">
+    <label for="search_input">Search by patient MRN or reason</label>
+    <input type="text" id="search_input" name="q" value="{{ query }}" placeholder="e.g. MRN-1001">
+    <button type="submit" id="search_button">Search</button>
+  </form>
+
+  <form id="call_next_form" data-capability-endpoint="/api/call_next_ticket" data-result-target="result_output">
+    <label for="desk_input">Desk (optional)</label>
+    <input type="text" id="desk_input" name="desk" placeholder="Desk 1">
+    <button type="submit" id="call_next_button">Call next</button>
+  </form>
+
+  <table id="ticket_table" class="grid">
+    <thead>
+      <tr>
+        <th>No</th><th>MRN</th><th>Reason</th><th>Priority</th><th>Triaged</th><th>Status</th><th>Created</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticket in tickets %}
+      <tr id="ticket_row_{{ ticket.ticket_id }}">
+        <td><code>{{ ticket.ticket_no }}</code></td>
+        <td><code>{{ ticket.patient_mrn }}</code></td>
+        <td>{{ ticket.reason or "" }}</td>
+        <td>{{ ticket.priority }}</td>
+        <td>{{ "yes" if ticket.triaged else "no" }}</td>
+        <td>{{ "waiting" if ticket.open else "closed" }}</td>
+        <td>{{ ticket.created_at }}</td>
+        <td><a href="{{ url_for('ui.ticket_detail', ticket_id=ticket.ticket_id) }}">Open</a></td>
+      </tr>
+      {% else %}
+      <tr id="empty_row"><td colspan="8">No tickets match the search.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

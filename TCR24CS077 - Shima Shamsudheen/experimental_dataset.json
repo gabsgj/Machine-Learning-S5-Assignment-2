@@ -1,0 +1,423 @@
+{
+  "problem_1_ecommerce": {
+    "initial_state": {
+      "User.authenticated": true,
+      "User.role": "CUSTOMER",
+      "Cart.exists": true,
+      "Cart.item_count": 3,
+      "Order.exists": false,
+      "Payment.success": false,
+      "Inventory.available": true,
+      "Notification.sent": false,
+      "payment_amount": 120.0,
+      "transaction_limit": 500.0
+    },
+    "initial_data": [
+      "cart_id"
+    ],
+    "goal": {
+      "Order.exists": true,
+      "Payment.success": true,
+      "Notification.sent": true
+    },
+    "capabilities": [
+      {
+        "name": "CreateOrder",
+        "mechanisms": [
+          "API"
+        ],
+        "preconditions": {
+          "Cart.exists": true,
+          "User.authenticated": true
+        },
+        "effects": {
+          "Order.exists": true,
+          "Cart.locked": true
+        },
+        "inputs": [
+          "cart_id"
+        ],
+        "outputs": [
+          "order_id"
+        ],
+        "cost": 2,
+        "reliability": 0.99,
+        "available": 1,
+        "risk": 0.05,
+        "resources": [
+          "Database",
+          "AuthToken"
+        ],
+        "constraints": [
+          [
+            "Cart.item_count",
+            ">",
+            0
+          ]
+        ]
+      },
+      {
+        "name": "MakePayment",
+        "mechanisms": [
+          "API"
+        ],
+        "preconditions": {
+          "Order.exists": true
+        },
+        "effects": {
+          "Payment.success": true
+        },
+        "inputs": [
+          "order_id"
+        ],
+        "outputs": [
+          "payment_id"
+        ],
+        "cost": 5,
+        "reliability": 0.95,
+        "available": 1,
+        "risk": 0.2,
+        "resources": [
+          "PaymentGateway",
+          "Network"
+        ],
+        "constraints": [
+          [
+            "payment_amount",
+            "<=",
+            "transaction_limit"
+          ]
+        ]
+      },
+      {
+        "name": "SendNotification",
+        "mechanisms": [
+          "MESSAGE"
+        ],
+        "preconditions": {
+          "Payment.success": true
+        },
+        "effects": {
+          "Notification.sent": true
+        },
+        "inputs": [
+          "payment_id"
+        ],
+        "outputs": [
+          "notification_id"
+        ],
+        "cost": 1,
+        "reliability": 0.98,
+        "available": 1,
+        "risk": 0.02,
+        "resources": [
+          "Network"
+        ],
+        "constraints": []
+      },
+      {
+        "name": "CancelCart",
+        "mechanisms": [
+          "FUNCTION"
+        ],
+        "preconditions": {
+          "Cart.exists": true,
+          "Order.exists": false
+        },
+        "effects": {
+          "Cart.cancelled": true,
+          "Cart.exists": false
+        },
+        "inputs": [
+          "cart_id"
+        ],
+        "outputs": [
+          "cancellation_status"
+        ],
+        "cost": 1,
+        "reliability": 0.97,
+        "available": 1,
+        "risk": 0.01,
+        "resources": [],
+        "constraints": []
+      },
+      {
+        "name": "UpdateInventory",
+        "mechanisms": [
+          "DATABASE"
+        ],
+        "preconditions": {
+          "Order.exists": true
+        },
+        "effects": {
+          "Inventory.updated": true
+        },
+        "inputs": [
+          "order_id"
+        ],
+        "outputs": [
+          "inventory_status"
+        ],
+        "cost": 3,
+        "reliability": 0.96,
+        "available": 1,
+        "risk": 0.08,
+        "resources": [
+          "Database"
+        ],
+        "constraints": []
+      },
+      {
+        "name": "GenerateReport",
+        "mechanisms": [
+          "COMPUTATION"
+        ],
+        "preconditions": {
+          "Order.exists": true
+        },
+        "effects": {
+          "Report.generated": true
+        },
+        "inputs": [
+          "order_id"
+        ],
+        "outputs": [
+          "report_file"
+        ],
+        "cost": 4,
+        "reliability": 0.9,
+        "available": 1,
+        "risk": 0.03,
+        "resources": [
+          "FileSystem"
+        ],
+        "constraints": []
+      },
+      {
+        "name": "SendMarketingEmail",
+        "mechanisms": [
+          "MESSAGE"
+        ],
+        "preconditions": {
+          "User.authenticated": true
+        },
+        "effects": {
+          "Marketing.sent": true
+        },
+        "inputs": [],
+        "outputs": [
+          "campaign_id"
+        ],
+        "cost": 1.5,
+        "reliability": 0.9,
+        "available": 1,
+        "risk": 0.3,
+        "resources": [
+          "Network"
+        ],
+        "constraints": []
+      }
+    ],
+    "alternatives": [
+      {
+        "name": "CreateOrder_API",
+        "mechanisms": [
+          "API"
+        ],
+        "preconditions": {
+          "Cart.exists": true,
+          "User.authenticated": true
+        },
+        "effects": {
+          "Order.exists": true,
+          "Cart.locked": true
+        },
+        "inputs": [
+          "cart_id"
+        ],
+        "outputs": [
+          "order_id"
+        ],
+        "cost": 2,
+        "reliability": 0.99,
+        "available": 1,
+        "risk": 0.05,
+        "resources": [
+          "Database",
+          "AuthToken"
+        ],
+        "constraints": []
+      },
+      {
+        "name": "CreateOrder_DB",
+        "mechanisms": [
+          "DATABASE"
+        ],
+        "preconditions": {
+          "Cart.exists": true,
+          "User.authenticated": true
+        },
+        "effects": {
+          "Order.exists": true,
+          "Cart.locked": true
+        },
+        "inputs": [
+          "cart_id"
+        ],
+        "outputs": [
+          "order_id"
+        ],
+        "cost": 3,
+        "reliability": 0.97,
+        "available": 1,
+        "risk": 0.08,
+        "resources": [
+          "Database"
+        ],
+        "constraints": []
+      },
+      {
+        "name": "CreateOrder_GUI",
+        "mechanisms": [
+          "GUI"
+        ],
+        "preconditions": {
+          "Cart.exists": true,
+          "User.authenticated": true
+        },
+        "effects": {
+          "Order.exists": true,
+          "Cart.locked": true
+        },
+        "inputs": [
+          "cart_id"
+        ],
+        "outputs": [
+          "order_id"
+        ],
+        "cost": 4,
+        "reliability": 0.95,
+        "available": 1,
+        "risk": 0.12,
+        "resources": [
+          "Browser",
+          "Network"
+        ],
+        "constraints": []
+      }
+    ]
+  },
+  "problem_2_file_pipeline": {
+    "initial_state": {
+      "User.authenticated": true,
+      "File.uploaded": false,
+      "File.clean": false,
+      "File.stored": false
+    },
+    "goal": {
+      "File.stored": true
+    },
+    "capabilities": [
+      {
+        "name": "UploadFile",
+        "mechanisms": [
+          "FILE"
+        ],
+        "preconditions": {
+          "User.authenticated": true
+        },
+        "effects": {
+          "File.uploaded": true
+        },
+        "inputs": [],
+        "outputs": [
+          "file_id"
+        ],
+        "cost": 2,
+        "reliability": 0.98,
+        "available": 1,
+        "risk": 0.0,
+        "resources": [
+          "Network"
+        ],
+        "constraints": []
+      },
+      {
+        "name": "ScanFile",
+        "mechanisms": [
+          "SERVICE"
+        ],
+        "preconditions": {
+          "File.uploaded": true
+        },
+        "effects": {
+          "File.clean": true
+        },
+        "inputs": [
+          "file_id"
+        ],
+        "outputs": [
+          "scan_id"
+        ],
+        "cost": 3,
+        "reliability": 0.96,
+        "available": 1,
+        "risk": 0.05,
+        "resources": [
+          "ExternalService"
+        ],
+        "constraints": []
+      },
+      {
+        "name": "StoreFile",
+        "mechanisms": [
+          "DATABASE"
+        ],
+        "preconditions": {
+          "File.clean": true
+        },
+        "effects": {
+          "File.stored": true
+        },
+        "inputs": [
+          "file_id"
+        ],
+        "outputs": [
+          "record_id"
+        ],
+        "cost": 2,
+        "reliability": 0.99,
+        "available": 1,
+        "risk": 0.0,
+        "resources": [
+          "Database"
+        ],
+        "constraints": []
+      },
+      {
+        "name": "DeleteFile",
+        "mechanisms": [
+          "FILE"
+        ],
+        "preconditions": {
+          "File.uploaded": true
+        },
+        "effects": {
+          "File.uploaded": false
+        },
+        "inputs": [
+          "file_id"
+        ],
+        "outputs": [
+          "delete_status"
+        ],
+        "cost": 1,
+        "reliability": 0.97,
+        "available": 1,
+        "risk": 0.0,
+        "resources": [],
+        "constraints": []
+      }
+    ]
+  }
+}

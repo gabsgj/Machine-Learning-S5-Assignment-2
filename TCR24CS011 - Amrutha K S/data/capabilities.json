@@ -1,0 +1,92 @@
+{
+  "application": {
+    "name": "Online Purchase System",
+    "initial_state": {
+      "User.authenticated": true,
+      "User.role": "CUSTOMER",
+      "Cart.exists": true,
+      "Cart.item_count": 3,
+      "Order.exists": false,
+      "Payment.status": "NOT_STARTED",
+      "Inventory.available": true,
+      "Notification.sent": false
+    },
+    "goal": {
+      "Order.exists": true,
+      "Payment.status": "SUCCESS",
+      "Notification.sent": true
+    }
+  },
+  "capabilities": [
+    {
+      "id": "C1", "name": "CreateOrder", "type": "API",
+      "inputs": [{"name":"cart_id","type":"UUID","domain":"valid UUIDs","required":true}],
+      "outputs": [{"name":"order_id","type":"UUID","domain":"valid UUIDs"}],
+      "preconditions": {"Cart.exists": true, "Cart.item_count": ">0", "Inventory.available": true},
+      "effects": {"Order.exists": true, "Order.status": "CREATED", "Cart.locked": true},
+      "constraints": ["quantity > 0", "quantity <= inventory_available"],
+      "resources": ["Database", "Authentication token", "Network"],
+      "cost": {"time":100,"resource":2,"money":0.01,"risk":0.1,"energy":1},
+      "reliability":0.99,"availability":1,
+      "mechanism":{"method":"POST","endpoint":"/orders"}
+    },
+    {
+      "id": "C2", "name": "MakePayment", "type": "API",
+      "inputs": [{"name":"order_id","type":"UUID","domain":"valid UUIDs","required":true}],
+      "outputs": [{"name":"payment_status","type":"STATUS","domain":"SUCCESS, FAILED"}],
+      "preconditions": {"Order.exists": true, "Order.status": "CREATED"},
+      "effects": {"Payment.status": "SUCCESS"},
+      "constraints": ["payment_amount <= transaction_limit"],
+      "resources": ["Payment gateway", "Authentication token", "Network"],
+      "cost": {"time":250,"resource":3,"money":0.02,"risk":0.2,"energy":2},
+      "reliability":0.98,"availability":1,
+      "mechanism":{"method":"POST","endpoint":"/payments"}
+    },
+    {
+      "id": "C3", "name": "CancelCart", "type": "DATABASE",
+      "inputs": [{"name":"cart_id","type":"UUID","domain":"valid UUIDs","required":true}],
+      "outputs": [{"name":"cart_status","type":"STATUS","domain":"CANCELLED"}],
+      "preconditions": {"Order.exists": false},
+      "effects": {"Cart.status": "CANCELLED"},
+      "constraints": ["cart_exists = true"],
+      "resources": ["Database"],
+      "cost": {"time":50,"resource":1,"money":0.0,"risk":0.05,"energy":1},
+      "reliability":0.995,"availability":1,
+      "mechanism":{"operation":"UPDATE","table":"cart"}
+    },
+    {
+      "id": "C4", "name": "SendNotification", "type": "MESSAGE",
+      "inputs": [{"name":"order_id","type":"UUID","domain":"valid UUIDs","required":true}],
+      "outputs": [{"name":"notification_status","type":"STATUS","domain":"SENT"}],
+      "preconditions": {"Payment.status": "SUCCESS"},
+      "effects": {"Notification.sent": true},
+      "constraints": ["user.role in {CUSTOMER, ADMIN}"],
+      "resources": ["External service", "Network"],
+      "cost": {"time":80,"resource":1,"money":0.005,"risk":0.05,"energy":1},
+      "reliability":0.97,"availability":1,
+      "mechanism":{"trigger":"OrderCreated","handler":"SendNotification"}
+    },
+    {
+      "id": "C5", "name": "CreateOrderDatabase", "type": "DATABASE",
+      "inputs": [{"name":"cart_id","type":"UUID","domain":"valid UUIDs","required":true}],
+      "outputs": [{"name":"order_id","type":"UUID","domain":"valid UUIDs"}],
+      "preconditions": {"Cart.exists": true, "Cart.item_count": ">0"},
+      "effects": {"Order.exists": true, "Order.status": "CREATED"},
+      "constraints": [], "resources": ["Database"],
+      "cost": {"time":80,"resource":1,"money":0.0,"risk":0.05,"energy":1},
+      "reliability":0.995,"availability":1,
+      "mechanism":{"operation":"INSERT","table":"orders"}
+    },
+    {
+      "id": "C6", "name": "CreateOrderGUI", "type": "GUI",
+      "inputs": [{"name":"cart_id","type":"UUID","domain":"valid UUIDs","required":true}],
+      "outputs": [{"name":"order_id","type":"UUID","domain":"valid UUIDs"}],
+      "preconditions": {"Cart.exists": true, "Cart.item_count": ">0"},
+      "effects": {"Order.exists": true, "Order.status": "CREATED"},
+      "constraints": [], "resources": ["Authentication token"],
+      "cost": {"time":300,"resource":2,"money":0.0,"risk":0.1,"energy":2},
+      "reliability":0.95,"availability":1,
+      "mechanism":{"action":"CLICK","component":"submit_button"}
+    }
+  ]
+}

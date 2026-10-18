@@ -1,0 +1,8 @@
+capability,type,inputs,outputs,preconditions,effects,constraints,resources,time_cost,resource_cost,money_cost,risk,reliability,availability,mechanism,goal_relevance
+CreateOrder,API,cart_id,order_id,"Cart.exists=True;Cart.item_count=3;Inventory.available=True","Order.exists=True;Order.status=CREATED","quantity>0","database;network",0.10,1.0,0.01,0.05,0.99,0.99,POST /orders,0.333333
+MakePayment,API,order_id,payment_id,"Order.exists=True","Payment.status=SUCCESS","payment_amount<=transaction_limit","payment_gateway;network",0.30,2.0,0.20,0.10,0.98,0.98,POST /payments,0.333333
+SendNotification,SERVICE,order_id,message,"Payment.status=SUCCESS","Notification.sent=True","","network;email_service",0.05,0.5,0.02,0.02,0.995,0.99,EMAIL_SERVICE,0.333333
+CancelCart,API,cart_id,cart_id,"Order.exists=False","Cart.cancelled=True","","database",0.08,1.0,0.00,0.04,0.99,0.99,POST /cart/cancel,0.0
+UpdateProfile,DATABASE,customer_id,customer_id,"User.authenticated=True","Profile.updated=True","","database",0.20,1.0,0.00,0.03,0.99,0.99,UPDATE customer_profile,0.0
+CreateOrderDatabase,DATABASE,cart_id,order_id,"Cart.exists=True;Cart.item_count=3;Inventory.available=True","Order.exists=True;Order.status=CREATED","","database",0.07,1.0,0.00,0.03,0.995,0.99,INSERT orders,0.333333
+CreateOrderGUI,GUI,cart_id,order_id,"Cart.exists=True;Cart.item_count=3;Inventory.available=True","Order.exists=True;Order.status=CREATED","","network",0.50,1.0,0.00,0.08,0.95,0.98,CLICK submit_button,0.333333

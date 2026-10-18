@@ -1,0 +1,688 @@
+# Application specification sheet: online shop purchase flow.
+#
+# This is the specification pattern example application of the report. It shows the sheet in
+# full: the state variable schema S, the capability set C with one capability per execution
+# type, the initial state S_I, the goal G, the resources R and the global constraints K.
+# Decoded by the same parser as the module sheets, so the example and the delivered modules
+# are literally the same kind of formal object.
+spec_version: "1.0"
+
+module:
+  module_id: app-ecommerce-purchase
+  version: "1.0"
+  domain: ecommerce
+  port: 5101
+  base_url: "http://127.0.0.1:5101"
+  health: /health
+  description: Model of an online shop purchase flow, used as the specification pattern example application.
+  language: specification
+
+state_schema:
+  - name: User.authenticated
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: User.role
+    type: enumerated
+    domain:
+      - CUSTOMER
+      - ADMIN
+      - GUEST
+    kind: status
+  - name: Cart.exists
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Cart.item_count
+    type: integer
+    domain:
+      - 0
+      - 1000
+    kind: counter
+  - name: Order.exists
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Order.status
+    type: enumerated
+    domain:
+      - NOT_STARTED
+      - CREATED
+      - PAID
+      - CANCELLED
+      - FULFILLED
+    kind: status
+  - name: Payment.status
+    type: enumerated
+    domain:
+      - NOT_STARTED
+      - PENDING
+      - SUCCESS
+      - FAILED
+      - REFUNDED
+    kind: status
+  - name: Inventory.available
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Inventory.quantity
+    type: integer
+    domain:
+      - 0
+      - 100000
+    kind: resource
+  - name: Transaction.amount
+    type: real
+    domain:
+      - 0.0
+      - 1000000.0
+    kind: value
+  - name: Notification.sent
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Shipment.created
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+
+initial_state:
+  User.authenticated: false
+  User.role: GUEST
+  Cart.exists: false
+  Cart.item_count: 0
+  Order.exists: false
+  Order.status: NOT_STARTED
+  Payment.status: NOT_STARTED
+  Inventory.available: true
+  Inventory.quantity: 250
+  Transaction.amount: 0.0
+  Notification.sent: false
+  Shipment.created: false
+
+resources:
+  - id: shop_db
+    kind: database
+    available: true
+    details: Product, cart and order tables
+  - id: payment_gateway
+    kind: payment_gateway
+    available: true
+    details: Card and transfer authorisation endpoint
+  - id: warehouse_events
+    kind: external_service
+    available: true
+    details: Dispatch notifications published by the warehouse
+  - id: mail_relay
+    kind: external_service
+    available: true
+    details: Outbound confirmation mail queue
+  - id: export_dir
+    kind: file_system
+    available: true
+    details: Directory for exported invoice files
+
+constraints:
+  - id: K-Cart-Positive
+    kind: state
+    expression: Order.status = CREATED implies Cart.item_count greater than 0
+    enforced_by: EC-PlaceOrder precondition on Cart.exists
+  - id: K-Payment-Single
+    kind: state
+    expression: Payment.status = SUCCESS is reached at most once per order
+    enforced_by: EC-PayOrder transition check
+  - id: K-Stock-Non-Negative
+    kind: resource
+    expression: Inventory.quantity never falls below 0
+    enforced_by: EC-ReserveInventory availability check
+  - id: K-Auth-Required
+    kind: security
+    expression: EC-PlaceOrder runs with User.authenticated = true
+    enforced_by: authentication middleware of the shop
+
+goal:
+  - variable: Order.status
+    op: "="
+    value: FULFILLED
+  - variable: Payment.status
+    op: "="
+    value: SUCCESS
+  - variable: Notification.sent
+    op: "="
+    value: true
+
+capabilities:
+  - id: EC-BrowseCatalog
+    name: browse_catalog
+    type: API
+    description: List the products of one category with their price and availability.
+    inputs:
+      - name: category
+        type: string
+        domain: catalogue category name
+        required: false
+    outputs:
+      - name: item_count
+        type: integer
+        domain:
+          - 0
+          - 1000
+    preconditions: []
+    effects: []
+    constraints: []
+    resources:
+      - shop_db
+    quality:
+      time_ms: 90
+      money: 0
+      resource: 0.01
+      risk: 0.005
+      energy: 0.001
+    reliability: 0.995
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: GET
+      endpoint: /api/catalog
+    roles:
+      - customer
+      - guest
+
+  - id: EC-AddToCart
+    name: add_to_cart
+    type: API
+    description: Add one unit of a product to the cart; repeat the call for several units.
+    inputs:
+      - name: sku
+        type: string
+        domain: product stock keeping unit
+        required: true
+    outputs:
+      - name: item_count
+        type: integer
+        domain:
+          - 0
+          - 1000
+    preconditions:
+      - variable: Inventory.available
+        op: "="
+        value: true
+    effects:
+      - variable: Cart.exists
+        op: SET
+        value: true
+      - variable: Cart.item_count
+        op: INCREMENT
+        value: 1
+    constraints: []
+    resources:
+      - shop_db
+    quality:
+      time_ms: 60
+      money: 0
+      resource: 0.01
+      risk: 0.01
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/cart/add
+    roles:
+      - customer
+
+  - id: EC-ComputeTotals
+    name: compute_totals
+    type: COMPUTATION
+    description: Compute the payable total from the cart subtotal, the tax rate and the shipping fee.
+    inputs:
+      - name: subtotal
+        type: real
+        domain:
+          - 0.0
+          - 1000000.0
+        required: true
+      - name: tax_rate
+        type: real
+        domain:
+          - 0.0
+          - 1.0
+        required: true
+      - name: shipping
+        type: real
+        domain:
+          - 0.0
+          - 1000.0
+        required: true
+    outputs:
+      - name: total
+        type: real
+        domain:
+          - 0.0
+          - 1000000.0
+    preconditions: []
+    effects: []
+    constraints: []
+    resources:
+      - shop_db
+    quality:
+      time_ms: 5
+      money: 0
+      resource: 0.001
+      risk: 0.001
+      energy: 0.0001
+    reliability: 0.999
+    availability:
+      always: true
+    mechanism:
+      kind: COMPUTATION
+      expression: "total = subtotal * (1 + tax_rate) + shipping"
+    roles:
+      - customer
+      - service
+
+  - id: EC-PlaceOrder
+    name: place_order
+    type: API
+    description: Turn the current cart into an order with a chosen payment method.
+    inputs:
+      - name: payment_method
+        type: enumerated
+        domain:
+          - CARD
+          - CASH
+          - TRANSFER
+        required: true
+    outputs:
+      - name: order_id
+        type: string
+        domain: generated order identifier
+    preconditions:
+      - variable: Cart.exists
+        op: "="
+        value: true
+    effects:
+      - variable: Order.exists
+        op: SET
+        value: true
+      - variable: Order.status
+        op: SET
+        value: CREATED
+    constraints: []
+    resources:
+      - shop_db
+    quality:
+      time_ms: 140
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.002
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/orders
+    roles:
+      - customer
+
+  - id: EC-PayOrder
+    name: pay_order
+    type: API
+    description: Authorise the payment of one created order through the payment gateway.
+    inputs:
+      - name: order_id
+        type: string
+        domain: created order identifier
+        required: true
+      - name: amount
+        type: real
+        domain:
+          - 0.01
+          - 1000000.0
+        required: true
+    outputs:
+      - name: receipt_id
+        type: string
+        domain: gateway receipt identifier
+    preconditions:
+      - variable: Order.exists
+        op: "="
+        value: true
+    effects:
+      - variable: Payment.status
+        op: SET
+        value: SUCCESS
+      - variable: Order.status
+        op: SET
+        value: PAID
+    constraints: []
+    resources:
+      - shop_db
+      - payment_gateway
+    quality:
+      time_ms: 320
+      money: 0.02
+      resource: 0.02
+      risk: 0.05
+      energy: 0.002
+    reliability: 0.98
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/orders/pay
+    roles:
+      - customer
+      - service
+
+  - id: EC-ReserveInventory
+    name: reserve_inventory
+    type: DATABASE
+    description: Decrement one unit of a product in the inventory table; repeat the call for several units.
+    inputs:
+      - name: sku
+        type: string
+        domain: product stock keeping unit
+        required: true
+    outputs:
+      - name: rows_changed
+        type: integer
+        domain:
+          - 0
+          - 1
+    preconditions:
+      - variable: Inventory.available
+        op: "="
+        value: true
+    effects:
+      - variable: Inventory.quantity
+        op: DECREMENT
+        value: 1
+    constraints: []
+    resources:
+      - shop_db
+    quality:
+      time_ms: 20
+      money: 0
+      resource: 0.005
+      risk: 0.01
+      energy: 0.0005
+    reliability: 0.999
+    availability:
+      always: true
+    mechanism:
+      kind: DATABASE
+      operation: update
+      table: inventory
+    roles:
+      - service
+
+  - id: EC-CancelOrder
+    name: cancel_order
+    type: API
+    description: Cancel a created order before it is dispatched and record the reason.
+    inputs:
+      - name: order_id
+        type: string
+        domain: created order identifier
+        required: true
+      - name: reason
+        type: string
+        domain: cancellation reason text
+        required: false
+    outputs:
+      - name: cancelled
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Order.exists
+        op: "="
+        value: true
+    effects:
+      - variable: Order.status
+        op: SET
+        value: CANCELLED
+    constraints: []
+    resources:
+      - shop_db
+    quality:
+      time_ms: 90
+      money: 0
+      resource: 0.01
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/orders/cancel
+    roles:
+      - customer
+      - service
+
+  - id: EC-EmailConfirmation
+    name: email_confirmation
+    type: MESSAGE
+    description: Publish the order confirmation mail for a paid order.
+    inputs:
+      - name: order_id
+        type: string
+        domain: paid order identifier
+        required: true
+    outputs:
+      - name: queued
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Order.status
+        op: "="
+        value: PAID
+    effects:
+      - variable: Notification.sent
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - mail_relay
+    quality:
+      time_ms: 40
+      money: 0
+      resource: 0.01
+      risk: 0.01
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: MESSAGE
+      topic: order.confirmations
+    roles:
+      - service
+
+  - id: EC-ExportInvoice
+    name: export_invoice
+    type: FILE
+    description: Write the invoice of a paid order to the export directory as a JSON file.
+    inputs:
+      - name: order_id
+        type: string
+        domain: paid order identifier
+        required: true
+    outputs:
+      - name: file_path
+        type: string
+        domain: written file path
+    preconditions:
+      - variable: Order.status
+        op: "="
+        value: PAID
+    effects: []
+    constraints: []
+    resources:
+      - export_dir
+    quality:
+      time_ms: 30
+      money: 0
+      resource: 0.01
+      risk: 0.005
+      energy: 0.0005
+    reliability: 0.995
+    availability:
+      always: true
+    mechanism:
+      kind: FILE
+      path: data/exports/order_invoice.json
+      format: json
+    roles:
+      - service
+
+  - id: EC-ShipOrder
+    name: ship_order
+    type: EVENT
+    description: React to the warehouse dispatch event and fulfil the order.
+    inputs:
+      - name: order_id
+        type: string
+        domain: paid order identifier
+        required: true
+    outputs:
+      - name: accepted
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Order.status
+        op: "="
+        value: PAID
+    effects:
+      - variable: Shipment.created
+        op: SET
+        value: true
+      - variable: Order.status
+        op: SET
+        value: FULFILLED
+    constraints: []
+    resources:
+      - warehouse_events
+      - shop_db
+    quality:
+      time_ms: 45
+      money: 0
+      resource: 0.01
+      risk: 0.01
+      energy: 0.001
+    reliability: 0.995
+    availability:
+      always: true
+    mechanism:
+      kind: EVENT
+      trigger: warehouse.dispatched
+      handler: on_shipment_dispatched
+    roles:
+      - service
+
+  - id: EC-LoyaltyPoints
+    name: loyalty_points
+    type: FUNCTION
+    description: Pure function computing the loyalty points of an order amount.
+    inputs:
+      - name: amount
+        type: real
+        domain:
+          - 0.0
+          - 1000000.0
+        required: true
+    outputs:
+      - name: points
+        type: integer
+        domain:
+          - 0
+          - 100000
+    preconditions: []
+    effects: []
+    constraints: []
+    resources:
+      - shop_db
+    quality:
+      time_ms: 1
+      money: 0
+      resource: 0.0001
+      risk: 0.0001
+      energy: 0.00001
+    reliability: 0.9999
+    availability:
+      always: true
+    mechanism:
+      kind: FUNCTION
+      function: loyalty_points
+    roles:
+      - service
+
+  - id: EC-CheckoutForm
+    name: checkout_form
+    type: GUI
+    description: Checkout screen that places the order of the current cart.
+    inputs:
+      - name: payment_method
+        type: enumerated
+        domain:
+          - CARD
+          - CASH
+          - TRANSFER
+        required: true
+    outputs:
+      - name: order_id
+        type: string
+        domain: generated order identifier
+    preconditions:
+      - variable: Cart.exists
+        op: "="
+        value: true
+    effects:
+      - variable: Order.exists
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - shop_db
+    quality:
+      time_ms: 250
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.002
+    reliability: 0.97
+    availability:
+      always: true
+    mechanism:
+      kind: GUI
+      action: SUBMIT
+      component: checkout_form
+      page: /ui/checkout
+    roles:
+      - customer

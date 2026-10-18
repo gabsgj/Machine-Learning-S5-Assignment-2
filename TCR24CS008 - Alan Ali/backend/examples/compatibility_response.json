@@ -1,0 +1,10 @@
+{
+  "compatible": true,
+  "producer_id": "create-order-api",
+  "consumer_id": "make-payment",
+  "evidence": [
+    {"requirement": "precondition", "name": "Order.exists", "expected": {"name": "Order.exists", "operator": "=", "value": true}, "provided": {"name": "Order.exists", "operator": "=", "value": true}, "satisfied": true},
+    {"requirement": "input", "name": "order_id", "expected_type": "UUID", "provided_type": "UUID", "satisfied": true}
+  ],
+  "reasons": []
+}

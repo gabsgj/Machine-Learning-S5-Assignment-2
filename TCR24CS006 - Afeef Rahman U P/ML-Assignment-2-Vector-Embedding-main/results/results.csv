@@ -1,0 +1,15 @@
+experiment,comparison,metric,value
+Experiment 1,CreateOrder -> MakePayment,compatibility,1.0
+Experiment 1,CreateOrder -> CancelCart,compatibility,0.4
+Experiment 2,Composite -> CreateOrder,similarity,0.7426104115457106
+Experiment 2,Composite -> MakePayment,similarity,0.8304625021848704
+Experiment 2,Composite -> SendNotification,similarity,0.7037534117165776
+Experiment 3,API -> DATABASE,similarity,0.7415164977765218
+Experiment 3,API -> GUI,similarity,0.8647165657134483
+Experiment 3,DATABASE -> GUI,similarity,0.7008850816064585
+Experiment 4,CreateOrder,goal_relevance,1.0
+Experiment 4,MakePayment,goal_relevance,1.0
+Experiment 4,SendNotification,goal_relevance,1.0
+Experiment 4,PlayMusic,goal_relevance,0.0
+Experiment 5,FastPayment -> SlowPayment,combined_similarity,0.7891372746936187
+Experiment 5,FastPayment -> SlowPayment,operational_similarity,0.5783333333333334

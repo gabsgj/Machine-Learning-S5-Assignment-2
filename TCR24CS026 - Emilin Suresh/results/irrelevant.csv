@@ -1,0 +1,6 @@
+capability,goal_relevance
+CreateOrder,0
+MakePayment,0
+SendConfirmation,1
+UpdateUserProfile,0
+GenerateReport,0

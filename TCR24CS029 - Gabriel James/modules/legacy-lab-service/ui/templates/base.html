@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Legacy Lab Service{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('ui.static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('ui.home') }}">CareWeave &middot; Legacy Lab</a>
+    <nav>
+      <a href="{{ url_for('ui.orders') }}">Lab orders</a>
+      <a href="{{ url_for('ui.order_new') }}">New order</a>
+      <a href="{{ url_for('ui.capabilities') }}">Capabilities</a>
+      <a href="/health">Health</a>
+      <a href="/spec">Spec</a>
+      <a href="/state">State</a>
+    </nav>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">Port 5006 &middot; served offline, no external assets</footer>
+  <script src="{{ url_for('ui.static', filename='app.js') }}"></script>
+</body>
+</html>

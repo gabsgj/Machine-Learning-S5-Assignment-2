@@ -1,0 +1,9 @@
+source,target,label,rationale
+C1,C2,1,CreateOrder effect OrderExists=true / OrderStatus=CREATED satisfies MakePayment preconditions.
+C1,C3,0,CreateOrder does not satisfy CancelCart's OrderExists=false precondition.
+C1,C4,1,"CreateOrder produces OrderExists=true, satisfying SendNotification."
+C2,C8,1,"MakePayment produces PaymentStatus=SUCCESS, satisfying ArchiveOrder."
+C2,C9,1,"MakePayment produces PaymentStatus=SUCCESS, satisfying RefundPayment."
+C1,C8,0,CreateOrder does not satisfy ArchiveOrder's PaymentStatus=SUCCESS.
+C3,C2,0,CancelCart does not produce the order/payment conditions required by MakePayment.
+C10,C2,0,ReserveInventory does not create an order.

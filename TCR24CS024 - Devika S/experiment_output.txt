@@ -1,0 +1,52 @@
+PCCST503 ASSIGNMENT 2 - VECTOR EMBEDDING FOR CAPABILITY COMPOSITION
+Problem: ecommerce_capability_composition
+State dimension: 17
+Capability dimension: 78
+
+=== EXPERIMENT 1: CAPABILITY COMPATIBILITY ===
+CreateOrder -> MakePayment = 1.00 (compatible)
+CreateOrder -> CancelCart = -1.00 (incompatible)
+Input/output CreateOrder -> MakePayment = 1.00
+
+=== EXPERIMENT 2: CAPABILITY COMPOSITION ===
+Composite = CreateOrder_THEN_MakePayment_THEN_SendNotification
+Dimension = 78
+Time = 220.00 ms, Cost = $0.03, Reliability = 0.99
+Similarity with CreateOrder = 0.69
+Similarity with MakePayment = 0.43
+Similarity with SendNotification = 0.49
+
+=== EXPERIMENT 3: ALTERNATIVE IMPLEMENTATIONS ===
+Effect similarity API/DB = 1.00
+Effect similarity API/GUI = 1.00
+Full capability similarity API/DB = 0.77
+Full capability similarity API/GUI = 0.75
+CreateOrder -> DB compatibility = 0.00 (alternative implementations are not sequential stages)
+
+=== EXPERIMENT 4: IRRELEVANT CAPABILITIES / GOAL RELEVANCE ===
+CreateOrder              effect-goal cosine = 0.4082
+MakePayment              effect-goal cosine = 0.5774
+CancelCart               effect-goal cosine = 0.0000
+SendNotification         effect-goal cosine = 0.5774
+CreateOrder_DB           effect-goal cosine = 0.4082
+CreateOrder_GUI          effect-goal cosine = 0.4082
+AddToCart                effect-goal cosine = 0.0000
+UpdateProfile            effect-goal cosine = 0.0000
+
+=== EXPERIMENT 5: OPERATIONAL ATTRIBUTES ===
+Capability              ms        cost      reliability avail     risk
+CreateOrder             70.0000   0.0100    0.9970      1.0000    0.0100
+MakePayment             120.0000  0.0200    0.9900      1.0000    0.0200
+CancelCart              45.0000   0.0030    0.9950      1.0000    0.0100
+SendNotification        30.0000   0.0020    0.9990      1.0000    0.0050
+CreateOrder_DB          25.0000   0.0020    0.9850      1.0000    0.0300
+CreateOrder_GUI         110.0000  0.0120    0.9920      1.0000    0.0150
+AddToCart               40.0000   0.0020    0.9980      1.0000    0.0100
+UpdateProfile           50.0000   0.0040    0.9990      1.0000    0.0050
+
+Sensitivity test using CreateOrder variants:
+higher_cost            cosine-to-baseline=0.9969
+lower_reliability      cosine-to-baseline=0.9987
+unavailable            cosine-to-baseline=0.9644
+higher_risk            cosine-to-baseline=0.9917
+Functional precondition/effect blocks are unchanged in these variants; only operational fields are perturbed.

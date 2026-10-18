@@ -1,0 +1,38 @@
+APPLICATION: Order Processing System
+
+PURPOSE:
+Demonstrate a problem-specific vector representation for
+formal states, goals, and executable capabilities.
+
+INITIAL STATE:
+cart_status = ACTIVE
+order_status = NONE
+payment_status = UNPAID
+confirmation_sent = NO
+
+GOAL:
+confirmation_sent = YES
+
+PRIMARY CAPABILITY CHAIN:
+CreateOrder -> MakePayment -> SendConfirmation
+
+INCOMPATIBLE CAPABILITY:
+CreateOrder -> CancelCart
+
+ALTERNATIVE IMPLEMENTATIONS:
+CreateOrder_API
+CreateOrder_DATABASE
+CreateOrder_GUI
+
+IRRELEVANT CAPABILITIES:
+UpdateUserProfile
+GenerateReport
+
+OPERATIONAL ATTRIBUTES:
+Execution time
+Resource cost
+Monetary cost
+Risk
+Energy
+Reliability
+Availability

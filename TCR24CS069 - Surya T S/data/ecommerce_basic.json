@@ -1,0 +1,148 @@
+{
+  "applicationName": "Ecommerce_Order_Fulfillment",
+  "domain": "E-Commerce",
+  "initialState": {
+    "authenticated": true,
+    "customer_exists": true,
+    "cart_exists": true,
+    "cart_has_items": true,
+    "inventory_available": true,
+    "order_exists": false,
+    "order_created": false,
+    "payment_success": false,
+    "notification_sent": false,
+    "order_cancelled": false,
+    "shipment_dispatched": false
+  },
+  "goal": [
+    { "variable": "order_exists", "expectedValue": true },
+    { "variable": "payment_success", "expectedValue": true },
+    { "variable": "notification_sent", "expectedValue": true }
+  ],
+  "resources": [
+    "PostgresDatabase",
+    "StripePaymentGateway",
+    "KafkaNotificationQueue"
+  ],
+  "globalConstraints": [
+    "cart_has_items == true",
+    "inventory_available == true"
+  ],
+  "capabilities": [
+    {
+      "id": "CreateOrder",
+      "name": "Create Order",
+      "description": "Transforms verified shopping cart into a formal order record",
+      "type": "API",
+      "mechanism": "POST /api/v1/orders",
+      "inputs": [
+        { "name": "cart_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs" }
+      ],
+      "preconditions": [
+        { "variable": "cart_exists", "expectedValue": true },
+        { "variable": "cart_has_items", "expectedValue": true }
+      ],
+      "effects": [
+        { "variable": "order_exists", "value": true },
+        { "variable": "order_created", "value": true }
+      ],
+      "constraints": ["cart_item_count > 0"],
+      "resources": ["PostgresDatabase"],
+      "qos": {
+        "timeCostMs": 80.0,
+        "moneyCost": 0.01,
+        "resourceCost": 1.0,
+        "risk": 0.01
+      },
+      "reliability": 0.999,
+      "availability": 1.0
+    },
+    {
+      "id": "MakePayment",
+      "name": "Make Payment",
+      "description": "Charges customer credit/debit card for created order amount",
+      "type": "SERVICE",
+      "mechanism": "POST /api/v1/payments/charge",
+      "inputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "payment_id", "type": "UUID", "domain": "valid UUIDs" }
+      ],
+      "preconditions": [
+        { "variable": "order_exists", "expectedValue": true }
+      ],
+      "effects": [
+        { "variable": "payment_success", "value": true }
+      ],
+      "constraints": ["transaction_amount <= limit"],
+      "resources": ["StripePaymentGateway"],
+      "qos": {
+        "timeCostMs": 120.0,
+        "moneyCost": 0.05,
+        "resourceCost": 1.0,
+        "risk": 0.02
+      },
+      "reliability": 0.995,
+      "availability": 1.0
+    },
+    {
+      "id": "SendNotification",
+      "name": "Send Notification",
+      "description": "Dispatches confirmation receipt email and SMS notification",
+      "type": "EVENT",
+      "mechanism": "EVENT_BUS publish OrderPaidEvent",
+      "inputs": [
+        { "name": "payment_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "notification_id", "type": "UUID", "domain": "valid UUIDs" }
+      ],
+      "preconditions": [
+        { "variable": "payment_success", "expectedValue": true }
+      ],
+      "effects": [
+        { "variable": "notification_sent", "value": true }
+      ],
+      "constraints": ["notification_queue_active == true"],
+      "resources": ["KafkaNotificationQueue"],
+      "qos": {
+        "timeCostMs": 50.0,
+        "moneyCost": 0.005,
+        "resourceCost": 1.0,
+        "risk": 0.005
+      },
+      "reliability": 0.999,
+      "availability": 1.0
+    },
+    {
+      "id": "CancelCart",
+      "name": "Cancel Cart",
+      "description": "Empties and abandons the cart before an order is placed",
+      "type": "API",
+      "mechanism": "DELETE /api/v1/cart",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [
+        { "variable": "order_exists", "expectedValue": false }
+      ],
+      "effects": [
+        { "variable": "cart_exists", "value": false },
+        { "variable": "order_cancelled", "value": true }
+      ],
+      "constraints": [],
+      "resources": ["PostgresDatabase"],
+      "qos": {
+        "timeCostMs": 20.0,
+        "moneyCost": 0.0,
+        "resourceCost": 1.0,
+        "risk": 0.0
+      },
+      "reliability": 0.999,
+      "availability": 1.0
+    }
+  ]
+}

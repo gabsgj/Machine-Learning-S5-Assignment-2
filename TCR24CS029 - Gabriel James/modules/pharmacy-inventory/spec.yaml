@@ -1,0 +1,334 @@
+# Formal capability specification sheet, YAML rendering.
+# Generated from spec.json by the careweave_cli spec-yaml command; the two files are
+# always equivalent, and the round trip is proved by the command and by the test suite.
+capabilities:
+  - availability: true
+    constraints: []
+    description: Add a drug to the catalogue with a unit price and an optional initial quantity.
+    effects: []
+    id: PH-RegisterDrug
+    inputs:
+      - domain: stock keeping unit
+        name: sku
+        required: true
+        type: string
+      - domain: drug name
+        name: name
+        required: true
+        type: string
+      - domain:
+          - "0.01"
+          - "100000.0"
+        name: unit_price
+        required: true
+        type: real
+      - domain:
+          - "0"
+          - "100000"
+        name: initial_quantity
+        required: false
+        type: integer
+    mechanism:
+      endpoint: /api/register_drug
+      kind: API
+      method: POST
+    name: register_drug
+    outputs:
+      - domain: stock keeping unit
+        name: sku
+        type: string
+      - domain: drug name
+        name: name
+        type: string
+      - domain:
+          - "0"
+          - "1000000"
+        name: on_hand
+        type: integer
+    preconditions: []
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.02
+      time_ms: 120.0
+    reliability: 0.99
+    resources:
+      - pharmacy_db
+    roles:
+      - pharmacist
+    type: API
+  - availability: true
+    constraints: []
+    description: "Read the stock level, unit price and availability of one drug."
+    effects: []
+    id: PH-CheckStock
+    inputs:
+      - domain: stock keeping unit
+        name: sku
+        required: true
+        type: string
+    mechanism:
+      endpoint: /api/check_stock
+      kind: API
+      method: POST
+    name: check_stock
+    outputs:
+      - domain: stock keeping unit
+        name: sku
+        type: string
+      - domain: drug name
+        name: name
+        type: string
+      - domain:
+          - "0"
+          - "1000000"
+        name: on_hand
+        type: integer
+      - domain:
+          - "0.01"
+          - "100000.0"
+        name: unit_price
+        type: real
+      - domain:
+          - "false"
+          - "true"
+        name: available
+        type: boolean
+    preconditions: []
+    quality:
+      energy: 0.0005
+      money: 0.0
+      resource: 0.01
+      risk: 0.005
+      time_ms: 40.0
+    reliability: 0.995
+    resources:
+      - pharmacy_db
+    roles:
+      - pharmacist
+      - nurse
+    type: API
+  - availability: true
+    constraints: []
+    description: "Dispense a quantity of a drug, rejecting requests above the level on hand."
+    effects:
+      - op: SET
+        value: true
+        variable: Drug.dispensed
+    id: PH-DispenseDrug
+    inputs:
+      - domain: stock keeping unit
+        name: sku
+        required: true
+        type: string
+      - domain:
+          - "1"
+          - "1000"
+        name: quantity
+        required: true
+        type: integer
+      - domain: medical record number
+        name: patient_mrn
+        required: false
+        type: string
+    mechanism:
+      endpoint: /api/dispense_drug
+      kind: API
+      method: POST
+    name: dispense_drug
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: dispensed
+        type: boolean
+      - domain:
+          - "0"
+          - "1000000"
+        name: remaining
+        type: integer
+      - domain: ISO 8601 timestamp
+        name: dispensed_at
+        type: string
+    preconditions:
+      - op: =
+        value: true
+        variable: Stock.available
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.05
+      time_ms: 100.0
+    reliability: 0.99
+    resources:
+      - pharmacy_db
+    roles:
+      - pharmacist
+    type: API
+  - availability: true
+    constraints: []
+    description: Add units to the stock level of one drug.
+    effects:
+      - op: SET
+        value: true
+        variable: Stock.available
+    id: PH-Replenish
+    inputs:
+      - domain: stock keeping unit
+        name: sku
+        required: true
+        type: string
+      - domain:
+          - "1"
+          - "10000"
+        name: quantity
+        required: true
+        type: integer
+    mechanism:
+      endpoint: /api/replenish_stock
+      kind: API
+      method: POST
+    name: replenish_stock
+    outputs:
+      - domain: stock keeping unit
+        name: sku
+        type: string
+      - domain:
+          - "0"
+          - "1000000"
+        name: on_hand
+        type: integer
+    preconditions: []
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.02
+      time_ms: 90.0
+    reliability: 0.99
+    resources:
+      - pharmacy_db
+    roles:
+      - pharmacist
+    type: API
+  - availability: true
+    constraints: []
+    description: Dispensing screen that submits a dispense request for a catalogue drug.
+    effects:
+      - op: SET
+        value: true
+        variable: Drug.dispensed
+    id: PH-Form
+    inputs:
+      - domain: stock keeping unit
+        name: sku
+        required: true
+        type: string
+      - domain:
+          - "1"
+          - "1000"
+        name: quantity
+        required: true
+        type: integer
+      - domain: medical record number
+        name: patient_mrn
+        required: false
+        type: string
+    mechanism:
+      action: SUBMIT
+      component: dispense_form
+      kind: GUI
+      page: /ui/dispense
+    name: dispense_form
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: dispensed
+        type: boolean
+    preconditions:
+      - op: =
+        value: true
+        variable: Stock.available
+    quality:
+      energy: 0.002
+      money: 0.0
+      resource: 0.02
+      risk: 0.05
+      time_ms: 230.0
+    reliability: 0.97
+    resources:
+      - pharmacy_db
+    roles:
+      - pharmacist
+    type: GUI
+
+constraints:
+  - enforced_by: services.pharmacy.dispense_drug rejects requests above the level on hand
+    expression: "Stock.quantity >= 0 always"
+    id: K-No-Negative-Stock
+    kind: state
+  - enforced_by: services.pharmacy.require_positive_int call sites
+    expression: "dispense quantity in 1..1000, replenish quantity in 1..10000"
+    id: K-Quantity-Range
+    kind: input
+  - enforced_by: db.py PRIMARY KEY(drugs.sku) and services.pharmacy.register_drug
+    expression: one SKU identifies one catalogue entry
+    id: K-Sku-Unique
+    kind: domain
+
+goal:
+  - op: =
+    value: true
+    variable: Stock.available
+  - op: =
+    value: true
+    variable: Drug.dispensed
+
+initial_state:
+  Drug.dispensed: false
+  Stock.available: false
+  Stock.quantity: 0
+
+module:
+  base_url: "http://127.0.0.1:5004"
+  database_file: data/pharmacy_inventory.db
+  description: "Pharmacy inventory: drug catalogue, stock checks, dispensing with shortage rejection and replenishment."
+  domain: hospital
+  health: /health
+  language: python
+  module_id: pharmacy-inventory
+  port: 5004
+  ui: /ui/
+  version: 1.0.0
+
+resources:
+  - available: true
+    details: SQLite database in WAL mode owned by this module
+    id: pharmacy_db
+    kind: database
+  - available: true
+    details: Loopback HTTP interface used by the gateway and the dashboard
+    id: network
+    kind: network
+
+spec_version: "1.0"
+
+state_schema:
+  - domain:
+      - "false"
+      - "true"
+    name: Stock.available
+    type: boolean
+  - domain:
+      - 0.0
+      - 100000.0
+    name: Stock.quantity
+    type: integer
+  - domain:
+      - "false"
+      - "true"
+    name: Drug.dispensed
+    type: boolean

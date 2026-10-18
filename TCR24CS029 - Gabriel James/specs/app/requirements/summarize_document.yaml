@@ -1,0 +1,85 @@
+# Client requirement sheet: summarize a parsed document.
+#
+# Used by the document problem of the dataset: the requirement must resolve to DOC-Summarize,
+# the pure computation step of the document application.
+spec_version: "1.0"
+
+module:
+  module_id: requirement-summarize-document
+  version: "1.0"
+  domain: documents
+  port: 5205
+  base_url: "http://127.0.0.1:5205"
+  health: /health
+  description: Client requirement for computing the summary length of a parsed document.
+  language: specification
+
+state_schema:
+  - name: Summary.generated
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+
+initial_state:
+  Summary.generated: false
+
+resources:
+  - id: requirement_db
+    kind: database
+    available: true
+    details: Placeholder resource of the requirement, bound only when a candidate is selected
+
+constraints:
+  - id: K-Required-Inputs
+    kind: input
+    expression: page_count is mandatory and at least 1
+    enforced_by: requirement definition
+
+goal:
+  - variable: Summary.generated
+    op: "="
+    value: true
+
+capabilities:
+  - id: REQ-SummarizeDocument
+    name: summarize_document
+    type: API
+    description: Compute the summary length that will be written for a parsed document.
+    inputs:
+      - name: page_count
+        type: integer
+        domain:
+          - 1
+          - 100000
+        required: true
+    outputs:
+      - name: summary_length
+        type: integer
+        domain:
+          - 25
+          - 1000000
+    preconditions: []
+    effects:
+      - variable: Summary.generated
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - requirement_db
+    quality:
+      time_ms: 20
+      money: 0
+      resource: 0.001
+      risk: 0.001
+      energy: 0.0001
+    reliability: 0.999
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/summarize
+    roles:
+      - operator

@@ -1,0 +1,423 @@
+{
+  "application": {
+    "name": "E-Commerce Capability Composition",
+    "description": "Formal application for testing capability embeddings and composition"
+  },
+
+  "states": [
+    {
+      "id": "InitialState",
+      "values": {
+        "User.authenticated": true,
+        "Cart.exists": true,
+        "Order.exists": false,
+        "Order.status": "NONE",
+        "Payment.status": "NOT_STARTED",
+        "Invoice.generated": false,
+        "Shipment.dispatched": false,
+        "Notification.sent": false
+      }
+    },
+
+    {
+      "id": "OrderCreatedState",
+      "values": {
+        "User.authenticated": true,
+        "Cart.exists": true,
+        "Order.exists": true,
+        "Order.status": "CREATED",
+        "Payment.status": "NOT_STARTED",
+        "Invoice.generated": false,
+        "Shipment.dispatched": false,
+        "Notification.sent": false
+      }
+    },
+
+    {
+      "id": "PaidState",
+      "values": {
+        "User.authenticated": true,
+        "Cart.exists": true,
+        "Order.exists": true,
+        "Order.status": "PAID",
+        "Payment.status": "SUCCESS",
+        "Invoice.generated": false,
+        "Shipment.dispatched": false,
+        "Notification.sent": false
+      }
+    }
+  ],
+
+  "goals": [
+    {
+      "id": "CompletePurchase",
+      "conditions": {
+        "Order.exists": true,
+        "Payment.status": "SUCCESS",
+        "Notification.sent": true
+      }
+    }
+  ],
+
+  "capabilities": [
+
+    {
+      "id": "CreateOrder",
+      "name": "Create Order",
+      "description": "Creates an order from an existing shopping cart.",
+      "type": "API",
+      "mechanism": "POST /orders",
+
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "order identifiers"
+        }
+      ],
+
+      "preconditions": {
+        "User.authenticated": true,
+        "Cart.exists": true,
+        "Order.exists": false
+      },
+
+      "effects": {
+        "Order.exists": true,
+        "Order.status": "CREATED"
+      },
+
+      "constraints": [
+        "cart must contain at least one item"
+      ],
+
+      "resources": [
+        "Database",
+        "Network"
+      ],
+
+      "qos": {
+        "timeCostMs": 80.0,
+        "moneyCost": 0.01,
+        "resourceCost": 1.0,
+        "risk": 0.01
+      },
+
+      "reliability": 0.999
+    },
+
+    {
+      "id": "MakePayment_API",
+      "name": "Make Payment via API",
+      "description": "Processes payment through an external payment gateway.",
+      "type": "API",
+      "mechanism": "POST /payments",
+
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "order identifiers",
+          "required": true
+        }
+      ],
+
+      "outputs": [
+        {
+          "name": "payment_id",
+          "type": "UUID",
+          "domain": "payment identifiers"
+        }
+      ],
+
+      "preconditions": {
+        "Order.exists": true,
+        "Order.status": "CREATED"
+      },
+
+      "effects": {
+        "Payment.status": "SUCCESS",
+        "Order.status": "PAID"
+      },
+
+      "constraints": [
+        "payment amount must be valid"
+      ],
+
+      "resources": [
+        "Payment Gateway",
+        "Network"
+      ],
+
+      "qos": {
+        "timeCostMs": 120.0,
+        "moneyCost": 0.05,
+        "resourceCost": 1.0,
+        "risk": 0.01
+      },
+
+      "reliability": 0.992
+    },
+
+    {
+      "id": "MakePayment_DB",
+      "name": "Make Payment via Database",
+      "description": "Processes payment using an internal ledger database.",
+      "type": "DATABASE",
+      "mechanism": "INSERT INTO payments",
+
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "order identifiers",
+          "required": true
+        }
+      ],
+
+      "outputs": [
+        {
+          "name": "payment_id",
+          "type": "UUID",
+          "domain": "payment identifiers"
+        }
+      ],
+
+      "preconditions": {
+        "Order.exists": true,
+        "Order.status": "CREATED"
+      },
+
+      "effects": {
+        "Payment.status": "SUCCESS",
+        "Order.status": "PAID"
+      },
+
+      "constraints": [
+        "ledger must be available"
+      ],
+
+      "resources": [
+        "Database"
+      ],
+
+      "qos": {
+        "timeCostMs": 35.0,
+        "moneyCost": 0.002,
+        "resourceCost": 2.0,
+        "risk": 0.05
+      },
+
+      "reliability": 0.965
+    },
+
+    {
+      "id": "MakePayment_GUI",
+      "name": "Make Payment via GUI",
+      "description": "Processes payment through a graphical payment interface.",
+      "type": "GUI",
+      "mechanism": "CLICK payment_button",
+
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "order identifiers",
+          "required": true
+        }
+      ],
+
+      "outputs": [
+        {
+          "name": "payment_id",
+          "type": "UUID",
+          "domain": "payment identifiers"
+        }
+      ],
+
+      "preconditions": {
+        "Order.exists": true,
+        "Order.status": "CREATED"
+      },
+
+      "effects": {
+        "Payment.status": "SUCCESS",
+        "Order.status": "PAID"
+      },
+
+      "constraints": [
+        "payment interface must be accessible"
+      ],
+
+      "resources": [
+        "Browser",
+        "Network"
+      ],
+
+      "qos": {
+        "timeCostMs": 200.0,
+        "moneyCost": 0.08,
+        "resourceCost": 1.0,
+        "risk": 0.03
+      },
+
+      "reliability": 0.975
+    },
+
+    {
+      "id": "SendNotification",
+      "name": "Send Purchase Notification",
+      "description": "Notifies the customer that the purchase was completed.",
+      "type": "EVENT",
+      "mechanism": "OrderCompletedEvent",
+
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "order identifiers",
+          "required": true
+        }
+      ],
+
+      "outputs": [
+        {
+          "name": "notification_id",
+          "type": "UUID",
+          "domain": "notification identifiers"
+        }
+      ],
+
+      "preconditions": {
+        "Payment.status": "SUCCESS"
+      },
+
+      "effects": {
+        "Notification.sent": true
+      },
+
+      "resources": [
+        "Notification Service",
+        "Network"
+      ],
+
+      "qos": {
+        "timeCostMs": 25.0,
+        "moneyCost": 0.005,
+        "resourceCost": 1.0,
+        "risk": 0.005
+      },
+
+      "reliability": 0.999
+    },
+
+    {
+      "id": "CancelCart",
+      "name": "Cancel Cart",
+      "description": "Cancels an active shopping cart.",
+      "type": "API",
+      "mechanism": "DELETE /cart",
+
+      "inputs": [],
+
+      "outputs": [],
+
+      "preconditions": {
+        "Order.exists": false
+      },
+
+      "effects": {
+        "Cart.exists": false
+      },
+
+      "resources": [
+        "Database",
+        "Network"
+      ],
+
+      "qos": {
+        "timeCostMs": 15.0,
+        "moneyCost": 0.0,
+        "resourceCost": 1.0,
+        "risk": 0.0
+      },
+
+      "reliability": 0.999
+    },
+
+    {
+      "id": "BrowseCatalog",
+      "name": "Browse Product Catalog",
+      "description": "Allows a user to browse products.",
+      "type": "API",
+      "mechanism": "GET /catalog",
+
+      "inputs": [],
+
+      "outputs": [],
+
+      "preconditions": {},
+
+      "effects": {
+        "Catalog.viewed": true
+      },
+
+      "resources": [
+        "Database",
+        "Network"
+      ],
+
+      "qos": {
+        "timeCostMs": 20.0,
+        "moneyCost": 0.0,
+        "resourceCost": 1.0,
+        "risk": 0.0
+      },
+
+      "reliability": 0.999
+    },
+
+    {
+      "id": "UpdateWishlist",
+      "name": "Update Wishlist",
+      "description": "Adds a product to a user's wishlist.",
+      "type": "API",
+      "mechanism": "POST /wishlist",
+
+      "inputs": [],
+
+      "outputs": [],
+
+      "preconditions": {
+        "User.authenticated": true
+      },
+
+      "effects": {
+        "Wishlist.updated": true
+      },
+
+      "resources": [
+        "Database",
+        "Network"
+      ],
+
+      "qos": {
+        "timeCostMs": 30.0,
+        "moneyCost": 0.0,
+        "resourceCost": 1.0,
+        "risk": 0.0
+      },
+
+      "reliability": 0.999
+    }
+  ]
+}

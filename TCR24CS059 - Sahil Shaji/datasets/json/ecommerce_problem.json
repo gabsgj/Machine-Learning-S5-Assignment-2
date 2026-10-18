@@ -1,0 +1,625 @@
+{
+  "domain": "ecommerce",
+  "initial_state": {
+    "User.authenticated": true,
+    "User.role": "CUSTOMER",
+    "Cart.exists": true,
+    "Cart.item_count": 3,
+    "Order.exists": false,
+    "Payment.status": "NOT_STARTED",
+    "Inventory.available": true,
+    "Notification.sent": false,
+    "Order.status": "NONE"
+  },
+  "goal": {
+    "Order.exists": true,
+    "Payment.status": "SUCCESS",
+    "Notification.sent": true
+  },
+  "capabilities": {
+    "CreateOrder_API": {
+      "name": "CreateOrder_API",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "user_token",
+          "type": "STRING",
+          "domain": "any",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": {
+        "Cart.exists": true,
+        "User.authenticated": true
+      },
+      "effects": {
+        "Order.exists": true,
+        "Order.status": "CREATED"
+      },
+      "constraints": [
+        {
+          "expression": "Cart.item_count > 0",
+          "variables": [
+            "Cart.item_count"
+          ],
+          "constraint_type": "STATE_CONSTRAINT"
+        }
+      ],
+      "resources": [
+        {
+          "name": "Database",
+          "resource_type": "STORAGE",
+          "quantity": 1.0
+        },
+        {
+          "name": "Network",
+          "resource_type": "NETWORK",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 120.0,
+        "monetary_cost": 0.015,
+        "resource_cost": 2.0,
+        "risk": 0.02,
+        "energy_cost": 0.8,
+        "reliability": 0.995,
+        "availability": 0.999
+      },
+      "mechanism": {
+        "mechanism_type": "API",
+        "details": {
+          "method": "POST",
+          "endpoint": "/orders"
+        }
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "CreateOrder_DB": {
+      "name": "CreateOrder_DB",
+      "type": "DATABASE",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "any",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "any"
+        }
+      ],
+      "preconditions": {
+        "Cart.exists": true,
+        "User.authenticated": true
+      },
+      "effects": {
+        "Order.exists": true,
+        "Order.status": "CREATED"
+      },
+      "constraints": [
+        {
+          "expression": "Cart.item_count > 0",
+          "variables": [
+            "Cart.item_count"
+          ],
+          "constraint_type": "STATE_CONSTRAINT"
+        }
+      ],
+      "resources": [
+        {
+          "name": "Database",
+          "resource_type": "STORAGE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 25.0,
+        "monetary_cost": 0.003,
+        "resource_cost": 1.5,
+        "risk": 0.01,
+        "energy_cost": 0.3,
+        "reliability": 0.999,
+        "availability": 0.9995
+      },
+      "mechanism": {
+        "mechanism_type": "DATABASE",
+        "details": {
+          "operation": "INSERT",
+          "table": "orders"
+        }
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "CreateOrder_GUI": {
+      "name": "CreateOrder_GUI",
+      "type": "GUI",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "any",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "any"
+        }
+      ],
+      "preconditions": {
+        "Cart.exists": true,
+        "User.authenticated": true
+      },
+      "effects": {
+        "Order.exists": true,
+        "Order.status": "CREATED"
+      },
+      "constraints": [
+        {
+          "expression": "Cart.item_count > 0",
+          "variables": [
+            "Cart.item_count"
+          ],
+          "constraint_type": "STATE_CONSTRAINT"
+        }
+      ],
+      "resources": [
+        {
+          "name": "Browser",
+          "resource_type": "CLIENT",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 650.0,
+        "monetary_cost": 0.05,
+        "resource_cost": 4.0,
+        "risk": 0.08,
+        "energy_cost": 2.5,
+        "reliability": 0.96,
+        "availability": 0.98
+      },
+      "mechanism": {
+        "mechanism_type": "GUI",
+        "details": {
+          "action": "CLICK",
+          "component": "submit_order_button"
+        }
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "MakePayment": {
+      "name": "MakePayment",
+      "type": "SERVICE",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "any",
+          "required": true
+        },
+        {
+          "name": "amount",
+          "type": "FLOAT",
+          "domain": "any",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_receipt",
+          "type": "STRING",
+          "domain": "any"
+        }
+      ],
+      "preconditions": {
+        "Order.exists": true
+      },
+      "effects": {
+        "Payment.status": "SUCCESS"
+      },
+      "constraints": [
+        {
+          "expression": "payment_amount <= transaction_limit",
+          "variables": [
+            "amount"
+          ],
+          "constraint_type": "STATE_CONSTRAINT"
+        }
+      ],
+      "resources": [
+        {
+          "name": "PaymentGateway",
+          "resource_type": "EXTERNAL",
+          "quantity": 1.0
+        },
+        {
+          "name": "Network",
+          "resource_type": "NETWORK",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 350.0,
+        "monetary_cost": 0.05,
+        "resource_cost": 3.0,
+        "risk": 0.03,
+        "energy_cost": 1.2,
+        "reliability": 0.985,
+        "availability": 0.995
+      },
+      "mechanism": {
+        "mechanism_type": "SERVICE",
+        "details": {
+          "gateway": "Stripe",
+          "action": "charge"
+        }
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "CancelCart": {
+      "name": "CancelCart",
+      "type": "FUNCTION",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "any",
+          "required": true
+        }
+      ],
+      "outputs": [],
+      "preconditions": {
+        "Order.exists": false
+      },
+      "effects": {
+        "Cart.exists": false
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "Database",
+          "resource_type": "STORAGE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 30.0,
+        "monetary_cost": 0.001,
+        "resource_cost": 0.5,
+        "risk": 0.005,
+        "energy_cost": 0.1,
+        "reliability": 0.999,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "FUNCTION",
+        "details": {
+          "fn": "cart_service.discard"
+        }
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "SendNotification": {
+      "name": "SendNotification",
+      "type": "MESSAGE",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "any",
+          "required": true
+        },
+        {
+          "name": "payment_receipt",
+          "type": "STRING",
+          "domain": "any",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "notification_id",
+          "type": "UUID",
+          "domain": "any"
+        }
+      ],
+      "preconditions": {
+        "Payment.status": "SUCCESS"
+      },
+      "effects": {
+        "Notification.sent": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "EmailService",
+          "resource_type": "EXTERNAL",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 80.0,
+        "monetary_cost": 0.005,
+        "resource_cost": 1.0,
+        "risk": 0.01,
+        "energy_cost": 0.4,
+        "reliability": 0.992,
+        "availability": 0.999
+      },
+      "mechanism": {
+        "mechanism_type": "MESSAGE",
+        "details": {
+          "channel": "Email",
+          "template": "order_receipt"
+        }
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "CheckInventory": {
+      "name": "CheckInventory",
+      "type": "DATABASE",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "any",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "stock_available",
+          "type": "BOOLEAN",
+          "domain": "any"
+        }
+      ],
+      "preconditions": {
+        "Cart.exists": true
+      },
+      "effects": {
+        "Inventory.available": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "Database",
+          "resource_type": "STORAGE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 45.0,
+        "monetary_cost": 0.002,
+        "resource_cost": 0.8,
+        "risk": 0.005,
+        "energy_cost": 0.2,
+        "reliability": 0.999,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "DATABASE",
+        "details": {
+          "table": "inventory",
+          "action": "SELECT"
+        }
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "UpdateUserAvatar": {
+      "name": "UpdateUserAvatar",
+      "type": "FILE",
+      "inputs": [
+        {
+          "name": "image_bytes",
+          "type": "BYTES",
+          "domain": "any",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "avatar_url",
+          "type": "STRING",
+          "domain": "any"
+        }
+      ],
+      "preconditions": {
+        "User.authenticated": true
+      },
+      "effects": {
+        "User.avatar_updated": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "S3Storage",
+          "resource_type": "STORAGE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 180.0,
+        "monetary_cost": 0.004,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.98,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "FILE",
+        "details": {
+          "storage": "S3",
+          "bucket": "avatars"
+        }
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "GenerateTaxAuditReport": {
+      "name": "GenerateTaxAuditReport",
+      "type": "COMPUTATION",
+      "inputs": [
+        {
+          "name": "fiscal_year",
+          "type": "INTEGER",
+          "domain": "any",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audit_pdf",
+          "type": "FILE",
+          "domain": "any"
+        }
+      ],
+      "preconditions": {
+        "User.role": "ADMIN"
+      },
+      "effects": {
+        "TaxReport.generated": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "CPUCluster",
+          "resource_type": "COMPUTE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 2500.0,
+        "monetary_cost": 0.2,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.95,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "COMPUTATION",
+        "details": {
+          "engine": "Spark"
+        }
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "BrowseCatalogRecommendations": {
+      "name": "BrowseCatalogRecommendations",
+      "type": "SERVICE",
+      "inputs": [
+        {
+          "name": "category",
+          "type": "STRING",
+          "domain": "any",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "recommendations",
+          "type": "LIST",
+          "domain": "any"
+        }
+      ],
+      "preconditions": {},
+      "effects": {
+        "Catalog.viewed": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "RecEngine",
+          "resource_type": "SERVICE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 90.0,
+        "monetary_cost": 0.008,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.99,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "SERVICE",
+        "details": {
+          "service": "RecSys"
+        }
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "ResetOrderState": {
+      "name": "ResetOrderState",
+      "type": "FUNCTION",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Order.exists": true
+      },
+      "effects": {
+        "Order.exists": false,
+        "Payment.status": "NOT_STARTED",
+        "Notification.sent": false
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "Database",
+          "resource_type": "STORAGE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 40.0,
+        "monetary_cost": 0.001,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.99,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "FUNCTION",
+        "details": {
+          "fn": "orders.reset"
+        }
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    }
+  }
+}

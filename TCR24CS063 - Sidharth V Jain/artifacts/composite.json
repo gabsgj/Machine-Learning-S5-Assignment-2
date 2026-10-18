@@ -1,0 +1,55 @@
+{
+  "id": "COMPOSITE_C1_C2_C4",
+  "name": "CreateOrder \u25e6 MakePayment \u25e6 SendNotification",
+  "type": "COMPOSITE",
+  "mechanism": {
+    "sequence": "C1 -> C2 -> C4"
+  },
+  "inputs": [
+    {
+      "name": "cart_id",
+      "type": "UUID",
+      "domain": "valid UUIDs",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "name": "notification_id",
+      "type": "UUID",
+      "domain": "valid UUIDs"
+    }
+  ],
+  "preconditions": {
+    "User.authenticated": true,
+    "Cart.exists": true,
+    "Cart.item_count": ">0",
+    "Inventory.available": true
+  },
+  "effects": {
+    "Order.exists": true,
+    "Order.status": "CREATED",
+    "Cart.locked": true,
+    "Payment.status": "SUCCESS",
+    "Notification.sent": true
+  },
+  "constraints": [
+    "payment_amount <= transaction_limit",
+    "quantity > 0"
+  ],
+  "resources": [
+    "Authentication token",
+    "Database",
+    "External service",
+    "Network",
+    "Payment gateway"
+  ],
+  "cost": {
+    "time_ms": 550,
+    "resource": 7,
+    "money": 0.23,
+    "risk": 0.4
+  },
+  "reliability": 0.9410939999999999,
+  "availability": 1
+}

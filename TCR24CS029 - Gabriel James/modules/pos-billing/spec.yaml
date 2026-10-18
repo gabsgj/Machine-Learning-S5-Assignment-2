@@ -1,0 +1,349 @@
+# Formal capability specification sheet, YAML rendering.
+# Generated from spec.json by the careweave_cli spec-yaml command; the two files are
+# always equivalent, and the round trip is proved by the command and by the test suite.
+capabilities:
+  - availability: true
+    constraints: []
+    description: Generate an invoice for a patient with an amount and optional description.
+    effects:
+      - op: SET
+        value: true
+        variable: Invoice.generated
+    id: BILL-GenerateInvoice
+    inputs:
+      - domain: medical record number
+        name: patient_mrn
+        required: true
+        type: string
+      - domain:
+          - "0.01"
+          - "100000.0"
+        name: amount
+        required: true
+        type: real
+      - domain: invoice description text
+        name: description
+        required: false
+        type: string
+    mechanism:
+      endpoint: /api/generate_invoice
+      kind: API
+      method: POST
+    name: generate_invoice
+    outputs:
+      - domain: generated invoice identifier
+        name: invoice_id
+        type: string
+      - domain:
+          - "0.01"
+          - "100000.0"
+        name: amount
+        type: real
+      - domain: ISO 8601 timestamp
+        name: generated_at
+        type: string
+    preconditions: []
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.02
+      time_ms: 120.0
+    reliability: 0.99
+    resources:
+      - billing_db
+    roles:
+      - clerk
+    type: API
+  - availability: true
+    constraints: []
+    description: Process the payment of an invoice; a cash tender below the amount is rejected.
+    effects:
+      - op: SET
+        value: true
+        variable: Invoice.paid
+    id: BILL-ProcessPayment
+    inputs:
+      - domain: unpaid invoice identifier
+        name: invoice_id
+        required: true
+        type: string
+      - domain:
+          - CARD
+          - CASH
+          - TRANSFER
+        name: method
+        required: true
+        type: enumerated
+      - domain:
+          - "0.01"
+          - "100000.0"
+        name: amount_tendered
+        required: false
+        type: real
+    mechanism:
+      endpoint: /api/process_payment
+      kind: API
+      method: POST
+    name: process_payment
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: paid
+        type: boolean
+      - domain: ISO 8601 timestamp
+        name: paid_at
+        type: string
+      - domain:
+          - "0.0"
+          - "100000.0"
+        name: change_due
+        type: real
+    preconditions:
+      - op: =
+        value: true
+        variable: Invoice.generated
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.04
+      time_ms: 140.0
+    reliability: 0.99
+    resources:
+      - billing_db
+    roles:
+      - clerk
+    type: API
+  - availability: true
+    constraints: []
+    description: Read the receipt text and payment status of an invoice.
+    effects: []
+    id: BILL-GetReceipt
+    inputs:
+      - domain: invoice identifier
+        name: invoice_id
+        required: true
+        type: string
+    mechanism:
+      endpoint: /api/get_receipt
+      kind: API
+      method: POST
+    name: get_receipt
+    outputs:
+      - domain: human readable receipt line
+        name: receipt_text
+        type: string
+      - domain:
+          - "0.01"
+          - "100000.0"
+        name: amount
+        type: real
+      - domain:
+          - "false"
+          - "true"
+        name: paid
+        type: boolean
+    preconditions:
+      - op: =
+        value: true
+        variable: Invoice.generated
+    quality:
+      energy: 0.0005
+      money: 0.0
+      resource: 0.01
+      risk: 0.005
+      time_ms: 40.0
+    reliability: 0.995
+    resources:
+      - billing_db
+    roles:
+      - clerk
+      - patient
+    type: API
+  - availability: true
+    constraints: []
+    description: Send a receipt notice for a paid invoice over one channel.
+    effects:
+      - op: SET
+        value: true
+        variable: Notification.sent
+    id: BILL-SendReceiptNotice
+    inputs:
+      - domain: paid invoice identifier
+        name: invoice_id
+        required: true
+        type: string
+      - domain:
+          - EMAIL
+          - SMS
+        name: channel
+        required: true
+        type: enumerated
+      - domain: contact address or number
+        name: destination
+        required: false
+        type: string
+    mechanism:
+      endpoint: /api/send_receipt_notice
+      kind: API
+      method: POST
+    name: send_receipt_notice
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: sent
+        type: boolean
+      - domain: ISO 8601 timestamp
+        name: sent_at
+        type: string
+    preconditions:
+      - op: =
+        value: true
+        variable: Invoice.paid
+    quality:
+      energy: 0.001
+      money: 0.0
+      resource: 0.02
+      risk: 0.03
+      time_ms: 90.0
+    reliability: 0.98
+    resources:
+      - billing_db
+      - network
+    roles:
+      - clerk
+    type: API
+  - availability: true
+    constraints: []
+    description: Payment screen that submits a payment for a generated invoice.
+    effects:
+      - op: SET
+        value: true
+        variable: Invoice.paid
+    id: BILL-Form
+    inputs:
+      - domain: unpaid invoice identifier
+        name: invoice_id
+        required: true
+        type: string
+      - domain:
+          - CARD
+          - CASH
+          - TRANSFER
+        name: method
+        required: true
+        type: enumerated
+      - domain:
+          - "0.01"
+          - "100000.0"
+        name: amount_tendered
+        required: false
+        type: real
+    mechanism:
+      action: SUBMIT
+      component: payment_form
+      kind: GUI
+      page: /ui/payments/new
+    name: process_payment_form
+    outputs:
+      - domain:
+          - "false"
+          - "true"
+        name: paid
+        type: boolean
+    preconditions:
+      - op: =
+        value: true
+        variable: Invoice.generated
+    quality:
+      energy: 0.002
+      money: 0.0
+      resource: 0.02
+      risk: 0.04
+      time_ms: 250.0
+    reliability: 0.97
+    resources:
+      - billing_db
+    roles:
+      - clerk
+    type: GUI
+
+constraints:
+  - enforced_by: services.billing.require_amount and process_payment
+    expression: invoice and tendered amounts are in 0.01..100000
+    id: K-Amount-Positive
+    kind: input
+  - enforced_by: services.billing.state_snapshot
+    expression: Invoice.amount reports the outstanding sum of unpaid invoices
+    id: K-Outstanding-Reading
+    kind: state
+  - enforced_by: services.billing.process_payment status check
+    expression: an invoice is paid at most once
+    id: K-Pay-Once
+    kind: domain
+
+goal:
+  - op: =
+    value: true
+    variable: Invoice.generated
+  - op: =
+    value: true
+    variable: Invoice.paid
+  - op: =
+    value: true
+    variable: Notification.sent
+
+initial_state:
+  Invoice.amount: 0.0
+  Invoice.generated: false
+  Invoice.paid: false
+  Notification.sent: false
+
+module:
+  base_url: "http://127.0.0.1:5005"
+  database_file: data/pos_billing.db
+  description: "Point of sale billing: invoice generation, payment processing with cash tender checks, receipts and receipt notices."
+  domain: hospital
+  health: /health
+  language: python
+  module_id: pos-billing
+  port: 5005
+  ui: /ui/
+  version: 1.0.0
+
+resources:
+  - available: true
+    details: SQLite database in WAL mode owned by this module
+    id: billing_db
+    kind: database
+  - available: true
+    details: Loopback HTTP interface used by the gateway and the dashboard
+    id: network
+    kind: network
+
+spec_version: "1.0"
+
+state_schema:
+  - domain:
+      - "false"
+      - "true"
+    name: Invoice.generated
+    type: boolean
+  - domain:
+      - "false"
+      - "true"
+    name: Invoice.paid
+    type: boolean
+  - domain:
+      - 0.0
+      - 1000000.0
+    name: Invoice.amount
+    type: real
+  - domain:
+      - "false"
+      - "true"
+    name: Notification.sent
+    type: boolean

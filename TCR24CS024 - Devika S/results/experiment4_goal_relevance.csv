@@ -1,0 +1,9 @@
+Capability,GoalEffectCosine
+CreateOrder,0.4082
+MakePayment,0.5774
+CancelCart,0.0000
+SendNotification,0.5774
+CreateOrder_DB,0.4082
+CreateOrder_GUI,0.4082
+AddToCart,0.0000
+UpdateProfile,0.0000

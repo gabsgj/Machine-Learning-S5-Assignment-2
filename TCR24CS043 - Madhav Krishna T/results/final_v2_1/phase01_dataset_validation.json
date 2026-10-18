@@ -1,0 +1,269 @@
+{
+  "dataset": {
+    "name": "Capability Embedding Expanded Dataset v1",
+    "domain": "E-commerce purchase workflow",
+    "purpose": "Phase 3 dataset for full assignment experiments after SCE-128 v1.1 core validation",
+    "assignment": "PCCST503 Assignment 2",
+    "capability_count": 18,
+    "logical_capability_count": 15,
+    "alternative_implementation_variants": [
+      "C4_API",
+      "C4_DB",
+      "C4_GUI"
+    ],
+    "representation_note": "Ground-truth labels are evaluation metadata and must not be used as encoder features."
+  },
+  "counts": {
+    "capabilities": 18,
+    "logical_capabilities": 15,
+    "alternative_implementations": 3,
+    "expected_relations": 13
+  },
+  "schema": {
+    "duplicate_ids": [],
+    "unique_ids": true
+  },
+  "relation_validation": {
+    "accuracy": 1.0,
+    "results": [
+      {
+        "from": "C1",
+        "to": "C2",
+        "expected_relation": "compatible",
+        "predicted_compatible": true,
+        "score": 0.8768292138352991,
+        "effect_precondition_exact": 1.0,
+        "output_input_exact": 1.0,
+        "conflict": 0.0,
+        "correct": true
+      },
+      {
+        "from": "C2",
+        "to": "C3",
+        "expected_relation": "compatible",
+        "predicted_compatible": true,
+        "score": 1.00000002682209,
+        "effect_precondition_exact": 1.0,
+        "output_input_exact": 1.0,
+        "conflict": 0.0,
+        "correct": true
+      },
+      {
+        "from": "C3",
+        "to": "C4",
+        "expected_relation": "compatible",
+        "predicted_compatible": true,
+        "score": 0.9750000158945721,
+        "effect_precondition_exact": 1.0,
+        "output_input_exact": 1.0,
+        "conflict": 0.0,
+        "correct": true
+      },
+      {
+        "from": "C4",
+        "to": "C5",
+        "expected_relation": "compatible",
+        "predicted_compatible": true,
+        "score": 0.8885073870420457,
+        "effect_precondition_exact": 1.0,
+        "output_input_exact": 0.5,
+        "conflict": 0.0,
+        "correct": true
+      },
+      {
+        "from": "C5",
+        "to": "C6",
+        "expected_relation": "compatible",
+        "predicted_compatible": true,
+        "score": 0.9833333363135656,
+        "effect_precondition_exact": 1.0,
+        "output_input_exact": 1.0,
+        "conflict": 0.0,
+        "correct": true
+      },
+      {
+        "from": "C6",
+        "to": "C7",
+        "expected_relation": "compatible",
+        "predicted_compatible": true,
+        "score": 0.9666666666666668,
+        "effect_precondition_exact": 1.0,
+        "output_input_exact": 1.0,
+        "conflict": 0.0,
+        "correct": true
+      },
+      {
+        "from": "C4",
+        "to": "C9",
+        "expected_relation": "compatible",
+        "predicted_compatible": true,
+        "score": 1.0000000119209291,
+        "effect_precondition_exact": 1.0,
+        "output_input_exact": 1.0,
+        "conflict": 0.0,
+        "correct": true
+      },
+      {
+        "from": "C9",
+        "to": "C10",
+        "expected_relation": "compatible",
+        "predicted_compatible": true,
+        "score": 0.8918956547975541,
+        "effect_precondition_exact": 1.0,
+        "output_input_exact": 0.5,
+        "conflict": 0.0,
+        "correct": true
+      },
+      {
+        "from": "C1",
+        "to": "C4",
+        "expected_relation": "not_directly_compatible",
+        "predicted_compatible": false,
+        "score": 0.40561951249837874,
+        "effect_precondition_exact": 0.0,
+        "output_input_exact": 0.75,
+        "conflict": 0.0,
+        "correct": true
+      },
+      {
+        "from": "C1",
+        "to": "C7",
+        "expected_relation": "not_directly_compatible",
+        "predicted_compatible": false,
+        "score": 0.12098727226257323,
+        "effect_precondition_exact": 0.0,
+        "output_input_exact": 0.5,
+        "conflict": 0.0,
+        "correct": true
+      },
+      {
+        "from": "C4",
+        "to": "C8",
+        "expected_relation": "not_directly_compatible",
+        "predicted_compatible": false,
+        "score": 0.029940019100904464,
+        "effect_precondition_exact": 0.0,
+        "output_input_exact": 0.75,
+        "conflict": 1.0,
+        "correct": true
+      },
+      {
+        "from": "C1",
+        "to": "C14",
+        "expected_relation": "not_directly_compatible",
+        "predicted_compatible": false,
+        "score": 0.16410833001136782,
+        "effect_precondition_exact": 0.0,
+        "output_input_exact": 0.5,
+        "conflict": 0.0,
+        "correct": true
+      },
+      {
+        "from": "C1",
+        "to": "C15",
+        "expected_relation": "not_directly_compatible",
+        "predicted_compatible": false,
+        "score": 0.0303141987323761,
+        "effect_precondition_exact": 0.0,
+        "output_input_exact": 0.0,
+        "conflict": 0.0,
+        "correct": true
+      }
+    ]
+  },
+  "composition_validation": [
+    {
+      "id": "purchase_success_chain",
+      "capabilities": [
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "C5",
+        "C6",
+        "C7"
+      ],
+      "valid": true,
+      "composite_id": "C1__C2__C3__C4__C5__C6__C7",
+      "reliability": 0.9291600507475439,
+      "execution_time_ms": 820,
+      "effect_count": 12
+    },
+    {
+      "id": "cancel_and_release_chain",
+      "capabilities": [
+        "C4",
+        "C9",
+        "C10"
+      ],
+      "valid": true,
+      "composite_id": "C4__C9__C10",
+      "reliability": 0.9653984999999999,
+      "execution_time_ms": 320,
+      "effect_count": 6
+    }
+  ],
+  "alternative_implementations": [
+    {
+      "group_id": "CREATE_ORDER_IMPLEMENTATIONS",
+      "capabilities": [
+        "C4_API",
+        "C4_DB",
+        "C4_GUI"
+      ],
+      "shared_function": "CreateOrder",
+      "same_functional_contract": true,
+      "distinct_mechanisms": true
+    }
+  ],
+  "initial_state_applicability": {
+    "C1": 1.0,
+    "C2": 0.5,
+    "C3": 0.5,
+    "C4": 0.6666666666666666,
+    "C4_API": 0.6666666666666666,
+    "C4_DB": 0.6666666666666666,
+    "C4_GUI": 0.6666666666666666,
+    "C5": 0.0,
+    "C6": 0.0,
+    "C7": 0.0,
+    "C8": 0.0,
+    "C9": 0.0,
+    "C10": 0.0,
+    "C11": 0.5,
+    "C12": 0.0,
+    "C13": 0.0,
+    "C14": 1.0,
+    "C15": 0.0
+  },
+  "alternative_embedding_similarity": {
+    "C4_API<->C4_DB": 0.6578755378723145,
+    "C4_API<->C4_GUI": 0.6151125431060791,
+    "C4_DB<->C4_GUI": 0.721023440361023
+  },
+  "goal_relevance_metadata": {
+    "relevant_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C4_API",
+      "C4_DB",
+      "C4_GUI",
+      "C5",
+      "C6",
+      "C7",
+      "C12",
+      "C13"
+    ],
+    "irrelevant_ids": [
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C14",
+      "C15"
+    ],
+    "note": "These labels are evaluation metadata and are not encoder inputs."
+  }
+}

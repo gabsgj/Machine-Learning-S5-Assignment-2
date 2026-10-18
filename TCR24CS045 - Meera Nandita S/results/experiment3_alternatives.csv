@@ -1,0 +1,2 @@
+capability_1,capability_2,functional_similarity,mechanisms
+EnrollStudent,ManualEnrollStudent,0.8917,DATABASE vs GUI

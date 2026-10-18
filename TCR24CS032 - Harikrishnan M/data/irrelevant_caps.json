@@ -1,0 +1,42 @@
+{
+    "test_name": "irrelevant_caps",
+    "queries": [
+        {
+            "required_effects": [
+                0.0,
+                1.0,
+                0.0,
+                0.0
+            ],
+            "candidates": [
+                {
+                    "id": "C_REL",
+                    "effects": [
+                        0.0,
+                        0.9,
+                        0.0,
+                        0.0
+                    ]
+                },
+                {
+                    "id": "C_IRREL1",
+                    "effects": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                },
+                {
+                    "id": "C_IRREL2",
+                    "effects": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                    ]
+                }
+            ]
+        }
+    ]
+}

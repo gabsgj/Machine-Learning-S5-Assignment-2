@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Lab order {{ order.lab_order_id }}{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1 id="lab_order_id">Lab order {{ order.lab_order_id }}</h1>
+  <ul class="facts">
+    <li>Patient MRN: <code id="order_mrn">{{ order.patient_mrn }}</code></li>
+    <li>Test code: <code id="order_test_code">{{ order.test_code }}</code> ({{ test.name }})</li>
+    <li>Urgency level: <code id="order_urgency">{{ order.urgency_level }}</code></li>
+    <li>Status: <code id="order_status">{{ order.status }}</code></li>
+    <li>Sample label: <code id="order_sample_label">{{ order.sample_label or "" }}</code></li>
+    <li>Ordered: <code>{{ order.ordered_at }}</code></li>
+    <li>Received: <code id="order_received_at">{{ order.received_at or "" }}</code></li>
+    <li>Resulted: <code id="order_resulted_at">{{ order.resulted_at or "" }}</code></li>
+  </ul>
+</section>
+
+{% if order.status == "ordered" %}
+<section class="panel">
+  <h2>Receive sample</h2>
+  <form id="receive_form" data-capability-endpoint="/api/receive_sample" data-result-target="result_output">
+    <input type="hidden" name="lab_order_id" value="{{ order.lab_order_id }}">
+    <label for="sample_label_input">Sample label (optional)</label>
+    <input type="text" id="sample_label_input" name="sample_label" placeholder="Tube 1">
+    <button type="submit" id="receive_sample_button">Receive sample</button>
+  </form>
+</section>
+{% endif %}
+
+{% if order.status == "received" %}
+<section class="panel">
+  <h2>Enter result</h2>
+  <form id="result_form" data-capability-endpoint="/api/enter_result" data-result-target="result_output">
+    <input type="hidden" name="lab_order_id" value="{{ order.lab_order_id }}">
+    <label for="result_value_input">Result value ({{ test.unit }})</label>
+    <input type="number" id="result_value_input" name="result_value" step="0.01" min="0" max="100000" required placeholder="5.4">
+    <label for="unit_input">Unit (optional; defaults to the catalogue unit)</label>
+    <input type="text" id="unit_input" name="unit" placeholder="{{ test.unit }}">
+    <button type="submit" id="enter_result_button">Enter result</button>
+  </form>
+</section>
+{% endif %}
+
+{% if order.status == "resulted" %}
+<section class="panel">
+  <h2>Report</h2>
+  <pre id="report_output">{{ test.name }} ({{ order.test_code }}): {{ order.result_value }} {{ order.result_unit or test.unit }}, reference {{ test.ref_low }} to {{ test.ref_high }}</pre>
+</section>
+{% endif %}
+
+<pre id="result_output" class="result" aria-live="polite"></pre>
+{% endblock %}

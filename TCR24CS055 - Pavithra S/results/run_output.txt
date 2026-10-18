@@ -1,0 +1,58 @@
+
+=== CAPABILITY EMBEDDING ASSIGNMENT ===
+Vector dimension: 39
+
+Feature block sizes:
+  type              : 4
+  inputs            : 5
+  outputs           : 3
+  preconditions     : 8
+  effects           : 7
+  constraints       : 3
+  resources         : 5
+  operational       : 4
+
+Experiment 1: Compatibility
+         from               to  compatible  vector_similarity
+  CreateOrder      MakePayment        True           0.310075
+  CreateOrder       CancelCart       False           0.487069
+  CreateOrder SendNotification       False           0.271524
+  MakePayment SendNotification        True           0.316437
+UpdateProfile      MakePayment       False           0.225665
+
+Experiment 2: Composition
+       composite                                     components  cost  reliability  availability  risk  cosine(composite,mean_atomic)  cosine(composite,CreateOrder)  cosine(composite,MakePayment)  cosine(composite,SendNotification)
+CompletePurchase CreateOrder -> MakePayment -> SendNotification 0.035     0.941094           1.0  0.18                       0.810482                       0.769284                       0.512084                            0.448574
+
+Experiment 3: Alternative implementations
+        capability_1         capability_2  similarity
+         CreateOrder CreateOrder_Database    0.859186
+         CreateOrder      CreateOrder_GUI    0.858908
+CreateOrder_Database      CreateOrder_GUI    0.845468
+
+Experiment 4: Irrelevant capabilities
+relevant_capability irrelevant_capability  similarity
+        CreateOrder         UpdateProfile    0.389453
+        CreateOrder         SearchProduct    0.455663
+        MakePayment         UpdateProfile    0.225665
+        MakePayment         SearchProduct    0.424686
+   SendNotification         UpdateProfile    0.263793
+   SendNotification         SearchProduct    0.372268
+
+Experiment 5: Operational attributes
+        capability  cost  reliability  availability  risk
+       MakePayment  0.02        0.980          1.00  0.10
+MakePayment_Backup  0.05        0.995          0.99  0.05
+
+Results saved to: /mnt/data/capability_embedding_assignment/results
+
+Spreadsheet runtime warmup failed during python startup
+Traceback (most recent call last):
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py", line 26, in warm_spreadsheet_runtime_on_startup
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py", line 785, in warm_spreadsheet_runtime
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py", line 720, in _warm_feature_flows
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py", line 704, in _warm_collaboration_flows
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py", line 32317, in hydrate_crdt_from_proto
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py", line 749, in __call__
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py", line 150, in call
+artifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.

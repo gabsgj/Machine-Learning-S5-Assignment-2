@@ -1,0 +1,169 @@
+# Experiment 1 and 2 input: the exact compatibility pattern required by the assignment.
+#
+# The assignment specifies three capabilities C_1, C_2, C_3:
+#   C_1: CreateOrder  no additional precondition   effect OrderExists = true
+#   C_2: MakePayment  precondition OrderExists = true
+#   C_3: CancelCart   precondition OrderExists = false
+# and the conclusion that C_1 -> C_2 is compatible while C_1 -> C_3 is incompatible.
+#
+# The state variable OrderExists of the assignment is spelled Order.exists here, the name the
+# shared vocabulary (specs/state_variables.json) uses, so the pattern lives in the same formal
+# language as the rest of the corpus. C_3 carries the order identifier as an input too, so the
+# input-output check of the pair C_1 -> C_3 binds cleanly and the incompatibility rests exactly
+# on the precondition conflict the assignment analyses.
+spec_version: "1.0"
+
+module:
+  module_id: experiment-order-pattern
+  version: "1.0"
+  domain: ecommerce
+  port: 5301
+  base_url: "http://127.0.0.1:5301"
+  health: /health
+  description: The three capability pattern of the assignment compatibility experiment.
+  language: specification
+
+state_schema:
+  - name: Order.exists
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+
+initial_state:
+  Order.exists: false
+
+resources:
+  - id: order_db
+    kind: database
+    available: true
+    details: Order records of the pattern application
+
+constraints:
+  - id: K-Order-Identifier
+    kind: input
+    expression: order_id, when present, is a non empty identifier
+    enforced_by: pattern endpoints
+
+goal:
+  - variable: Order.exists
+    op: "="
+    value: true
+
+capabilities:
+  - id: PAT-CreateOrder
+    name: create_order
+    type: API
+    description: C_1 CreateOrder - create the order record; no additional precondition, effect Order.exists = true.
+    inputs:
+      - name: customer_id
+        type: string
+        domain: customer identifier
+        required: true
+    outputs:
+      - name: order_id
+        type: string
+        domain: new order identifier
+    preconditions: []
+    effects:
+      - variable: Order.exists
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - order_db
+    quality:
+      time_ms: 120
+      money: 0
+      resource: 0.02
+      risk: 0.01
+      energy: 0.002
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/order_pattern/create_order
+    roles:
+      - customer
+      - service
+
+  - id: PAT-MakePayment
+    name: make_payment
+    type: API
+    description: C_2 MakePayment - pay a created order; precondition Order.exists = true, no effect stated.
+    inputs:
+      - name: order_id
+        type: string
+        domain: created order identifier
+        required: true
+    outputs:
+      - name: payment_reference
+        type: string
+        domain: payment confirmation reference
+    preconditions:
+      - variable: Order.exists
+        op: "="
+        value: true
+    effects: []
+    constraints: []
+    resources:
+      - order_db
+    quality:
+      time_ms: 200
+      money: 0.5
+      resource: 0.03
+      risk: 0.03
+      energy: 0.004
+    reliability: 0.98
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/order_pattern/make_payment
+    roles:
+      - customer
+      - service
+
+  - id: PAT-CancelCart
+    name: cancel_cart
+    type: API
+    description: C_3 CancelCart - cancel the purchase while no order exists; precondition Order.exists = false, no effect stated.
+    inputs:
+      - name: order_id
+        type: string
+        domain: order identifier supplied when one exists
+        required: true
+    outputs:
+      - name: cancelled
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Order.exists
+        op: "="
+        value: false
+    effects: []
+    constraints: []
+    resources:
+      - order_db
+    quality:
+      time_ms: 90
+      money: 0
+      resource: 0.01
+      risk: 0.01
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/order_pattern/cancel_cart
+    roles:
+      - customer
+      - service

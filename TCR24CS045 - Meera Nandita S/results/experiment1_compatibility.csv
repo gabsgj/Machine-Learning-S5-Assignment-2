@@ -1,0 +1,5 @@
+c1,c2,precondition_score,io_score,resource_overlap,compatibility_score,composable
+SelectCourse,MakePayment,1.0000,0.0000,0.0000,0.7500,True
+MakePayment,EnrollStudent,1.0000,0.0000,0.0000,0.7500,True
+MakePayment,CancelCourse,0.5000,0.0000,0.0000,0.3750,False
+ViewCourseDetails,EnrollStudent,0.0000,0.0000,0.0000,0.0000,False

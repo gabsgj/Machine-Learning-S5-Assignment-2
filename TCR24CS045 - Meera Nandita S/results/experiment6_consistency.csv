@@ -1,0 +1,5 @@
+problem,title,number_of_capabilities,composite_goal_similarity,composite_norm
+problem_1_regular_enrollment,Regular Course Enrollment,4,0.4607,1.0000
+problem_2_scholarship_enrollment,Scholarship Course Enrollment,6,0.4200,1.0000
+problem_3_manual_enrollment,Manual Administrative Enrollment,4,0.4589,1.0000
+problem_4_alternative_analysis,Alternative Implementation Analysis,2,0.5428,1.0000

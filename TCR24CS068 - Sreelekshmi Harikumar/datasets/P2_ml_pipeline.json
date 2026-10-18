@@ -1,0 +1,1006 @@
+{
+ "problem_id": "P2_ml_pipeline",
+ "domain": "data/ML engineering",
+ "description": "Load data, clean, engineer features, train, evaluate, deploy, report.",
+ "state_variables": [
+  {
+   "name": "Data.loaded",
+   "type": "bool"
+  },
+  {
+   "name": "Data.format",
+   "type": "enum",
+   "values": [
+    "NONE",
+    "CSV",
+    "PARQUET"
+   ]
+  },
+  {
+   "name": "Data.schema_valid",
+   "type": "bool"
+  },
+  {
+   "name": "Data.missing_pct",
+   "type": "int",
+   "lo": 0,
+   "hi": 100
+  },
+  {
+   "name": "Features.ready",
+   "type": "bool"
+  },
+  {
+   "name": "Model.trained",
+   "type": "bool"
+  },
+  {
+   "name": "Model.accuracy_pct",
+   "type": "int",
+   "lo": 0,
+   "hi": 100
+  },
+  {
+   "name": "Model.validated",
+   "type": "bool"
+  },
+  {
+   "name": "Model.deployed",
+   "type": "bool"
+  },
+  {
+   "name": "Report.generated",
+   "type": "bool"
+  },
+  {
+   "name": "Alert.sent",
+   "type": "bool"
+  },
+  {
+   "name": "Tmp.cleaned",
+   "type": "bool"
+  },
+  {
+   "name": "Logs.compressed",
+   "type": "bool"
+  },
+  {
+   "name": "Plot.made",
+   "type": "bool"
+  }
+ ],
+ "initial_state": {
+  "Data.loaded": false,
+  "Data.format": "NONE",
+  "Data.schema_valid": false,
+  "Data.missing_pct": 0,
+  "Features.ready": false,
+  "Model.trained": false,
+  "Model.accuracy_pct": 0,
+  "Model.validated": false,
+  "Model.deployed": false,
+  "Report.generated": false,
+  "Alert.sent": false,
+  "Tmp.cleaned": false,
+  "Logs.compressed": false,
+  "Plot.made": false
+ },
+ "goals": {
+  "main": [
+   {
+    "var": "Model.deployed",
+    "op": "==",
+    "value": true
+   },
+   {
+    "var": "Report.generated",
+    "op": "==",
+    "value": true
+   }
+  ],
+  "train_only": [
+   {
+    "var": "Model.trained",
+    "op": "==",
+    "value": true
+   },
+   {
+    "var": "Model.accuracy_pct",
+    "op": ">=",
+    "value": 90
+   }
+  ]
+ },
+ "goal_text": {
+  "main": "deploy a validated model and generate the evaluation report",
+  "train_only": "train a model with at least ninety percent accuracy"
+ },
+ "resources": [
+  "FileSystem",
+  "GPU",
+  "CPU",
+  "Network",
+  "ObjectStore",
+  "ExternalService"
+ ],
+ "environment": [
+  "FileSystem",
+  "GPU",
+  "CPU",
+  "Network",
+  "ObjectStore",
+  "ExternalService"
+ ],
+ "global_constraints": [
+  {
+   "id": "K1",
+   "description": "never deploy an unvalidated model",
+   "forbid": [
+    {
+     "var": "Model.deployed",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Model.validated",
+     "op": "==",
+     "value": false
+    }
+   ]
+  }
+ ],
+ "domain_parent": {
+  "csv_frame": "dataframe",
+  "parquet_frame": "dataframe",
+  "clean_frame": "dataframe"
+ },
+ "context_ports": [
+  {
+   "name": "source_path",
+   "type": "STRING",
+   "domain": "path",
+   "required": true
+  }
+ ],
+ "capabilities": [
+  {
+   "id": "LoadCSV",
+   "type": "FILE",
+   "description": "read the raw dataset from a local csv file",
+   "inputs": [
+    {
+     "name": "source_path",
+     "type": "STRING",
+     "domain": "path",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "raw_df",
+     "type": "DATAFRAME",
+     "domain": "csv_frame",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Data.loaded",
+     "op": "==",
+     "value": false
+    }
+   ],
+   "effects": [
+    {
+     "var": "Data.loaded",
+     "value": true
+    },
+    {
+     "var": "Data.format",
+     "value": "CSV"
+    },
+    {
+     "var": "Data.missing_pct",
+     "value": 12
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "FileSystem"
+   ],
+   "qos": {
+    "time_ms": 900,
+    "money": 0.0,
+    "resource_cost": 2,
+    "risk": 0.01,
+    "energy": 1.0
+   },
+   "reliability": 0.995,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "reader": "pandas.read_csv"
+   },
+   "alt_group": "load"
+  },
+  {
+   "id": "LoadParquetS3",
+   "type": "SERVICE",
+   "description": "read the raw dataset from object storage",
+   "inputs": [
+    {
+     "name": "source_path",
+     "type": "STRING",
+     "domain": "path",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "raw_df",
+     "type": "DATAFRAME",
+     "domain": "parquet_frame",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Data.loaded",
+     "op": "==",
+     "value": false
+    }
+   ],
+   "effects": [
+    {
+     "var": "Data.loaded",
+     "value": true
+    },
+    {
+     "var": "Data.format",
+     "value": "PARQUET"
+    },
+    {
+     "var": "Data.missing_pct",
+     "value": 12
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "ObjectStore",
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 1500,
+    "money": 0.002,
+    "resource_cost": 3,
+    "risk": 0.03,
+    "energy": 1.5
+   },
+   "reliability": 0.985,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "GET",
+    "bucket": "datasets"
+   },
+   "alt_group": "load"
+  },
+  {
+   "id": "ValidateSchema",
+   "type": "FUNCTION",
+   "description": "check column names and types",
+   "inputs": [
+    {
+     "name": "raw_df",
+     "type": "DATAFRAME",
+     "domain": "dataframe",
+     "required": true
+    }
+   ],
+   "outputs": [],
+   "preconditions": [
+    {
+     "var": "Data.loaded",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Data.schema_valid",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [],
+   "qos": {
+    "time_ms": 40,
+    "money": 0.0,
+    "resource_cost": 1,
+    "risk": 0.005,
+    "energy": 0.1
+   },
+   "reliability": 0.999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "function": "validate_schema"
+   }
+  },
+  {
+   "id": "CleanData",
+   "type": "COMPUTATION",
+   "description": "impute / drop missing values",
+   "inputs": [
+    {
+     "name": "raw_df",
+     "type": "DATAFRAME",
+     "domain": "dataframe",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "clean_df",
+     "type": "DATAFRAME",
+     "domain": "clean_frame",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Data.loaded",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Data.schema_valid",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Data.missing_pct",
+     "op": ">=",
+     "value": 1
+    }
+   ],
+   "effects": [
+    {
+     "var": "Data.missing_pct",
+     "value": 0
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "CPU"
+   ],
+   "qos": {
+    "time_ms": 2500,
+    "money": 0.0,
+    "resource_cost": 3,
+    "risk": 0.02,
+    "energy": 3.0
+   },
+   "reliability": 0.99,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "function": "impute_median"
+   }
+  },
+  {
+   "id": "ConvertToParquet",
+   "type": "FILE",
+   "description": "convert a csv dataset to parquet",
+   "inputs": [
+    {
+     "name": "raw_df",
+     "type": "DATAFRAME",
+     "domain": "dataframe",
+     "required": true
+    }
+   ],
+   "outputs": [],
+   "preconditions": [
+    {
+     "var": "Data.format",
+     "op": "==",
+     "value": "CSV"
+    }
+   ],
+   "effects": [
+    {
+     "var": "Data.format",
+     "value": "PARQUET"
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "FileSystem"
+   ],
+   "qos": {
+    "time_ms": 1100,
+    "money": 0.0,
+    "resource_cost": 2,
+    "risk": 0.01,
+    "energy": 1.2
+   },
+   "reliability": 0.995,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "writer": "to_parquet"
+   }
+  },
+  {
+   "id": "EngineerFeatures",
+   "type": "COMPUTATION",
+   "description": "derive model features",
+   "inputs": [
+    {
+     "name": "clean_df",
+     "type": "DATAFRAME",
+     "domain": "dataframe",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "feature_matrix",
+     "type": "MATRIX",
+     "domain": "dense",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Data.loaded",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Data.schema_valid",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Data.missing_pct",
+     "op": "<=",
+     "value": 5
+    }
+   ],
+   "effects": [
+    {
+     "var": "Features.ready",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "CPU"
+   ],
+   "qos": {
+    "time_ms": 4000,
+    "money": 0.0,
+    "resource_cost": 3,
+    "risk": 0.02,
+    "energy": 5.0
+   },
+   "reliability": 0.99,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "function": "build_features"
+   }
+  },
+  {
+   "id": "TrainModel_GPU",
+   "type": "COMPUTATION",
+   "description": "train the model on a GPU",
+   "inputs": [
+    {
+     "name": "feature_matrix",
+     "type": "MATRIX",
+     "domain": "dense",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "model_blob",
+     "type": "FILE",
+     "domain": "model",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Features.ready",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Model.trained",
+     "value": true
+    },
+    {
+     "var": "Model.accuracy_pct",
+     "value": 93
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "GPU",
+    "FileSystem"
+   ],
+   "qos": {
+    "time_ms": 20000,
+    "money": 0.4,
+    "resource_cost": 8,
+    "risk": 0.03,
+    "energy": 60.0
+   },
+   "reliability": 0.97,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "device": "cuda",
+    "framework": "torch"
+   },
+   "alt_group": "train"
+  },
+  {
+   "id": "TrainModel_CPU",
+   "type": "COMPUTATION",
+   "description": "train the model on CPU only",
+   "inputs": [
+    {
+     "name": "feature_matrix",
+     "type": "MATRIX",
+     "domain": "dense",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "model_blob",
+     "type": "FILE",
+     "domain": "model",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Features.ready",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Model.trained",
+     "value": true
+    },
+    {
+     "var": "Model.accuracy_pct",
+     "value": 91
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "CPU",
+    "FileSystem"
+   ],
+   "qos": {
+    "time_ms": 240000,
+    "money": 0.05,
+    "resource_cost": 6,
+    "risk": 0.02,
+    "energy": 300.0
+   },
+   "reliability": 0.99,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "device": "cpu",
+    "framework": "sklearn"
+   },
+   "alt_group": "train"
+  },
+  {
+   "id": "EvaluateModel",
+   "type": "COMPUTATION",
+   "description": "evaluate on the hold-out set",
+   "inputs": [
+    {
+     "name": "model_blob",
+     "type": "FILE",
+     "domain": "file",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "metrics",
+     "type": "JSON",
+     "domain": "metrics",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Model.trained",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Model.validated",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "CPU"
+   ],
+   "qos": {
+    "time_ms": 1500,
+    "money": 0.0,
+    "resource_cost": 2,
+    "risk": 0.01,
+    "energy": 2.0
+   },
+   "reliability": 0.995,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "function": "evaluate_holdout"
+   }
+  },
+  {
+   "id": "DeployModel",
+   "type": "SERVICE",
+   "description": "publish the model behind the serving endpoint",
+   "inputs": [
+    {
+     "name": "model_blob",
+     "type": "FILE",
+     "domain": "file",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "endpoint_url",
+     "type": "STRING",
+     "domain": "url",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Model.trained",
+     "op": "==",
+     "value": true
+    },
+    {
+     "var": "Model.validated",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Model.deployed",
+     "value": true
+    }
+   ],
+   "constraints": [
+    {
+     "var": "Model.accuracy_pct",
+     "op": ">=",
+     "value": 90
+    }
+   ],
+   "resources": [
+    "ExternalService",
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 6000,
+    "money": 0.1,
+    "resource_cost": 4,
+    "risk": 0.06,
+    "energy": 4.0
+   },
+   "reliability": 0.98,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "PUT",
+    "endpoint": "/models"
+   }
+  },
+  {
+   "id": "GenerateReport",
+   "type": "FILE",
+   "description": "write the evaluation report",
+   "inputs": [
+    {
+     "name": "metrics",
+     "type": "JSON",
+     "domain": "metrics",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "report_pdf",
+     "type": "FILE",
+     "domain": "pdf",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Model.validated",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Report.generated",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "FileSystem"
+   ],
+   "qos": {
+    "time_ms": 800,
+    "money": 0.0,
+    "resource_cost": 1,
+    "risk": 0.005,
+    "energy": 0.6
+   },
+   "reliability": 0.998,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "format": "PDF",
+    "template": "model_card"
+   }
+  },
+  {
+   "id": "SendSlackAlert",
+   "type": "MESSAGE",
+   "description": "announce the deployment",
+   "inputs": [
+    {
+     "name": "endpoint_url",
+     "type": "STRING",
+     "domain": "url",
+     "required": true
+    }
+   ],
+   "outputs": [],
+   "preconditions": [
+    {
+     "var": "Model.deployed",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Alert.sent",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Network"
+   ],
+   "qos": {
+    "time_ms": 300,
+    "money": 0.0,
+    "resource_cost": 1,
+    "risk": 0.01,
+    "energy": 0.1
+   },
+   "reliability": 0.99,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "channel": "ml-ops",
+    "method": "webhook"
+   }
+  },
+  {
+   "id": "ClearTempFiles",
+   "type": "FILE",
+   "description": "delete temporary files",
+   "inputs": [],
+   "outputs": [],
+   "preconditions": [],
+   "effects": [
+    {
+     "var": "Tmp.cleaned",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "FileSystem"
+   ],
+   "qos": {
+    "time_ms": 100,
+    "money": 0.0,
+    "resource_cost": 1,
+    "risk": 0.01,
+    "energy": 0.2
+   },
+   "reliability": 0.999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "command": "rm_tmp"
+   }
+  },
+  {
+   "id": "CompressLogs",
+   "type": "FILE",
+   "description": "gzip old logs",
+   "inputs": [],
+   "outputs": [],
+   "preconditions": [],
+   "effects": [
+    {
+     "var": "Logs.compressed",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "FileSystem"
+   ],
+   "qos": {
+    "time_ms": 600,
+    "money": 0.0,
+    "resource_cost": 1,
+    "risk": 0.0,
+    "energy": 0.8
+   },
+   "reliability": 0.999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "command": "gzip_logs"
+   }
+  },
+  {
+   "id": "PlotTSNE",
+   "type": "COMPUTATION",
+   "description": "plot a t-SNE projection of the features",
+   "inputs": [
+    {
+     "name": "feature_matrix",
+     "type": "MATRIX",
+     "domain": "dense",
+     "required": true
+    }
+   ],
+   "outputs": [],
+   "preconditions": [
+    {
+     "var": "Features.ready",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Plot.made",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "CPU"
+   ],
+   "qos": {
+    "time_ms": 8000,
+    "money": 0.0,
+    "resource_cost": 3,
+    "risk": 0.01,
+    "energy": 9.0
+   },
+   "reliability": 0.99,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "function": "tsne_plot"
+   }
+  }
+ ]
+}

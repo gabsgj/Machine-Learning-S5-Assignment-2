@@ -1,0 +1,6 @@
+Capability,Matched Goal Conditions,Relevant
+CreateOrder,1,True
+MakePayment,1,True
+SendNotification,1,True
+CancelCart,0,False
+UpdateUserProfile,0,False

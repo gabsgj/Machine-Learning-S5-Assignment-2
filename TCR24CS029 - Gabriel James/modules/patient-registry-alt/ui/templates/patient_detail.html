@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Registration {{ patient.pat_reg }}{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1 id="pat_reg">Registration {{ patient.pat_reg }}</h1>
+  <ul class="facts">
+    <li>Patient number: <code id="pat_no">{{ patient.pat_no }}</code></li>
+    <li>Patient name: <code id="pat_name">{{ patient.pat_name }}</code></li>
+    <li>Verified: <code id="pat_verified">{{ "yes" if patient.verified else "no" }}</code></li>
+    <li>Registered: <code>{{ patient.registered_at }}</code></li>
+    <li>Verified at: <code id="pat_verified_at">{{ patient.verified_at or "" }}</code></li>
+  </ul>
+</section>
+
+{% if not patient.verified %}
+<section class="panel">
+  <h2>Verify registration</h2>
+  <form id="verify_form" data-capability-endpoint="/api/pat_verify" data-result-target="result_output">
+    <input type="hidden" name="pat_reg" value="{{ patient.pat_reg }}">
+    <button type="submit" id="verify_button">Verify patient</button>
+  </form>
+</section>
+{% else %}
+<section class="panel">
+  <h2>Registration verified</h2>
+  <p id="verified_notice">This registration has been verified. Verification is a one way transition.</p>
+</section>
+{% endif %}
+
+<pre id="result_output" class="result" aria-live="polite"></pre>
+{% endblock %}

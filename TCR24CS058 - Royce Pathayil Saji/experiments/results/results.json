@@ -1,0 +1,578 @@
+{
+  "compatibility": {
+    "records": [
+      {
+        "pair": "CreateOrder -> MakePayment",
+        "src_id": "C1",
+        "dst_id": "C2",
+        "description": "CreateOrder -> MakePayment (expected compatible)",
+        "align_ep": 1.0,
+        "align_oi": 1.0,
+        "vector_score": 1.0,
+        "availability_factor": 1.0,
+        "execution_score": 1.0,
+        "formally_compatible": true,
+        "reasons": []
+      },
+      {
+        "pair": "CreateOrder -> CancelCart",
+        "src_id": "C1",
+        "dst_id": "C3",
+        "description": "CreateOrder -> CancelCart (expected incompatible: contradiction)",
+        "align_ep": -1.0,
+        "align_oi": 0.0,
+        "vector_score": -0.6,
+        "availability_factor": 1.0,
+        "execution_score": -0.6,
+        "formally_compatible": false,
+        "reasons": [
+          "Execution compatibility score -0.6 is below threshold 0.70",
+          "Required consumer input 'cart_id' is not produced",
+          "Precondition 'Order.exists' is contradicted by producer effect"
+        ]
+      },
+      {
+        "pair": "MakePayment -> CreateOrder",
+        "src_id": "C2",
+        "dst_id": "C1",
+        "description": "MakePayment -> CreateOrder (directionality test)",
+        "align_ep": 0.0,
+        "align_oi": 0.0,
+        "vector_score": 0.0,
+        "availability_factor": 1.0,
+        "execution_score": 0.0,
+        "formally_compatible": false,
+        "reasons": [
+          "Execution compatibility score 0.0 is below threshold 0.70",
+          "Required consumer input 'cart_id' is not produced",
+          "Precondition 'Cart.exists' is not satisfied by producer effects",
+          "Precondition 'Inventory.available' is not satisfied by producer effects"
+        ]
+      },
+      {
+        "pair": "CreateOrder -> SendNotification",
+        "src_id": "C1",
+        "dst_id": "C4",
+        "description": "CreateOrder -> SendNotification (expected incompatible: unmet precondition)",
+        "align_ep": 0.0,
+        "align_oi": 0.0,
+        "vector_score": 0.0,
+        "availability_factor": 1.0,
+        "execution_score": 0.0,
+        "formally_compatible": false,
+        "reasons": [
+          "Execution compatibility score 0.0 is below threshold 0.70",
+          "Required consumer input 'payment_id' is not produced",
+          "Precondition 'Payment.status' is not satisfied by producer effects"
+        ]
+      },
+      {
+        "pair": "MakePayment -> SendNotification",
+        "src_id": "C2",
+        "dst_id": "C4",
+        "description": "MakePayment -> SendNotification (expected compatible)",
+        "align_ep": 1.0,
+        "align_oi": 1.0,
+        "vector_score": 1.0,
+        "availability_factor": 1.0,
+        "execution_score": 1.0,
+        "formally_compatible": true,
+        "reasons": []
+      },
+      {
+        "pair": "CreateOrder -> ArchiveOrder",
+        "src_id": "C1",
+        "dst_id": "C8",
+        "description": "CreateOrder -> ArchiveOrder (expected incompatible: missing payment effect)",
+        "align_ep": 0.5,
+        "align_oi": 1.0,
+        "vector_score": 0.7,
+        "availability_factor": 1.0,
+        "execution_score": 0.7,
+        "formally_compatible": false,
+        "reasons": [
+          "Precondition 'Payment.status' is not satisfied by producer effects"
+        ]
+      }
+    ]
+  },
+  "composition": {
+    "composite_id": "C1_C2_C4",
+    "composite_name": "CreateOrder -> MakePayment -> SendNotification",
+    "components": [
+      "C1",
+      "C2",
+      "C4"
+    ],
+    "external_inputs": [
+      "cart_id"
+    ],
+    "external_preconditions": [
+      "Cart.exists",
+      "Inventory.available"
+    ],
+    "terminal_outputs": [
+      "notification_id"
+    ],
+    "final_effects": [
+      "Order.exists",
+      "Cart.locked",
+      "Order.status",
+      "Payment.status",
+      "Notification.sent"
+    ],
+    "similarities": {
+      "comp_vs_C1": 0.7144,
+      "comp_vs_C2": 0.3324,
+      "comp_vs_C4": 0.4297
+    },
+    "operational": {
+      "execution_time_ms": 410.0,
+      "expected_time_ms": 410.0,
+      "monetary_cost": 0.035,
+      "reliability": 0.92169,
+      "expected_reliability": 0.92169,
+      "availability": 1.0,
+      "expected_availability": 1.0
+    }
+  },
+  "alternative_implementations": {
+    "alternatives": [
+      {
+        "pair": "API vs DB",
+        "full_similarity": 0.9032,
+        "effect_similarity": 1.0,
+        "precondition_similarity": 1.0,
+        "input_similarity": 1.0,
+        "output_similarity": 1.0,
+        "mechanism_similarity": 0.0,
+        "operational_similarity": 0.8246
+      },
+      {
+        "pair": "API vs GUI",
+        "full_similarity": 0.9357,
+        "effect_similarity": 1.0,
+        "precondition_similarity": 1.0,
+        "input_similarity": 1.0,
+        "output_similarity": 1.0,
+        "mechanism_similarity": 0.0,
+        "operational_similarity": 0.8572
+      },
+      {
+        "pair": "DB vs GUI",
+        "full_similarity": 0.8907,
+        "effect_similarity": 1.0,
+        "precondition_similarity": 1.0,
+        "input_similarity": 1.0,
+        "output_similarity": 1.0,
+        "mechanism_similarity": 0.0,
+        "operational_similarity": 0.7002
+      }
+    ]
+  },
+  "goal_relevance": {
+    "goal_id": "Goal_Master",
+    "rankings": [
+      {
+        "id": "C1",
+        "name": "CreateOrder",
+        "role": "Useful: establishes Order.exists=true",
+        "relevance_score": 0.3333
+      },
+      {
+        "id": "C2",
+        "name": "MakePayment",
+        "role": "Useful: establishes Payment.status=SUCCESS",
+        "relevance_score": 0.3333
+      },
+      {
+        "id": "C4",
+        "name": "SendNotification",
+        "role": "Useful: establishes Notification.sent=true",
+        "relevance_score": 0.3333
+      },
+      {
+        "id": "C7",
+        "name": "ShipOrder",
+        "role": "Irrelevant: establishes Order.status=COMPLETED",
+        "relevance_score": 0.0
+      },
+      {
+        "id": "C8",
+        "name": "ArchiveOrder",
+        "role": "Irrelevant: establishes Order.archived=true",
+        "relevance_score": 0.0
+      },
+      {
+        "id": "C9",
+        "name": "RefundPayment",
+        "role": "Contradictory/Irrelevant: sets Payment.status=REFUNDED",
+        "relevance_score": 0.0
+      },
+      {
+        "id": "C5",
+        "name": "CheckInventory",
+        "role": "Irrelevant: establishes Inventory.available=true",
+        "relevance_score": 0.0
+      },
+      {
+        "id": "C3",
+        "name": "CancelCart",
+        "role": "Contradictory: establishes Cart.status=CANCELLED",
+        "relevance_score": 0.0
+      }
+    ]
+  },
+  "operational_attributes": {
+    "representation_level": {
+      "operational_vectors": {
+        "C11": {
+          "name": "DB_CreateOrder",
+          "norm_time": 0.02,
+          "norm_money": 0.01,
+          "norm_resource": 0.2,
+          "risk": 0.01,
+          "energy": 0.01,
+          "unreliability": 0.001,
+          "unavailability": 0.0,
+          "composite_cost": 0.0482
+        },
+        "C10": {
+          "name": "API_CreateOrder",
+          "norm_time": 0.12,
+          "norm_money": 0.12,
+          "norm_resource": 0.2,
+          "risk": 0.02,
+          "energy": 0.06,
+          "unreliability": 0.015,
+          "unavailability": 0.0,
+          "composite_cost": 0.095
+        },
+        "C12": {
+          "name": "GUI_CreateOrder",
+          "norm_time": 0.5,
+          "norm_money": 0.0,
+          "norm_resource": 0.4,
+          "risk": 0.05,
+          "energy": 0.2,
+          "unreliability": 0.05,
+          "unavailability": 0.0,
+          "composite_cost": 0.2
+        },
+        "C13": {
+          "name": "UnavailableOrderService",
+          "norm_time": 0.1,
+          "norm_money": 0.1,
+          "norm_resource": 0.2,
+          "risk": 0.02,
+          "energy": 0.05,
+          "unreliability": 0.01,
+          "unavailability": 1.0,
+          "composite_cost": 0.086
+        }
+      },
+      "pairwise_comparisons": [
+        {
+          "pair": "C11 (DB) vs C10 (API)",
+          "id_a": "C11",
+          "id_b": "C10",
+          "cosine_similarity": 0.8246,
+          "euclidean_distance": 0.1646
+        },
+        {
+          "pair": "C11 (DB) vs C12 (GUI)",
+          "id_a": "C11",
+          "id_b": "C12",
+          "cosine_similarity": 0.7002,
+          "euclidean_distance": 0.5776
+        },
+        {
+          "pair": "C10 (API) vs C12 (GUI)",
+          "id_a": "C10",
+          "id_b": "C12",
+          "cosine_similarity": 0.8572,
+          "euclidean_distance": 0.4812
+        },
+        {
+          "pair": "C11 (DB) vs C13 (Unavail)",
+          "id_a": "C11",
+          "id_b": "C13",
+          "cosine_similarity": 0.223,
+          "euclidean_distance": 1.0088
+        },
+        {
+          "pair": "C10 (API) vs C13 (Unavail)",
+          "id_a": "C10",
+          "id_b": "C13",
+          "cosine_similarity": 0.2555,
+          "euclidean_distance": 1.0005
+        },
+        {
+          "pair": "C12 (GUI) vs C13 (Unavail)",
+          "id_a": "C12",
+          "id_b": "C13",
+          "cosine_similarity": 0.218,
+          "euclidean_distance": 1.1171
+        }
+      ]
+    },
+    "utility_analysis": {
+      "scenarios": {
+        "Speed-focused": [
+          {
+            "id": "C11",
+            "name": "DB_CreateOrder",
+            "raw_utility": 0.1848,
+            "effective_utility": 0.1848,
+            "time_ms": 20.0,
+            "cost_money": 0.001,
+            "reliability": 0.999,
+            "availability": 1.0
+          },
+          {
+            "id": "C10",
+            "name": "API_CreateOrder",
+            "raw_utility": 0.101,
+            "effective_utility": 0.101,
+            "time_ms": 120.0,
+            "cost_money": 0.012,
+            "reliability": 0.985,
+            "availability": 1.0
+          },
+          {
+            "id": "C13",
+            "name": "UnavailableOrderService",
+            "raw_utility": 0.118,
+            "effective_utility": 0.0,
+            "time_ms": 100.0,
+            "cost_money": 0.01,
+            "reliability": 0.99,
+            "availability": 0.0
+          },
+          {
+            "id": "C12",
+            "name": "GUI_CreateOrder",
+            "raw_utility": -0.16,
+            "effective_utility": -0.16,
+            "time_ms": 500.0,
+            "cost_money": 0.0,
+            "reliability": 0.95,
+            "availability": 1.0
+          }
+        ],
+        "Reliability-focused": [
+          {
+            "id": "C11",
+            "name": "DB_CreateOrder",
+            "raw_utility": 0.7962,
+            "effective_utility": 0.7962,
+            "time_ms": 20.0,
+            "cost_money": 0.001,
+            "reliability": 0.999,
+            "availability": 1.0
+          },
+          {
+            "id": "C10",
+            "name": "API_CreateOrder",
+            "raw_utility": 0.764,
+            "effective_utility": 0.764,
+            "time_ms": 120.0,
+            "cost_money": 0.012,
+            "reliability": 0.985,
+            "availability": 1.0
+          },
+          {
+            "id": "C12",
+            "name": "GUI_CreateOrder",
+            "raw_utility": 0.71,
+            "effective_utility": 0.71,
+            "time_ms": 500.0,
+            "cost_money": 0.0,
+            "reliability": 0.95,
+            "availability": 1.0
+          },
+          {
+            "id": "C13",
+            "name": "UnavailableOrderService",
+            "raw_utility": 0.772,
+            "effective_utility": 0.0,
+            "time_ms": 100.0,
+            "cost_money": 0.01,
+            "reliability": 0.99,
+            "availability": 0.0
+          }
+        ],
+        "Cost-focused": [
+          {
+            "id": "C11",
+            "name": "DB_CreateOrder",
+            "raw_utility": 0.0899,
+            "effective_utility": 0.0899,
+            "time_ms": 20.0,
+            "cost_money": 0.001,
+            "reliability": 0.999,
+            "availability": 1.0
+          },
+          {
+            "id": "C12",
+            "name": "GUI_CreateOrder",
+            "raw_utility": 0.045,
+            "effective_utility": 0.045,
+            "time_ms": 500.0,
+            "cost_money": 0.0,
+            "reliability": 0.95,
+            "availability": 1.0
+          },
+          {
+            "id": "C13",
+            "name": "UnavailableOrderService",
+            "raw_utility": 0.009,
+            "effective_utility": 0.0,
+            "time_ms": 100.0,
+            "cost_money": 0.01,
+            "reliability": 0.99,
+            "availability": 0.0
+          },
+          {
+            "id": "C10",
+            "name": "API_CreateOrder",
+            "raw_utility": -0.0095,
+            "effective_utility": -0.0095,
+            "time_ms": 120.0,
+            "cost_money": 0.012,
+            "reliability": 0.985,
+            "availability": 1.0
+          }
+        ]
+      }
+    },
+    "scenarios": {
+      "Speed-focused": [
+        {
+          "id": "C11",
+          "name": "DB_CreateOrder",
+          "raw_utility": 0.1848,
+          "effective_utility": 0.1848,
+          "time_ms": 20.0,
+          "cost_money": 0.001,
+          "reliability": 0.999,
+          "availability": 1.0
+        },
+        {
+          "id": "C10",
+          "name": "API_CreateOrder",
+          "raw_utility": 0.101,
+          "effective_utility": 0.101,
+          "time_ms": 120.0,
+          "cost_money": 0.012,
+          "reliability": 0.985,
+          "availability": 1.0
+        },
+        {
+          "id": "C13",
+          "name": "UnavailableOrderService",
+          "raw_utility": 0.118,
+          "effective_utility": 0.0,
+          "time_ms": 100.0,
+          "cost_money": 0.01,
+          "reliability": 0.99,
+          "availability": 0.0
+        },
+        {
+          "id": "C12",
+          "name": "GUI_CreateOrder",
+          "raw_utility": -0.16,
+          "effective_utility": -0.16,
+          "time_ms": 500.0,
+          "cost_money": 0.0,
+          "reliability": 0.95,
+          "availability": 1.0
+        }
+      ],
+      "Reliability-focused": [
+        {
+          "id": "C11",
+          "name": "DB_CreateOrder",
+          "raw_utility": 0.7962,
+          "effective_utility": 0.7962,
+          "time_ms": 20.0,
+          "cost_money": 0.001,
+          "reliability": 0.999,
+          "availability": 1.0
+        },
+        {
+          "id": "C10",
+          "name": "API_CreateOrder",
+          "raw_utility": 0.764,
+          "effective_utility": 0.764,
+          "time_ms": 120.0,
+          "cost_money": 0.012,
+          "reliability": 0.985,
+          "availability": 1.0
+        },
+        {
+          "id": "C12",
+          "name": "GUI_CreateOrder",
+          "raw_utility": 0.71,
+          "effective_utility": 0.71,
+          "time_ms": 500.0,
+          "cost_money": 0.0,
+          "reliability": 0.95,
+          "availability": 1.0
+        },
+        {
+          "id": "C13",
+          "name": "UnavailableOrderService",
+          "raw_utility": 0.772,
+          "effective_utility": 0.0,
+          "time_ms": 100.0,
+          "cost_money": 0.01,
+          "reliability": 0.99,
+          "availability": 0.0
+        }
+      ],
+      "Cost-focused": [
+        {
+          "id": "C11",
+          "name": "DB_CreateOrder",
+          "raw_utility": 0.0899,
+          "effective_utility": 0.0899,
+          "time_ms": 20.0,
+          "cost_money": 0.001,
+          "reliability": 0.999,
+          "availability": 1.0
+        },
+        {
+          "id": "C12",
+          "name": "GUI_CreateOrder",
+          "raw_utility": 0.045,
+          "effective_utility": 0.045,
+          "time_ms": 500.0,
+          "cost_money": 0.0,
+          "reliability": 0.95,
+          "availability": 1.0
+        },
+        {
+          "id": "C13",
+          "name": "UnavailableOrderService",
+          "raw_utility": 0.009,
+          "effective_utility": 0.0,
+          "time_ms": 100.0,
+          "cost_money": 0.01,
+          "reliability": 0.99,
+          "availability": 0.0
+        },
+        {
+          "id": "C10",
+          "name": "API_CreateOrder",
+          "raw_utility": -0.0095,
+          "effective_utility": -0.0095,
+          "time_ms": 120.0,
+          "cost_money": 0.012,
+          "reliability": 0.985,
+          "availability": 1.0
+        }
+      ]
+    }
+  }
+}

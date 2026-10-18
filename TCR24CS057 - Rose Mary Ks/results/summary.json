@@ -1,0 +1,50 @@
+{
+    "feature_count": 37,
+    "capability_count": 8,
+    "selected_sequence": [
+        "CreateOrder",
+        "MakePayment",
+        "SendNotification"
+    ],
+    "execution_successful": true,
+    "goal_satisfied": true,
+    "composite_capability": {
+        "sequence": [
+            "CreateOrder",
+            "MakePayment",
+            "SendNotification"
+        ],
+        "inputs": [
+            "cart_items",
+            "message",
+            "payment_method",
+            "user_id"
+        ],
+        "outputs": [
+            "notification_sent",
+            "order_id",
+            "payment_id",
+            "payment_status"
+        ],
+        "preconditions": {
+            "user.authenticated": true,
+            "cart.nonempty": true
+        },
+        "effects": {
+            "order.exists": true,
+            "cart.cleared": true,
+            "payment.completed": true,
+            "notification.sent": true
+        },
+        "resources": [
+            "database",
+            "notification_service",
+            "order_service",
+            "payment_gateway"
+        ],
+        "latency": 450,
+        "reliability": 0.9410939999999999,
+        "risk": 0.058906000000000014,
+        "cost": 6.0
+    }
+}

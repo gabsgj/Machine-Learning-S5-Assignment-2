@@ -1,0 +1,4 @@
+First,Second,Compatibility,Result
+CreateOrder,MakePayment,1.0,COMPATIBLE
+CreateOrder,CancelCart,0.0,INCOMPATIBLE
+MakePayment,SendNotification,1.0,COMPATIBLE

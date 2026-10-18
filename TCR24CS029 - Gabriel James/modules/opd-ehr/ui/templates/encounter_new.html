@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}New encounter{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Start encounter</h1>
+  <p id="capability_hint">
+    Submits the GUI capability <code id="capability_id">EHR-Form</code>, the same code path as
+    the API capability <code id="api_capability_id">EHR-StartEncounter</code>. One active
+    encounter at a time: while an encounter is active the module rejects a new one.
+  </p>
+  <form id="encounter_form" data-capability-endpoint="/ui/encounters/new" data-result-target="result_output">
+    <label for="patient_mrn_input">Patient MRN</label>
+    <input type="text" id="patient_mrn_input" name="patient_mrn" required placeholder="MRN-1001">
+    <label for="clinician_input">Clinician</label>
+    <input type="text" id="clinician_input" name="clinician" required placeholder="Dr Rivera">
+    <label for="visit_type_select">Visit type</label>
+    <select id="visit_type_select" name="visit_type">
+      {% for visit_type in visit_types %}
+      <option value="{{ visit_type }}" {% if visit_type == "CONSULTATION" %}selected{% endif %}>{{ visit_type }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" id="submit_button">Start encounter</button>
+  </form>
+  <pre id="result_output" class="result" aria-live="polite"></pre>
+</section>
+{% endblock %}

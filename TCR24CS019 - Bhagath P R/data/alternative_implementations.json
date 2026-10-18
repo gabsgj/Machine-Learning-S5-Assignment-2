@@ -1,0 +1,299 @@
+[
+  {
+    "id": "CreateOrder_API",
+    "name": "CreateOrder (REST API)",
+    "type": "API",
+    "inputs": [
+      {
+        "name": "cart_id",
+        "data_type": "UUID",
+        "domain": "valid UUIDs",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "name": "order_id",
+        "data_type": "UUID",
+        "domain": "valid UUIDs"
+      }
+    ],
+    "preconditions": [
+      {
+        "variable": "Cart.exists",
+        "expected_value": true,
+        "op": "=="
+      }
+    ],
+    "effects": [
+      {
+        "variable": "Order.exists",
+        "new_value": true,
+        "action": "SET"
+      },
+      {
+        "variable": "Order.status",
+        "new_value": "CREATED",
+        "action": "SET"
+      }
+    ],
+    "constraints": [],
+    "resources": [
+      "Database",
+      "Network"
+    ],
+    "quality": {
+      "time_ms": 120.0,
+      "resource_cost": 2.0,
+      "monetary_cost": 0.02,
+      "risk": 0.02,
+      "energy_cost": 0.01
+    },
+    "reliability": 0.99,
+    "availability": 1.0,
+    "mechanism": {
+      "mechanism_type": "HTTP_API",
+      "details": {
+        "method": "POST",
+        "endpoint": "/api/v2/orders"
+      }
+    },
+    "description": "Microservice REST endpoint creating order record.",
+    "sub_capabilities": []
+  },
+  {
+    "id": "CreateOrder_DB",
+    "name": "CreateOrder (Direct DB SQL)",
+    "type": "DATABASE",
+    "inputs": [
+      {
+        "name": "cart_id",
+        "data_type": "UUID",
+        "domain": "valid UUIDs",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "name": "order_id",
+        "data_type": "UUID",
+        "domain": "valid UUIDs"
+      }
+    ],
+    "preconditions": [
+      {
+        "variable": "Cart.exists",
+        "expected_value": true,
+        "op": "=="
+      }
+    ],
+    "effects": [
+      {
+        "variable": "Order.exists",
+        "new_value": true,
+        "action": "SET"
+      },
+      {
+        "variable": "Order.status",
+        "new_value": "CREATED",
+        "action": "SET"
+      }
+    ],
+    "constraints": [],
+    "resources": [
+      "Database"
+    ],
+    "quality": {
+      "time_ms": 18.0,
+      "resource_cost": 1.0,
+      "monetary_cost": 0.001,
+      "risk": 0.01,
+      "energy_cost": 0.003
+    },
+    "reliability": 0.999,
+    "availability": 1.0,
+    "mechanism": {
+      "mechanism_type": "SQL_PROCEDURE",
+      "details": {
+        "procedure": "sp_create_order",
+        "table": "orders"
+      }
+    },
+    "description": "Direct relational database stored procedure inserting order.",
+    "sub_capabilities": []
+  },
+  {
+    "id": "CreateOrder_GUI",
+    "name": "CreateOrder (Web GUI Automation)",
+    "type": "GUI",
+    "inputs": [
+      {
+        "name": "cart_id",
+        "data_type": "UUID",
+        "domain": "valid UUIDs",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "name": "order_id",
+        "data_type": "UUID",
+        "domain": "valid UUIDs"
+      }
+    ],
+    "preconditions": [
+      {
+        "variable": "Cart.exists",
+        "expected_value": true,
+        "op": "=="
+      }
+    ],
+    "effects": [
+      {
+        "variable": "Order.exists",
+        "new_value": true,
+        "action": "SET"
+      },
+      {
+        "variable": "Order.status",
+        "new_value": "CREATED",
+        "action": "SET"
+      }
+    ],
+    "constraints": [],
+    "resources": [
+      "Network",
+      "AuthToken"
+    ],
+    "quality": {
+      "time_ms": 650.0,
+      "resource_cost": 4.0,
+      "monetary_cost": 0.0,
+      "risk": 0.08,
+      "energy_cost": 0.05
+    },
+    "reliability": 0.94,
+    "availability": 0.99,
+    "mechanism": {
+      "mechanism_type": "SELENIUM_GUI",
+      "details": {
+        "action": "CLICK",
+        "selector": "#btn-confirm-order"
+      }
+    },
+    "description": "Headless browser robotic process automation clicking checkout button.",
+    "sub_capabilities": []
+  },
+  {
+    "id": "MakePayment_API",
+    "name": "MakePayment (Stripe API)",
+    "type": "API",
+    "inputs": [
+      {
+        "name": "order_id",
+        "data_type": "UUID",
+        "domain": "valid UUIDs",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "name": "receipt_id",
+        "data_type": "UUID",
+        "domain": "valid UUIDs"
+      }
+    ],
+    "preconditions": [
+      {
+        "variable": "Order.exists",
+        "expected_value": true,
+        "op": "=="
+      }
+    ],
+    "effects": [
+      {
+        "variable": "Payment.status",
+        "new_value": "SUCCESS",
+        "action": "SET"
+      }
+    ],
+    "constraints": [],
+    "resources": [
+      "PaymentGateway",
+      "Network"
+    ],
+    "quality": {
+      "time_ms": 220.0,
+      "resource_cost": 2.5,
+      "monetary_cost": 0.04,
+      "risk": 0.03,
+      "energy_cost": 0.01
+    },
+    "reliability": 0.985,
+    "availability": 1.0,
+    "mechanism": {
+      "mechanism_type": "HTTP_API",
+      "details": {
+        "endpoint": "https://api.stripe.com/v1/charges"
+      }
+    },
+    "description": "Payment processing via Stripe REST API.",
+    "sub_capabilities": []
+  },
+  {
+    "id": "MakePayment_GUI",
+    "name": "MakePayment (GUI Checkout Form)",
+    "type": "GUI",
+    "inputs": [
+      {
+        "name": "order_id",
+        "data_type": "UUID",
+        "domain": "valid UUIDs",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "name": "receipt_id",
+        "data_type": "UUID",
+        "domain": "valid UUIDs"
+      }
+    ],
+    "preconditions": [
+      {
+        "variable": "Order.exists",
+        "expected_value": true,
+        "op": "=="
+      }
+    ],
+    "effects": [
+      {
+        "variable": "Payment.status",
+        "new_value": "SUCCESS",
+        "action": "SET"
+      }
+    ],
+    "constraints": [],
+    "resources": [
+      "Network"
+    ],
+    "quality": {
+      "time_ms": 850.0,
+      "resource_cost": 5.0,
+      "monetary_cost": 0.01,
+      "risk": 0.09,
+      "energy_cost": 0.06
+    },
+    "reliability": 0.92,
+    "availability": 0.98,
+    "mechanism": {
+      "mechanism_type": "SELENIUM_GUI",
+      "details": {
+        "action": "SUBMIT",
+        "selector": "#payment-form"
+      }
+    },
+    "description": "Automated GUI form interaction for payment entry.",
+    "sub_capabilities": []
+  }
+]

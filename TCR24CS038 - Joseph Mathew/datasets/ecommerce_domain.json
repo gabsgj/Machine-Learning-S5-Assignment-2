@@ -1,0 +1,811 @@
+{
+  "domain_name": "EcommerceOrderFulfillment",
+  "schema": {
+    "state_variables": [
+      "User.authenticated",
+      "User.role",
+      "Cart.exists",
+      "Cart.item_count",
+      "Cart.locked",
+      "Order.exists",
+      "Order.status",
+      "Payment.status",
+      "Inventory.available",
+      "Inventory.reserved",
+      "Notification.sent",
+      "Shipment.dispatched",
+      "System.log_compressed",
+      "External.weather_cached"
+    ],
+    "data_types": [
+      "cart_id",
+      "order_id",
+      "payment_token",
+      "receipt_id",
+      "tracking_number",
+      "notification_payload",
+      "weather_data",
+      "log_archive"
+    ],
+    "resource_types": [
+      "Database",
+      "PaymentGateway",
+      "EmailService",
+      "InventoryWarehouse",
+      "Network",
+      "DiskIO"
+    ],
+    "capability_types": [
+      "API",
+      "DATABASE",
+      "GUI",
+      "EVENT",
+      "FUNCTION",
+      "FILE",
+      "COMPUTATION",
+      "MESSAGE",
+      "SERVICE"
+    ],
+    "total_dim": 90
+  },
+  "initial_state": {
+    "name": "S_Initial",
+    "variables": {
+      "User.authenticated": true,
+      "User.role": "CUSTOMER",
+      "Cart.exists": true,
+      "Cart.item_count": 3,
+      "Cart.locked": false,
+      "Order.exists": false,
+      "Order.status": "NOT_STARTED",
+      "Payment.status": "NOT_STARTED",
+      "Inventory.available": true,
+      "Inventory.reserved": false,
+      "Notification.sent": false,
+      "Shipment.dispatched": false,
+      "System.log_compressed": false,
+      "External.weather_cached": false
+    }
+  },
+  "goal": {
+    "name": "OrderFulfillmentGoal",
+    "conditions": [
+      {
+        "variable": "Order.exists",
+        "operator": "==",
+        "value": true
+      },
+      {
+        "variable": "Payment.status",
+        "operator": "==",
+        "value": "SUCCESS"
+      },
+      {
+        "variable": "Notification.sent",
+        "operator": "==",
+        "value": true
+      }
+    ]
+  },
+  "capabilities": [
+    {
+      "name": "CreateOrder",
+      "capability_type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "cart_id",
+          "domain": "UUID",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "data_type": "order_id",
+          "domain": "UUID",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Inventory.available",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "action": "set",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "action": "set",
+          "value": "CREATED"
+        },
+        {
+          "variable": "Cart.locked",
+          "action": "set",
+          "value": true
+        }
+      ],
+      "constraints": [
+        {
+          "name": "cart_not_empty",
+          "expression": "Cart.item_count > 0",
+          "constraint_type": "operational"
+        }
+      ],
+      "resources": [
+        {
+          "name": "Database",
+          "amount": 1.0,
+          "exclusive": false
+        },
+        {
+          "name": "Network",
+          "amount": 1.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 120.0,
+        "monetary_cost": 0.01,
+        "resource_units": 2.0,
+        "risk": 0.01,
+        "energy_joules": 15.0
+      },
+      "reliability": 0.99,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "API",
+        "details": {
+          "method": "POST",
+          "endpoint": "/orders"
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "MakePayment",
+      "capability_type": "SERVICE",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "order_id",
+          "domain": "UUID",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_token",
+          "data_type": "payment_token",
+          "domain": "Token",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Payment.status",
+          "action": "set",
+          "value": "SUCCESS"
+        },
+        {
+          "variable": "Order.status",
+          "action": "set",
+          "value": "PAID"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "valid_limit",
+          "expression": "payment_amount <= transaction_limit",
+          "constraint_type": "operational"
+        }
+      ],
+      "resources": [
+        {
+          "name": "PaymentGateway",
+          "amount": 1.0,
+          "exclusive": false
+        },
+        {
+          "name": "Network",
+          "amount": 1.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 350.0,
+        "monetary_cost": 0.15,
+        "resource_units": 3.0,
+        "risk": 0.02,
+        "energy_joules": 35.0
+      },
+      "reliability": 0.98,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "SERVICE",
+        "details": {
+          "gateway": "StripeGateway",
+          "mode": "synchronous"
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "CancelCart",
+      "capability_type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "cart_id",
+          "domain": "UUID",
+          "required": true
+        }
+      ],
+      "outputs": [],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "operator": "==",
+          "value": false
+        },
+        {
+          "variable": "Cart.locked",
+          "operator": "==",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Cart.exists",
+          "action": "set",
+          "value": false
+        },
+        {
+          "variable": "Cart.item_count",
+          "action": "set",
+          "value": 0
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "Database",
+          "amount": 1.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 50.0,
+        "monetary_cost": 0.0,
+        "resource_units": 1.0,
+        "risk": 0.005,
+        "energy_joules": 5.0
+      },
+      "reliability": 0.999,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "API",
+        "details": {
+          "method": "DELETE",
+          "endpoint": "/cart"
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "SendNotification",
+      "capability_type": "EVENT",
+      "inputs": [
+        {
+          "name": "payment_token",
+          "data_type": "payment_token",
+          "domain": "Token",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "receipt_id",
+          "data_type": "receipt_id",
+          "domain": "UUID",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Payment.status",
+          "operator": "==",
+          "value": "SUCCESS"
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Notification.sent",
+          "action": "set",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "EmailService",
+          "amount": 1.0,
+          "exclusive": false
+        },
+        {
+          "name": "Network",
+          "amount": 1.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 90.0,
+        "monetary_cost": 0.005,
+        "resource_units": 1.0,
+        "risk": 0.01,
+        "energy_joules": 10.0
+      },
+      "reliability": 0.995,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "EVENT",
+        "details": {
+          "trigger": "PaymentSuccess",
+          "handler": "SendEmailReceipt"
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "ReserveInventory",
+      "capability_type": "FUNCTION",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "cart_id",
+          "domain": "UUID",
+          "required": true
+        }
+      ],
+      "outputs": [],
+      "preconditions": [
+        {
+          "variable": "Inventory.available",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Inventory.reserved",
+          "action": "set",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "InventoryWarehouse",
+          "amount": 1.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 80.0,
+        "monetary_cost": 0.002,
+        "resource_units": 1.5,
+        "risk": 0.005,
+        "energy_joules": 8.0
+      },
+      "reliability": 0.99,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "FUNCTION",
+        "details": {
+          "fn": "warehouse.reserve_stock"
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "CreateOrder_Database",
+      "capability_type": "DATABASE",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "cart_id",
+          "domain": "UUID",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "data_type": "order_id",
+          "domain": "UUID",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Inventory.available",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "action": "set",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "action": "set",
+          "value": "CREATED"
+        },
+        {
+          "variable": "Cart.locked",
+          "action": "set",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "Database",
+          "amount": 2.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 45.0,
+        "monetary_cost": 0.001,
+        "resource_units": 1.0,
+        "risk": 0.005,
+        "energy_joules": 5.0
+      },
+      "reliability": 0.998,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "DATABASE",
+        "details": {
+          "operation": "INSERT",
+          "table": "orders"
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "CreateOrder_GUI",
+      "capability_type": "GUI",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "cart_id",
+          "domain": "UUID",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "data_type": "order_id",
+          "domain": "UUID",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Inventory.available",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "action": "set",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "action": "set",
+          "value": "CREATED"
+        },
+        {
+          "variable": "Cart.locked",
+          "action": "set",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "Network",
+          "amount": 1.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 650.0,
+        "monetary_cost": 0.0,
+        "resource_units": 1.0,
+        "risk": 0.05,
+        "energy_joules": 45.0
+      },
+      "reliability": 0.95,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "GUI",
+        "details": {
+          "action": "CLICK",
+          "component": "submit_button"
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "MakePayment_PremiumGateway",
+      "capability_type": "SERVICE",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "order_id",
+          "domain": "UUID",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_token",
+          "data_type": "payment_token",
+          "domain": "Token",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Payment.status",
+          "action": "set",
+          "value": "SUCCESS"
+        },
+        {
+          "variable": "Order.status",
+          "action": "set",
+          "value": "PAID"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "PaymentGateway",
+          "amount": 2.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 180.0,
+        "monetary_cost": 0.45,
+        "resource_units": 4.0,
+        "risk": 0.001,
+        "energy_joules": 20.0
+      },
+      "reliability": 0.9995,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "SERVICE",
+        "details": {
+          "provider": "EnterpriseSLA",
+          "redundancy": true
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "MakePayment_BudgetGateway",
+      "capability_type": "SERVICE",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "order_id",
+          "domain": "UUID",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "payment_token",
+          "data_type": "payment_token",
+          "domain": "Token",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "variable": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Payment.status",
+          "action": "set",
+          "value": "SUCCESS"
+        },
+        {
+          "variable": "Order.status",
+          "action": "set",
+          "value": "PAID"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "PaymentGateway",
+          "amount": 1.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 800.0,
+        "monetary_cost": 0.02,
+        "resource_units": 1.0,
+        "risk": 0.08,
+        "energy_joules": 50.0
+      },
+      "reliability": 0.92,
+      "availability": 0.9,
+      "execution_mechanism": {
+        "type": "SERVICE",
+        "details": {
+          "provider": "BudgetPeerGateway",
+          "redundancy": false
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "QueryWeather",
+      "capability_type": "API",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "weather_data",
+          "data_type": "weather_data",
+          "domain": "JSON",
+          "required": true
+        }
+      ],
+      "preconditions": [],
+      "effects": [
+        {
+          "variable": "External.weather_cached",
+          "action": "set",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "Network",
+          "amount": 1.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 200.0,
+        "monetary_cost": 0.001,
+        "resource_units": 1.0,
+        "risk": 0.01,
+        "energy_joules": 10.0
+      },
+      "reliability": 0.98,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "API",
+        "details": {
+          "endpoint": "https://api.weather.com/v1"
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "CompressLogFiles",
+      "capability_type": "FILE",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "log_archive",
+          "data_type": "log_archive",
+          "domain": "TAR_GZ",
+          "required": true
+        }
+      ],
+      "preconditions": [],
+      "effects": [
+        {
+          "variable": "System.log_compressed",
+          "action": "set",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "DiskIO",
+          "amount": 2.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 1500.0,
+        "monetary_cost": 0.0,
+        "resource_units": 3.0,
+        "risk": 0.001,
+        "energy_joules": 120.0
+      },
+      "reliability": 0.999,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "FILE",
+        "details": {
+          "tool": "gzip",
+          "path": "/var/log/sys.log"
+        }
+      },
+      "sub_capabilities": []
+    }
+  ]
+}

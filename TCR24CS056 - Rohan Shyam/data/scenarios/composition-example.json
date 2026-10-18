@@ -1,0 +1,69 @@
+{
+  "id": "composition-example",
+  "name": "Order preparation and confirmation composition",
+  "states": [
+    {
+      "id": "order-not-ready",
+      "values": { "Order.exists": true, "Order.ready": false, "Order.confirmed": false }
+    }
+  ],
+  "goals": [
+    {
+      "id": "order-confirmed",
+      "conditions": [{ "name": "Order.confirmed", "value": true }]
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "prepare-order",
+      "name": "Prepare order",
+      "type": "FUNCTION",
+      "mechanism": { "function": "prepare_order" },
+      "inputs": [],
+      "outputs": [{ "name": "order_id", "type": "UUID" }],
+      "preconditions": [],
+      "effects": [{ "name": "Order.ready", "value": true }],
+      "constraints": [],
+      "resources": ["order-store"],
+      "cost": { "time_ms": 15, "money": 0, "resource": 1, "risk": 0.01, "energy": 0.1 },
+      "reliability": 0.99,
+      "availability": 0.98,
+      "components": []
+    },
+    {
+      "id": "confirm-order",
+      "name": "Confirm order",
+      "type": "API",
+      "mechanism": { "method": "POST", "endpoint": "/orders/confirm" },
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [{ "name": "Order.ready", "value": true }],
+      "effects": [{ "name": "Order.confirmed", "value": true }],
+      "constraints": [{ "name": "Order.exists", "value": true }],
+      "resources": ["order-service"],
+      "cost": { "time_ms": 25, "money": 0.02, "resource": 1, "risk": 0.02, "energy": 0.2 },
+      "reliability": 0.98,
+      "availability": 0.97,
+      "components": []
+    },
+    {
+      "id": "prepare-confirm-order",
+      "name": "Prepare and confirm order",
+      "type": "COMPOSITE",
+      "mechanism": { "composition": "ordered" },
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [],
+      "effects": [
+        { "name": "Order.ready", "value": true },
+        { "name": "Order.confirmed", "value": true }
+      ],
+      "constraints": [{ "name": "Order.exists", "value": true }],
+      "resources": ["order-service", "order-store"],
+      "cost": { "time_ms": 40, "money": 0.02, "resource": 2, "risk": 0.03, "energy": 0.3 },
+      "reliability": 0.9702,
+      "availability": 0.9506,
+      "components": ["prepare-order", "confirm-order"]
+    }
+  ]
+}

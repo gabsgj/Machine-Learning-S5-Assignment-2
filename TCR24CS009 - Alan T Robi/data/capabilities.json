@@ -1,0 +1,928 @@
+[
+  {
+    "name": "CreateOrder",
+    "type": "API",
+    "inputs": [
+      { "name": "cart_id", "type": "UUID", "domain": "valid UUID", "required": true }
+    ],
+    "outputs": [
+      { "name": "order_id", "type": "UUID", "domain": "valid UUID" }
+    ],
+    "preconditions": [
+      "CartExists=true",
+      "CartItemCount>0"
+    ],
+    "effects": [
+      "OrderExists=true",
+      "OrderStatus=CREATED"
+    ],
+    "constraints": [
+      "quantity>0"
+    ],
+    "resources": [
+      "Database",
+      "Network"
+    ],
+    "cost": {
+      "time": 100.0,
+      "resource": 2.0,
+      "money": 0.01,
+      "risk": 0.05,
+      "energy": 1.0
+    },
+    "reliability": 0.98,
+    "availability": 1.0,
+    "mechanism": {
+      "method": "POST",
+      "endpoint": "/orders"
+    }
+  },
+  {
+    "name": "CreateOrderDatabase",
+    "type": "DATABASE",
+    "inputs": [
+      { "name": "cart_id", "type": "UUID", "domain": "valid UUID", "required": true }
+    ],
+    "outputs": [
+      { "name": "order_id", "type": "UUID", "domain": "valid UUID" }
+    ],
+    "preconditions": [
+      "CartExists=true",
+      "CartItemCount>0"
+    ],
+    "effects": [
+      "OrderExists=true",
+      "OrderStatus=CREATED"
+    ],
+    "constraints": [
+      "quantity>0"
+    ],
+    "resources": [
+      "Database"
+    ],
+    "cost": {
+      "time": 40.0,
+      "resource": 3.0,
+      "money": 0.002,
+      "risk": 0.02,
+      "energy": 0.8
+    },
+    "reliability": 0.99,
+    "availability": 1.0,
+    "mechanism": {
+      "operation": "INSERT",
+      "table": "orders"
+    }
+  },
+  {
+    "name": "CreateOrderGUI",
+    "type": "GUI",
+    "inputs": [
+      { "name": "cart_id", "type": "UUID", "domain": "valid UUID", "required": true }
+    ],
+    "outputs": [
+      { "name": "order_id", "type": "UUID", "domain": "valid UUID" }
+    ],
+    "preconditions": [
+      "CartExists=true",
+      "CartItemCount>0"
+    ],
+    "effects": [
+      "OrderExists=true",
+      "OrderStatus=CREATED"
+    ],
+    "constraints": [
+      "quantity>0"
+    ],
+    "resources": [
+      "Network",
+      "Display"
+    ],
+    "cost": {
+      "time": 350.0,
+      "resource": 1.5,
+      "money": 0.0,
+      "risk": 0.08,
+      "energy": 1.5
+    },
+    "reliability": 0.95,
+    "availability": 1.0,
+    "mechanism": {
+      "action": "CLICK",
+      "component": "submit_order_btn"
+    }
+  },
+  {
+    "name": "MakePayment",
+    "type": "API",
+    "inputs": [
+      { "name": "order_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "payment_method", "type": "STRING", "domain": "valid method", "required": true }
+    ],
+    "outputs": [
+      { "name": "payment_id", "type": "UUID", "domain": "valid UUID" },
+      { "name": "receipt_token", "type": "STRING", "domain": "valid string" }
+    ],
+    "preconditions": [
+      "OrderExists=true",
+      "OrderStatus=CREATED"
+    ],
+    "effects": [
+      "PaymentStatus=SUCCESS",
+      "OrderPaid=true"
+    ],
+    "constraints": [
+      "payment_amount<=transaction_limit"
+    ],
+    "resources": [
+      "PaymentGateway",
+      "Network"
+    ],
+    "cost": {
+      "time": 150.0,
+      "resource": 2.5,
+      "money": 0.01,
+      "risk": 0.04,
+      "energy": 1.2
+    },
+    "reliability": 0.98,
+    "availability": 1.0,
+    "mechanism": {
+      "method": "POST",
+      "endpoint": "/payments"
+    }
+  },
+  {
+    "name": "MakePaymentPremium",
+    "type": "SERVICE",
+    "inputs": [
+      { "name": "order_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "payment_method", "type": "STRING", "domain": "valid method", "required": true }
+    ],
+    "outputs": [
+      { "name": "payment_id", "type": "UUID", "domain": "valid UUID" },
+      { "name": "receipt_token", "type": "STRING", "domain": "valid string" }
+    ],
+    "preconditions": [
+      "OrderExists=true",
+      "OrderStatus=CREATED"
+    ],
+    "effects": [
+      "PaymentStatus=SUCCESS",
+      "OrderPaid=true"
+    ],
+    "constraints": [
+      "payment_amount<=transaction_limit"
+    ],
+    "resources": [
+      "PaymentGateway",
+      "Network",
+      "HSM"
+    ],
+    "cost": {
+      "time": 50.0,
+      "resource": 4.0,
+      "money": 0.025,
+      "risk": 0.005,
+      "energy": 2.0
+    },
+    "reliability": 0.999,
+    "availability": 1.0,
+    "mechanism": {
+      "provider": "StripeEnterprise",
+      "sla": "99.99"
+    }
+  },
+  {
+    "name": "MakePaymentDiscount",
+    "type": "SERVICE",
+    "inputs": [
+      { "name": "order_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "payment_method", "type": "STRING", "domain": "valid method", "required": true }
+    ],
+    "outputs": [
+      { "name": "payment_id", "type": "UUID", "domain": "valid UUID" },
+      { "name": "receipt_token", "type": "STRING", "domain": "valid string" }
+    ],
+    "preconditions": [
+      "OrderExists=true",
+      "OrderStatus=CREATED"
+    ],
+    "effects": [
+      "PaymentStatus=SUCCESS",
+      "OrderPaid=true"
+    ],
+    "constraints": [
+      "payment_amount<=transaction_limit"
+    ],
+    "resources": [
+      "PaymentGateway",
+      "Network"
+    ],
+    "cost": {
+      "time": 300.0,
+      "resource": 1.0,
+      "money": 0.003,
+      "risk": 0.10,
+      "energy": 0.5
+    },
+    "reliability": 0.90,
+    "availability": 0.95,
+    "mechanism": {
+      "provider": "BudgetPay",
+      "sla": "95.0"
+    }
+  },
+  {
+    "name": "CancelCart",
+    "type": "API",
+    "inputs": [
+      { "name": "cart_id", "type": "UUID", "domain": "valid UUID", "required": true }
+    ],
+    "outputs": [
+      { "name": "cancel_ack", "type": "STRING", "domain": "ack string" }
+    ],
+    "preconditions": [
+      "OrderExists=false",
+      "CartExists=true"
+    ],
+    "effects": [
+      "CartExists=false",
+      "CartCleared=true"
+    ],
+    "constraints": [
+      "cart_unlocked=true"
+    ],
+    "resources": [
+      "Database"
+    ],
+    "cost": {
+      "time": 30.0,
+      "resource": 1.0,
+      "money": 0.0,
+      "risk": 0.01,
+      "energy": 0.3
+    },
+    "reliability": 0.99,
+    "availability": 1.0,
+    "mechanism": {
+      "method": "DELETE",
+      "endpoint": "/carts"
+    }
+  },
+  {
+    "name": "SendNotification",
+    "type": "MESSAGE",
+    "inputs": [
+      { "name": "order_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "receipt_token", "type": "STRING", "domain": "valid string", "required": true }
+    ],
+    "outputs": [
+      { "name": "notification_id", "type": "UUID", "domain": "valid UUID" }
+    ],
+    "preconditions": [
+      "OrderPaid=true",
+      "PaymentStatus=SUCCESS"
+    ],
+    "effects": [
+      "NotificationSent=true",
+      "CustomerNotified=true"
+    ],
+    "constraints": [
+      "user_subscribed=true"
+    ],
+    "resources": [
+      "EmailServer",
+      "Network"
+    ],
+    "cost": {
+      "time": 80.0,
+      "resource": 1.2,
+      "money": 0.001,
+      "risk": 0.02,
+      "energy": 0.5
+    },
+    "reliability": 0.97,
+    "availability": 1.0,
+    "mechanism": {
+      "protocol": "SMTP",
+      "template": "order_confirmation"
+    }
+  },
+  {
+    "name": "GenerateInvoice",
+    "type": "FUNCTION",
+    "inputs": [
+      { "name": "order_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "payment_id", "type": "UUID", "domain": "valid UUID", "required": true }
+    ],
+    "outputs": [
+      { "name": "invoice_pdf", "type": "FILE_PATH", "domain": "valid path" }
+    ],
+    "preconditions": [
+      "OrderPaid=true",
+      "PaymentStatus=SUCCESS"
+    ],
+    "effects": [
+      "InvoiceGenerated=true"
+    ],
+    "constraints": [
+      "pdf_engine=available"
+    ],
+    "resources": [
+      "FileSystem",
+      "CPU"
+    ],
+    "cost": {
+      "time": 200.0,
+      "resource": 3.0,
+      "money": 0.0,
+      "risk": 0.01,
+      "energy": 2.5
+    },
+    "reliability": 0.99,
+    "availability": 1.0,
+    "mechanism": {
+      "function_name": "render_pdf_invoice"
+    }
+  },
+  {
+    "name": "CheckInventory",
+    "type": "DATABASE",
+    "inputs": [
+      { "name": "item_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "quantity", "type": "INTEGER", "domain": ">0", "required": true }
+    ],
+    "outputs": [
+      { "name": "in_stock", "type": "BOOLEAN", "domain": "true/false" }
+    ],
+    "preconditions": [
+      "ItemExists=true"
+    ],
+    "effects": [
+      "InventoryChecked=true"
+    ],
+    "constraints": [
+      "read_only=true"
+    ],
+    "resources": [
+      "Database"
+    ],
+    "cost": {
+      "time": 15.0,
+      "resource": 0.5,
+      "money": 0.0,
+      "risk": 0.001,
+      "energy": 0.2
+    },
+    "reliability": 0.999,
+    "availability": 1.0,
+    "mechanism": {
+      "operation": "SELECT",
+      "table": "inventory"
+    }
+  },
+  {
+    "name": "ReserveInventory",
+    "type": "SERVICE",
+    "inputs": [
+      { "name": "item_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "quantity", "type": "INTEGER", "domain": ">0", "required": true }
+    ],
+    "outputs": [
+      { "name": "reservation_token", "type": "UUID", "domain": "valid UUID" }
+    ],
+    "preconditions": [
+      "InventoryChecked=true",
+      "ItemExists=true"
+    ],
+    "effects": [
+      "InventoryReserved=true"
+    ],
+    "constraints": [
+      "quantity<=available_stock"
+    ],
+    "resources": [
+      "Database",
+      "Redis"
+    ],
+    "cost": {
+      "time": 45.0,
+      "resource": 1.5,
+      "money": 0.001,
+      "risk": 0.02,
+      "energy": 0.6
+    },
+    "reliability": 0.98,
+    "availability": 1.0,
+    "mechanism": {
+      "service_endpoint": "http://inventory-svc/reserve"
+    }
+  },
+  {
+    "name": "UpdateInventory",
+    "type": "DATABASE",
+    "inputs": [
+      { "name": "reservation_token", "type": "UUID", "domain": "valid UUID", "required": true }
+    ],
+    "outputs": [
+      { "name": "updated_count", "type": "INTEGER", "domain": ">=0" }
+    ],
+    "preconditions": [
+      "InventoryReserved=true",
+      "OrderPaid=true"
+    ],
+    "effects": [
+      "InventoryDeducted=true"
+    ],
+    "constraints": [
+      "atomic_transaction=true"
+    ],
+    "resources": [
+      "Database"
+    ],
+    "cost": {
+      "time": 35.0,
+      "resource": 2.0,
+      "money": 0.0,
+      "risk": 0.01,
+      "energy": 0.5
+    },
+    "reliability": 0.999,
+    "availability": 1.0,
+    "mechanism": {
+      "operation": "UPDATE",
+      "table": "inventory"
+    }
+  },
+  {
+    "name": "AuthenticateUser",
+    "type": "API",
+    "inputs": [
+      { "name": "username", "type": "STRING", "domain": "valid string", "required": true },
+      { "name": "password", "type": "STRING", "domain": "valid string", "required": true }
+    ],
+    "outputs": [
+      { "name": "auth_token", "type": "STRING", "domain": "JWT token" }
+    ],
+    "preconditions": [
+      "UserExists=true"
+    ],
+    "effects": [
+      "UserAuthenticated=true"
+    ],
+    "constraints": [
+      "max_login_attempts<5"
+    ],
+    "resources": [
+      "AuthServer",
+      "Database"
+    ],
+    "cost": {
+      "time": 90.0,
+      "resource": 2.0,
+      "money": 0.0,
+      "risk": 0.03,
+      "energy": 1.0
+    },
+    "reliability": 0.99,
+    "availability": 1.0,
+    "mechanism": {
+      "method": "POST",
+      "endpoint": "/auth/login"
+    }
+  },
+  {
+    "name": "LogoutUser",
+    "type": "API",
+    "inputs": [
+      { "name": "auth_token", "type": "STRING", "domain": "JWT token", "required": true }
+    ],
+    "outputs": [
+      { "name": "logout_ack", "type": "STRING", "domain": "ack" }
+    ],
+    "preconditions": [
+      "UserAuthenticated=true"
+    ],
+    "effects": [
+      "UserAuthenticated=false"
+    ],
+    "constraints": [
+      "token_valid=true"
+    ],
+    "resources": [
+      "AuthServer"
+    ],
+    "cost": {
+      "time": 20.0,
+      "resource": 0.5,
+      "money": 0.0,
+      "risk": 0.0,
+      "energy": 0.2
+    },
+    "reliability": 1.0,
+    "availability": 1.0,
+    "mechanism": {
+      "method": "POST",
+      "endpoint": "/auth/logout"
+    }
+  },
+  {
+    "name": "AddToCart",
+    "type": "API",
+    "inputs": [
+      { "name": "item_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "quantity", "type": "INTEGER", "domain": ">0", "required": true }
+    ],
+    "outputs": [
+      { "name": "cart_id", "type": "UUID", "domain": "valid UUID" }
+    ],
+    "preconditions": [
+      "UserAuthenticated=true"
+    ],
+    "effects": [
+      "CartExists=true",
+      "CartItemCount>0"
+    ],
+    "constraints": [
+      "quantity>0"
+    ],
+    "resources": [
+      "Database",
+      "Redis"
+    ],
+    "cost": {
+      "time": 40.0,
+      "resource": 1.0,
+      "money": 0.0,
+      "risk": 0.01,
+      "energy": 0.4
+    },
+    "reliability": 0.99,
+    "availability": 1.0,
+    "mechanism": {
+      "method": "POST",
+      "endpoint": "/cart/items"
+    }
+  },
+  {
+    "name": "RemoveFromCart",
+    "type": "API",
+    "inputs": [
+      { "name": "cart_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "item_id", "type": "UUID", "domain": "valid UUID", "required": true }
+    ],
+    "outputs": [
+      { "name": "updated_cart_id", "type": "UUID", "domain": "valid UUID" }
+    ],
+    "preconditions": [
+      "CartExists=true",
+      "CartItemCount>0"
+    ],
+    "effects": [
+      "CartItemRemoved=true"
+    ],
+    "constraints": [
+      "item_in_cart=true"
+    ],
+    "resources": [
+      "Database"
+    ],
+    "cost": {
+      "time": 30.0,
+      "resource": 0.8,
+      "money": 0.0,
+      "risk": 0.01,
+      "energy": 0.3
+    },
+    "reliability": 0.99,
+    "availability": 1.0,
+    "mechanism": {
+      "method": "DELETE",
+      "endpoint": "/cart/items"
+    }
+  },
+  {
+    "name": "SearchProduct",
+    "type": "SERVICE",
+    "inputs": [
+      { "name": "query_string", "type": "STRING", "domain": "valid string", "required": true }
+    ],
+    "outputs": [
+      { "name": "product_list", "type": "LIST", "domain": "valid product list" }
+    ],
+    "preconditions": [],
+    "effects": [
+      "ProductSearchCompleted=true"
+    ],
+    "constraints": [
+      "query_len>0"
+    ],
+    "resources": [
+      "Elasticsearch",
+      "Network"
+    ],
+    "cost": {
+      "time": 60.0,
+      "resource": 2.0,
+      "money": 0.0,
+      "risk": 0.01,
+      "energy": 0.7
+    },
+    "reliability": 0.98,
+    "availability": 1.0,
+    "mechanism": {
+      "search_engine": "Elasticsearch",
+      "index": "products"
+    }
+  },
+  {
+    "name": "UpdateProfile",
+    "type": "GUI",
+    "inputs": [
+      { "name": "user_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "address", "type": "STRING", "domain": "valid address", "required": false }
+    ],
+    "outputs": [
+      { "name": "update_status", "type": "BOOLEAN", "domain": "true/false" }
+    ],
+    "preconditions": [
+      "UserAuthenticated=true"
+    ],
+    "effects": [
+      "ProfileUpdated=true"
+    ],
+    "constraints": [
+      "valid_address_format=true"
+    ],
+    "resources": [
+      "Database"
+    ],
+    "cost": {
+      "time": 120.0,
+      "resource": 1.0,
+      "money": 0.0,
+      "risk": 0.01,
+      "energy": 0.6
+    },
+    "reliability": 0.96,
+    "availability": 1.0,
+    "mechanism": {
+      "action": "SUBMIT",
+      "form": "user_profile_form"
+    }
+  },
+  {
+    "name": "GenerateUserReport",
+    "type": "COMPUTATION",
+    "inputs": [
+      { "name": "start_date", "type": "DATE", "domain": "ISO date", "required": true },
+      { "name": "end_date", "type": "DATE", "domain": "ISO date", "required": true }
+    ],
+    "outputs": [
+      { "name": "analytics_report", "type": "FILE_PATH", "domain": "PDF file" }
+    ],
+    "preconditions": [
+      "UserAuthenticated=true",
+      "UserRole=ADMIN"
+    ],
+    "effects": [
+      "UserReportGenerated=true"
+    ],
+    "constraints": [
+      "start_date<=end_date"
+    ],
+    "resources": [
+      "Spark",
+      "HDFS"
+    ],
+    "cost": {
+      "time": 1500.0,
+      "resource": 10.0,
+      "money": 0.05,
+      "risk": 0.02,
+      "energy": 15.0
+    },
+    "reliability": 0.92,
+    "availability": 0.98,
+    "mechanism": {
+      "job": "SparkAnalyticsJob"
+    }
+  },
+  {
+    "name": "CreateWishlist",
+    "type": "API",
+    "inputs": [
+      { "name": "user_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "wishlist_name", "type": "STRING", "domain": "name", "required": true }
+    ],
+    "outputs": [
+      { "name": "wishlist_id", "type": "UUID", "domain": "valid UUID" }
+    ],
+    "preconditions": [
+      "UserAuthenticated=true"
+    ],
+    "effects": [
+      "WishlistCreated=true"
+    ],
+    "constraints": [
+      "wishlist_name_len>0"
+    ],
+    "resources": [
+      "Database"
+    ],
+    "cost": {
+      "time": 45.0,
+      "resource": 1.0,
+      "money": 0.0,
+      "risk": 0.005,
+      "energy": 0.4
+    },
+    "reliability": 0.99,
+    "availability": 1.0,
+    "mechanism": {
+      "method": "POST",
+      "endpoint": "/wishlists"
+    }
+  },
+  {
+    "name": "CheckOrderStatus",
+    "type": "API",
+    "inputs": [
+      { "name": "order_id", "type": "UUID", "domain": "valid UUID", "required": true }
+    ],
+    "outputs": [
+      { "name": "order_status_info", "type": "STRING", "domain": "status enum" }
+    ],
+    "preconditions": [
+      "OrderExists=true"
+    ],
+    "effects": [
+      "OrderStatusChecked=true"
+    ],
+    "constraints": [
+      "rate_limit_ok=true"
+    ],
+    "resources": [
+      "Database"
+    ],
+    "cost": {
+      "time": 25.0,
+      "resource": 0.6,
+      "money": 0.0,
+      "risk": 0.001,
+      "energy": 0.2
+    },
+    "reliability": 0.999,
+    "availability": 1.0,
+    "mechanism": {
+      "method": "GET",
+      "endpoint": "/orders/{id}"
+    }
+  },
+  {
+    "name": "RefundPayment",
+    "type": "SERVICE",
+    "inputs": [
+      { "name": "payment_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "reason", "type": "STRING", "domain": "refund reason", "required": true }
+    ],
+    "outputs": [
+      { "name": "refund_id", "type": "UUID", "domain": "valid UUID" }
+    ],
+    "preconditions": [
+      "OrderPaid=true",
+      "PaymentStatus=SUCCESS"
+    ],
+    "effects": [
+      "PaymentRefunded=true",
+      "OrderPaid=false"
+    ],
+    "constraints": [
+      "within_refund_window=true"
+    ],
+    "resources": [
+      "PaymentGateway",
+      "Database"
+    ],
+    "cost": {
+      "time": 500.0,
+      "resource": 3.0,
+      "money": 0.02,
+      "risk": 0.05,
+      "energy": 2.0
+    },
+    "reliability": 0.97,
+    "availability": 1.0,
+    "mechanism": {
+      "provider": "StripeRefundSvc"
+    }
+  },
+  {
+    "name": "CalculateTax",
+    "type": "COMPUTATION",
+    "inputs": [
+      { "name": "cart_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "zip_code", "type": "STRING", "domain": "postal code", "required": true }
+    ],
+    "outputs": [
+      { "name": "tax_amount", "type": "DECIMAL", "domain": ">=0" }
+    ],
+    "preconditions": [
+      "CartExists=true"
+    ],
+    "effects": [
+      "TaxCalculated=true"
+    ],
+    "constraints": [
+      "valid_zip=true"
+    ],
+    "resources": [
+      "CPU"
+    ],
+    "cost": {
+      "time": 20.0,
+      "resource": 0.4,
+      "money": 0.0,
+      "risk": 0.001,
+      "energy": 0.1
+    },
+    "reliability": 0.999,
+    "availability": 1.0,
+    "mechanism": {
+      "calc_function": "compute_jurisdiction_tax"
+    }
+  },
+  {
+    "name": "ApplyDiscount",
+    "type": "COMPUTATION",
+    "inputs": [
+      { "name": "cart_id", "type": "UUID", "domain": "valid UUID", "required": true },
+      { "name": "coupon_code", "type": "STRING", "domain": "coupon", "required": true }
+    ],
+    "outputs": [
+      { "name": "discount_amount", "type": "DECIMAL", "domain": ">=0" }
+    ],
+    "preconditions": [
+      "CartExists=true",
+      "CartItemCount>0"
+    ],
+    "effects": [
+      "DiscountApplied=true"
+    ],
+    "constraints": [
+      "coupon_valid=true"
+    ],
+    "resources": [
+      "Database",
+      "CPU"
+    ],
+    "cost": {
+      "time": 30.0,
+      "resource": 0.6,
+      "money": 0.0,
+      "risk": 0.005,
+      "energy": 0.2
+    },
+    "reliability": 0.99,
+    "availability": 1.0,
+    "mechanism": {
+      "calc_function": "evaluate_coupon_rules"
+    }
+  },
+  {
+    "name": "VerifyShippingAddress",
+    "type": "SERVICE",
+    "inputs": [
+      { "name": "address_line", "type": "STRING", "domain": "address", "required": true },
+      { "name": "zip_code", "type": "STRING", "domain": "postal code", "required": true }
+    ],
+    "outputs": [
+      { "name": "standardized_address", "type": "STRING", "domain": "valid address" },
+      { "name": "is_valid", "type": "BOOLEAN", "domain": "true/false" }
+    ],
+    "preconditions": [],
+    "effects": [
+      "AddressVerified=true"
+    ],
+    "constraints": [
+      "country_supported=true"
+    ],
+    "resources": [
+      "ExternalService",
+      "Network"
+    ],
+    "cost": {
+      "time": 110.0,
+      "resource": 1.5,
+      "money": 0.005,
+      "risk": 0.01,
+      "energy": 0.8
+    },
+    "reliability": 0.98,
+    "availability": 1.0,
+    "mechanism": {
+      "provider": "AddressValidationAPI"
+    }
+  }
+]

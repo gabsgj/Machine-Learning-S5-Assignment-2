@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Appointment Queue home{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1 id="module_title">Appointment Queue</h1>
+  <p id="module_description">{{ spec.module.description }}</p>
+  <ul class="facts">
+    <li>Module id: <code id="module_id">{{ spec.module.module_id }}</code></li>
+    <li>Version: <code>{{ spec.module.version }}</code></li>
+    <li>Tickets created: <code id="count_tickets">{{ counts.tickets }}</code></li>
+    <li>Tickets waiting: <code id="count_open_tickets">{{ counts.open_tickets }}</code></li>
+    <li>Triaged tickets: <code id="count_triaged">{{ counts.triaged }}</code></li>
+  </ul>
+  <p>
+    <a class="button" id="new_ticket_link" href="{{ url_for('ui.ticket_new') }}">Create a ticket</a>
+    <a class="button secondary" id="queue_link" href="{{ url_for('ui.tickets') }}">Open the queue</a>
+  </p>
+</section>
+
+<section class="panel">
+  <h2>Capabilities</h2>
+  <table id="capability_table" class="grid">
+    <thead>
+      <tr><th>Id</th><th>Name</th><th>Type</th><th>Mechanism</th><th>Reliability</th></tr>
+    </thead>
+    <tbody>
+      {% for capability in spec.capabilities %}
+      <tr>
+        <td><code>{{ capability.id }}</code></td>
+        <td>{{ capability.name }}</td>
+        <td>{{ capability.type }}</td>
+        <td>
+          {% if capability.mechanism.endpoint %}<code>{{ capability.mechanism.method }} {{ capability.mechanism.endpoint }}</code>
+          {% elif capability.mechanism.page %}<code>{{ capability.mechanism.page }}</code>
+          {% else %}<code>{{ capability.mechanism.kind }}</code>{% endif %}
+        </td>
+        <td>{{ capability.reliability }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

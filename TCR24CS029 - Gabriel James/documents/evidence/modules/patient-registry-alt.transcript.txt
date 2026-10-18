@@ -1,0 +1,85 @@
+TRANSCRIPT patient-registry-alt live run
+database: documents/evidence/modules/patient-registry-alt.db
+server log: documents/evidence/modules/patient-registry-alt.server.log
+python: 3.12.14
+
+$ GET /health
+  (module health)
+  http status: 200
+  response: {"database": "../../documents/evidence/modules/patient-registry-alt.db", "module": "patient-registry-alt", "port": 5007, "status": "ok"}
+
+$ GET /spec
+  http status: 200
+  capability ids: ["PA-Register", "PA-Lookup", "PA-Verify", "PA-RowWrite", "PA-Form"]
+  state variables: ["Patient.registered", "Patient.verified"]
+
+$ GET /state
+  (state before any capability call)
+  http status: 200
+  response: {"module": "patient-registry-alt", "state": {"Patient.registered": false, "Patient.verified": false}, "status": "ok"}
+
+$ GET /ui/
+  (UI page)
+  http status: 200
+  response (2998 bytes of HTML): <!doctype html>
+
+$ GET /ui/patients
+  (UI page)
+  http status: 200
+  response (1437 bytes of HTML): <!doctype html>
+
+$ GET /ui/pat_reg/new
+  (UI page)
+  http status: 200
+  response (1628 bytes of HTML): <!doctype html>
+
+$ GET /ui/capabilities
+  (UI page)
+  http status: 200
+  response (8996 bytes of HTML): <!doctype html>
+
+$ POST /api/pat_reg
+  (register a patient)
+  request body: {"pat_name": "Ada Lovelace", "pat_no": "P-3001"}
+  http status: 200
+  response: {"capability": "PA-Register", "effects": [{"op": "SET", "value": true, "variable": "Patient.registered"}], "outputs": {"pat_no": "P-3001", "pat_reg": "PAT-617CE778", "registered_at": "2026-10-18T15:32:55+00:00"}, "state": {"Patient.registered": true, "Patient.verified": false}, "status": "ok", "trace": ["PA-Register executed"]}
+
+$ POST /api/pat_reg
+  (registering the same patient number again is rejected)
+  request body: {"pat_name": "Copy", "pat_no": "P-3001"}
+  http status: 409
+  response: {"capability": "PA-Register", "error": "patient number \"P-3001\" is already registered as PAT-617CE778", "status": "error"}
+
+$ POST /api/pat_lookup
+  (look the registration up)
+  request body: {"pat_reg": "PAT-617CE778"}
+  http status: 200
+  response: {"capability": "PA-Lookup", "effects": [], "outputs": {"pat_name": "Ada Lovelace", "pat_no": "P-3001", "pat_reg": "PAT-617CE778", "verified": false}, "state": {"Patient.registered": true, "Patient.verified": false}, "status": "ok", "trace": ["PA-Lookup executed"]}
+
+$ POST /api/pat_verify
+  (verify the registration)
+  request body: {"pat_reg": "PAT-617CE778"}
+  http status: 200
+  response: {"capability": "PA-Verify", "effects": [{"op": "SET", "value": true, "variable": "Patient.verified"}], "outputs": {"pat_reg": "PAT-617CE778", "verified": true, "verified_at": "2026-10-18T15:32:55+00:00"}, "state": {"Patient.registered": true, "Patient.verified": true}, "status": "ok", "trace": ["PA-Verify executed"]}
+
+$ POST /api/pat_verify
+  (verifying the registration again is rejected)
+  request body: {"pat_reg": "PAT-617CE778"}
+  http status: 409
+  response: {"capability": "PA-Verify", "error": "patient registration \"PAT-617CE778\" is already verified", "status": "error"}
+
+$ GET /state
+  (state snapshot after the calls)
+  http status: 200
+  response: {"module": "patient-registry-alt", "state": {"Patient.registered": true, "Patient.verified": true}, "status": "ok"}
+
+$ POST /ui/pat_reg/new
+  (GUI capability form submission)
+  request body: {"pat_name": "Grace Hopper", "pat_no": "P-3002"}
+  http status: 200
+  response: {"capability": "PA-Form", "effects": [{"op": "SET", "value": true, "variable": "Patient.registered"}], "outputs": {"pat_no": "P-3002", "pat_reg": "PAT-0EACAA0E", "registered_at": "2026-10-18T15:32:55+00:00"}, "state": {"Patient.registered": true, "Patient.verified": true}, "status": "ok", "trace": ["PA-Form submitted through /ui/pat_reg/new"]}
+
+$ GET /ui/patients/PAT-0EACAA0E
+  (UI detail page)
+  http status: 200
+  response (1598 bytes of HTML): <!doctype html>

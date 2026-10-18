@@ -1,0 +1,4 @@
+state_id,User.authenticated,User.role,Cart.exists,Cart.item_count,Order.exists,Payment.status,Inventory.available,Notification.sent
+S0,true,CUSTOMER,true,3,false,NOT_STARTED,true,false
+S1,true,CUSTOMER,true,3,true,NOT_STARTED,true,false
+S2,true,CUSTOMER,true,3,true,SUCCESS,true,false

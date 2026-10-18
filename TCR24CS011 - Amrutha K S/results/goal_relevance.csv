@@ -1,0 +1,7 @@
+capability,goal_relevance
+CreateOrder,0.3333333333333333
+MakePayment,0.3333333333333333
+CancelCart,0.0
+SendNotification,0.3333333333333333
+CreateOrderDatabase,0.3333333333333333
+CreateOrderGUI,0.3333333333333333

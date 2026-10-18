@@ -1,0 +1,4 @@
+Capability A,Capability B,Similarity
+CreateOrderAPI,CreateOrderDatabase,0.7265305241871403
+CreateOrderAPI,CreateOrderGUI,0.8174996576107709
+CreateOrderDatabase,CreateOrderGUI,0.7260510616735112

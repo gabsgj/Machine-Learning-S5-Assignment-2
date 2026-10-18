@@ -1,0 +1,174 @@
+{
+  "application": {
+    "name": "Online Purchase Capability Composition",
+
+    "initial_state": {
+      "User.authenticated": true,
+      "User.role": "CUSTOMER",
+      "Cart.exists": true,
+      "Cart.item_count": 3,
+      "Order.exists": false,
+      "Payment.status": "NOT_STARTED",
+      "Inventory.available": true,
+      "Notification.sent": false
+    },
+
+    "goal": {
+      "Order.exists": true,
+      "Payment.status": "SUCCESS",
+      "Notification.sent": true
+    }
+  },
+
+  "capabilities": [
+
+    {
+      "name": "CreateOrder",
+
+      "capability_type": "API",
+
+      "inputs": {
+        "cart_id": {
+          "type": "UUID",
+          "required": true
+        }
+      },
+
+      "outputs": {
+        "order_id": {
+          "type": "UUID"
+        }
+      },
+
+      "preconditions": {
+        "Cart.exists": true,
+        "Cart.item_count": 1,
+        "Inventory.available": true
+      },
+
+      "effects": {
+        "Order.exists": true,
+        "Order.status": "CREATED"
+      },
+
+      "constraints": [
+        "Cart.item_count > 0"
+      ],
+
+      "resources": [
+        "Database",
+        "Authentication token",
+        "Network"
+      ],
+
+      "cost_time": 100,
+      "cost_resource": 2,
+      "cost_money": 0.01,
+
+      "risk": 0.05,
+      "reliability": 0.99,
+      "availability": 0.99,
+
+      "execution": {
+        "method": "POST",
+        "endpoint": "/orders"
+      }
+    },
+
+    {
+      "name": "MakePayment",
+
+      "capability_type": "SERVICE",
+
+      "inputs": {
+        "order_id": {
+          "type": "UUID",
+          "required": true
+        }
+      },
+
+      "outputs": {
+        "payment_id": {
+          "type": "UUID"
+        }
+      },
+
+      "preconditions": {
+        "Order.exists": true
+      },
+
+      "effects": {
+        "Payment.status": "SUCCESS"
+      },
+
+      "constraints": [
+        "payment_amount <= transaction_limit"
+      ],
+
+      "resources": [
+        "Payment gateway",
+        "Network"
+      ],
+
+      "cost_time": 200,
+      "cost_resource": 3,
+      "cost_money": 0.05,
+
+      "risk": 0.10,
+      "reliability": 0.98,
+      "availability": 0.97,
+
+      "execution": {
+        "service": "payment_gateway"
+      }
+    },
+
+    {
+      "name": "SendNotification",
+
+      "capability_type": "MESSAGE",
+
+      "inputs": {
+        "payment_id": {
+          "type": "UUID",
+          "required": true
+        }
+      },
+
+      "outputs": {
+        "notification_id": {
+          "type": "UUID"
+        }
+      },
+
+      "preconditions": {
+        "Payment.status": "SUCCESS"
+      },
+
+      "effects": {
+        "Notification.sent": true
+      },
+
+      "constraints": [
+        "notification_channel_available"
+      ],
+
+      "resources": [
+        "External service",
+        "Network"
+      ],
+
+      "cost_time": 80,
+      "cost_resource": 1,
+      "cost_money": 0.01,
+
+      "risk": 0.02,
+      "reliability": 0.99,
+      "availability": 0.99,
+
+      "execution": {
+        "service": "notification_service"
+      }
+    }
+  ]
+}

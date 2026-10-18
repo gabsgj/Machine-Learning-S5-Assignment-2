@@ -1,0 +1,324 @@
+{
+  "metadata": {
+    "name": "Capability Embedding Core Dataset v1",
+    "domain": "E-commerce purchase workflow",
+    "purpose": "Initial four-capability validation dataset for Assignment 2",
+    "assignment": "PCCST503 Assignment 2"
+  },
+  "initial_state": {
+    "User.authenticated": true,
+    "User.role": "CUSTOMER",
+    "Cart.exists": true,
+    "Cart.item_count": 3,
+    "Order.exists": false,
+    "Order.status": "NONE",
+    "Payment.status": "NOT_STARTED",
+    "Inventory.available": true,
+    "Notification.sent": false
+  },
+  "goal": [
+    {
+      "attribute": "Order.exists",
+      "operator": "==",
+      "value": true
+    },
+    {
+      "attribute": "Payment.status",
+      "operator": "==",
+      "value": "SUCCESS"
+    },
+    {
+      "attribute": "Notification.sent",
+      "operator": "==",
+      "value": true
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "C1",
+      "name": "CreateOrder",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Cart.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Cart.item_count",
+          "operator": ">",
+          "value": 0
+        },
+        {
+          "attribute": "Inventory.available",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        },
+        {
+          "attribute": "Cart.locked",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "quantity > 0"
+        }
+      ],
+      "resources": [
+        "Database",
+        "Authentication token",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 100,
+        "resource_cost": 2,
+        "monetary_cost": 0.01,
+        "risk": 0.1,
+        "energy_cost": null
+      },
+      "reliability": 0.99,
+      "availability": 1,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/orders"
+      }
+    },
+    {
+      "id": "C2",
+      "name": "MakePayment",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        },
+        {
+          "name": "payment_amount",
+          "type": "REAL",
+          "domain": "> 0",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        },
+        {
+          "name": "transaction_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Order.exists",
+          "operator": "==",
+          "value": true
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "CREATED"
+        },
+        {
+          "attribute": "payment_amount",
+          "operator": ">",
+          "value": 0
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Payment.status",
+          "operator": "==",
+          "value": "SUCCESS"
+        },
+        {
+          "attribute": "Order.status",
+          "operator": "==",
+          "value": "PAID"
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "payment_amount <= transaction_limit"
+        }
+      ],
+      "resources": [
+        "Payment gateway",
+        "Network",
+        "Authentication token"
+      ],
+      "quality": {
+        "execution_time_ms": 250,
+        "resource_cost": 3,
+        "monetary_cost": 0.02,
+        "risk": 0.15,
+        "energy_cost": null
+      },
+      "reliability": 0.98,
+      "availability": 1,
+      "mechanism": {
+        "method": "POST",
+        "endpoint": "/payments"
+      }
+    },
+    {
+      "id": "C3",
+      "name": "SendNotification",
+      "type": "EVENT",
+      "inputs": [
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "notification_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Payment.status",
+          "operator": "==",
+          "value": "SUCCESS"
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Notification.sent",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Notification service",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 80,
+        "resource_cost": 1,
+        "monetary_cost": 0.005,
+        "risk": 0.02,
+        "energy_cost": null
+      },
+      "reliability": 0.995,
+      "availability": 1,
+      "mechanism": {
+        "trigger": "OrderPaid",
+        "handler": "NotificationHandler"
+      }
+    },
+    {
+      "id": "C4",
+      "name": "CancelCart",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "type": "UUID",
+          "domain": "valid UUIDs",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cancellation_id",
+          "type": "UUID",
+          "domain": "valid UUIDs"
+        }
+      ],
+      "preconditions": [
+        {
+          "attribute": "Order.exists",
+          "operator": "==",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "attribute": "Cart.cancelled",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Database",
+        "Network"
+      ],
+      "quality": {
+        "execution_time_ms": 120,
+        "resource_cost": 2,
+        "monetary_cost": 0.005,
+        "risk": 0.05,
+        "energy_cost": null
+      },
+      "reliability": 0.99,
+      "availability": 1,
+      "mechanism": {
+        "method": "DELETE",
+        "endpoint": "/cart/{id}"
+      }
+    }
+  ],
+  "expected_relations": [
+    {
+      "from": "C1",
+      "to": "C2",
+      "relation": "compatible"
+    },
+    {
+      "from": "C2",
+      "to": "C3",
+      "relation": "compatible"
+    },
+    {
+      "from": "C1",
+      "to": "C3",
+      "relation": "not_directly_compatible"
+    },
+    {
+      "from": "C1",
+      "to": "C4",
+      "relation": "incompatible"
+    }
+  ]
+}

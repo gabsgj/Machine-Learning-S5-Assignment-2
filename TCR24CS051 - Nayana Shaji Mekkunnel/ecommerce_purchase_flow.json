@@ -1,0 +1,235 @@
+{
+  "problemName": "E_Commerce_Purchase_And_Fulfillment_Pipeline",
+  "domain": "E-Commerce",
+  "description": "Formal application model for purchase order processing, payment, invoicing, and fulfillment",
+  "initialState": {
+    "User.authenticated": true,
+    "User.role": "CUSTOMER",
+    "Cart.exists": true,
+    "Cart.item_count": 3,
+    "Order.exists": false,
+    "Payment.status": "NOT_STARTED",
+    "Inventory.available": true,
+    "Notification.sent": false,
+    "Invoice.generated": false,
+    "Shipment.dispatched": false,
+    "Catalog.viewed": false,
+    "Wishlist.updated": false
+  },
+  "goal": [
+    { "variable": "Order.exists", "op": "==", "expectedValue": true },
+    { "variable": "Payment.status", "op": "==", "expectedValue": "SUCCESS" },
+    { "variable": "Invoice.generated", "op": "==", "expectedValue": true },
+    { "variable": "Shipment.dispatched", "op": "==", "expectedValue": true },
+    { "variable": "Notification.sent", "op": "==", "expectedValue": true }
+  ],
+  "hazards": [
+    { "variable": "Payment.status", "op": "==", "expectedValue": "FAILED" }
+  ],
+  "capabilities": [
+    {
+      "id": "CreateOrder",
+      "name": "Create Order",
+      "description": "Generates a new customer order from active shopping cart contents",
+      "type": "API",
+      "mechanism": "POST /orders",
+      "inputs": [
+        { "name": "cart_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs" }
+      ],
+      "preconditions": [
+        { "variable": "User.authenticated", "op": "==", "expectedValue": true },
+        { "variable": "Cart.exists", "op": "==", "expectedValue": true }
+      ],
+      "effects": [
+        { "variable": "Order.exists", "op": "SET", "value": true },
+        { "variable": "Order.status", "op": "SET", "value": "CREATED" }
+      ],
+      "qos": { "timeCostMs": 80.0, "moneyCost": 0.01, "resourceCost": 1.0, "risk": 0.01 },
+      "reliability": 0.999
+    },
+    {
+      "id": "ValidateInventory",
+      "name": "Validate & Reserve Inventory",
+      "description": "Verifies stock availability and locks warehouse inventory items",
+      "type": "SERVICE",
+      "mechanism": "gRPC InventoryService/Reserve",
+      "inputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "reservation_id", "type": "UUID", "domain": "valid UUIDs" }
+      ],
+      "preconditions": [
+        { "variable": "Order.exists", "op": "==", "expectedValue": true }
+      ],
+      "effects": [
+        { "variable": "Inventory.available", "op": "SET", "value": true },
+        { "variable": "Order.status", "op": "SET", "value": "VALIDATED" }
+      ],
+      "qos": { "timeCostMs": 50.0, "moneyCost": 0.005, "resourceCost": 1.0, "risk": 0.02 },
+      "reliability": 0.995
+    },
+    {
+      "id": "MakePayment_API",
+      "name": "Process Payment via Payment Gateway API",
+      "description": "External payment gateway API integration (Stripe / Adyen)",
+      "type": "API",
+      "mechanism": "POST /v1/charges",
+      "inputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true },
+        { "name": "token", "type": "string", "domain": "valid tokens", "required": true }
+      ],
+      "outputs": [
+        { "name": "payment_id", "type": "string", "domain": "transaction ids" }
+      ],
+      "preconditions": [
+        { "variable": "Order.status", "op": "==", "expectedValue": "VALIDATED" }
+      ],
+      "effects": [
+        { "variable": "Payment.status", "op": "SET", "value": "SUCCESS" },
+        { "variable": "Order.status", "op": "SET", "value": "PAID" }
+      ],
+      "qos": { "timeCostMs": 120.0, "moneyCost": 0.05, "resourceCost": 1.0, "risk": 0.01 },
+      "reliability": 0.992
+    },
+    {
+      "id": "MakePayment_DB",
+      "name": "Process Payment via Internal Ledger DB",
+      "description": "Internal direct database ledger transaction",
+      "type": "DATABASE",
+      "mechanism": "INSERT INTO payments_ledger",
+      "inputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "ledger_seq", "type": "int64", "domain": "positive integers" }
+      ],
+      "preconditions": [
+        { "variable": "Order.status", "op": "==", "expectedValue": "VALIDATED" }
+      ],
+      "effects": [
+        { "variable": "Payment.status", "op": "SET", "value": "SUCCESS" },
+        { "variable": "Order.status", "op": "SET", "value": "PAID" }
+      ],
+      "qos": { "timeCostMs": 35.0, "moneyCost": 0.002, "resourceCost": 2.0, "risk": 0.05 },
+      "reliability": 0.965
+    },
+    {
+      "id": "GenerateInvoice",
+      "name": "Generate Digital PDF Invoice",
+      "description": "Calculates tax, creates legal PDF invoice and receipt",
+      "type": "FUNCTION",
+      "mechanism": "Local CPU PDF Rendering",
+      "inputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "invoice_pdf_uri", "type": "string", "domain": "file uris" }
+      ],
+      "preconditions": [
+        { "variable": "Payment.status", "op": "==", "expectedValue": "SUCCESS" }
+      ],
+      "effects": [
+        { "variable": "Invoice.generated", "op": "SET", "value": true }
+      ],
+      "qos": { "timeCostMs": 40.0, "moneyCost": 0.001, "resourceCost": 1.0, "risk": 0.001 },
+      "reliability": 0.999
+    },
+    {
+      "id": "DispatchShipment",
+      "name": "Dispatch Warehouse Shipment",
+      "description": "Generates courier shipping label and transmits tracking ID",
+      "type": "SERVICE",
+      "mechanism": "Logistics API /shipments",
+      "inputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "tracking_num", "type": "string", "domain": "courier tracking numbers" }
+      ],
+      "preconditions": [
+        { "variable": "Payment.status", "op": "==", "expectedValue": "SUCCESS" }
+      ],
+      "effects": [
+        { "variable": "Shipment.dispatched", "op": "SET", "value": true },
+        { "variable": "Order.status", "op": "SET", "value": "FULFILLED" }
+      ],
+      "qos": { "timeCostMs": 90.0, "moneyCost": 0.02, "resourceCost": 1.0, "risk": 0.02 },
+      "reliability": 0.988
+    },
+    {
+      "id": "SendNotification",
+      "name": "Send Multi-Channel Customer Notification",
+      "description": "Dispatches confirmation email and SMS with invoice and tracking link",
+      "type": "EVENT",
+      "mechanism": "EventBus publish OrderFulfilledEvent",
+      "inputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "msg_receipt", "type": "string", "domain": "delivery confirmation" }
+      ],
+      "preconditions": [
+        { "variable": "Invoice.generated", "op": "==", "expectedValue": true },
+        { "variable": "Shipment.dispatched", "op": "==", "expectedValue": true }
+      ],
+      "effects": [
+        { "variable": "Notification.sent", "op": "SET", "value": true }
+      ],
+      "qos": { "timeCostMs": 25.0, "moneyCost": 0.005, "resourceCost": 1.0, "risk": 0.005 },
+      "reliability": 0.999
+    },
+    {
+      "id": "CancelCart",
+      "name": "Cancel and Abandon Cart",
+      "description": "Empties customer shopping cart (incompatible once order is created)",
+      "type": "API",
+      "mechanism": "DELETE /cart",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [
+        { "variable": "Order.exists", "op": "==", "expectedValue": false }
+      ],
+      "effects": [
+        { "variable": "Cart.exists", "op": "SET", "value": false }
+      ],
+      "qos": { "timeCostMs": 15.0, "moneyCost": 0.0, "resourceCost": 1.0, "risk": 0.0 },
+      "reliability": 0.999
+    },
+    {
+      "id": "BrowseCatalog",
+      "name": "Browse Product Catalog",
+      "description": "Views product category listing (irrelevant to purchase fulfillment)",
+      "type": "API",
+      "mechanism": "GET /catalog",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [],
+      "effects": [
+        { "variable": "Catalog.viewed", "op": "SET", "value": true }
+      ],
+      "qos": { "timeCostMs": 20.0, "moneyCost": 0.0, "resourceCost": 1.0, "risk": 0.0 },
+      "reliability": 0.999
+    },
+    {
+      "id": "UpdateWishlist",
+      "name": "Save Item to Wishlist",
+      "description": "Adds bookmark to user wishlist (irrelevant to purchase fulfillment)",
+      "type": "API",
+      "mechanism": "POST /wishlist",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [
+        { "variable": "User.authenticated", "op": "==", "expectedValue": true }
+      ],
+      "effects": [
+        { "variable": "Wishlist.updated", "op": "SET", "value": true }
+      ],
+      "qos": { "timeCostMs": 30.0, "moneyCost": 0.0, "resourceCost": 1.0, "risk": 0.0 },
+      "reliability": 0.999
+    }
+  ]
+}

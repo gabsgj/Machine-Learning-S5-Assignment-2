@@ -1,0 +1,5 @@
+Metric,Value
+EffectSimilarity_API_DB,1.00
+EffectSimilarity_API_GUI,1.00
+FullSimilarity_API_DB,0.77
+FullSimilarity_API_GUI,0.75

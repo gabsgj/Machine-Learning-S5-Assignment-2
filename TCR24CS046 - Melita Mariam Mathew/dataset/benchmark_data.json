@@ -1,0 +1,861 @@
+{
+  "metadata": {
+    "assignment": "Assignment 2: Design of a Vector Embedding for Capability Composition",
+    "author": "Melita Mariam Mathew",
+    "registration_number": "TCCR24CS046",
+    "domain": "E-Commerce Formal Application Model (S, C, S_I, G, R, K)"
+  },
+  "state_variables": [
+    "User.authenticated",
+    "User.role",
+    "Cart.exists",
+    "Cart.item_count",
+    "Cart.locked",
+    "Inventory.available",
+    "Order.exists",
+    "Order.status",
+    "Payment.status",
+    "Invoice.generated",
+    "Shipment.dispatched",
+    "Notification.sent",
+    "AuditLog.written",
+    "UI.theme_mode",
+    "Report.generated"
+  ],
+  "io_vocab": [
+    "cart_id",
+    "user_id",
+    "order_id",
+    "payment_token",
+    "receipt_id",
+    "tracking_number",
+    "report_id",
+    "theme_name",
+    "UUID",
+    "INT",
+    "STRING",
+    "TOKEN",
+    "BOOLEAN",
+    "DOCUMENT"
+  ],
+  "initial_state": {
+    "User.authenticated": true,
+    "User.role": "CUSTOMER",
+    "Cart.exists": true,
+    "Cart.item_count": 3,
+    "Cart.locked": false,
+    "Inventory.available": true,
+    "Order.exists": false,
+    "Order.status": "NOT_STARTED",
+    "Payment.status": "NOT_STARTED",
+    "Invoice.generated": false,
+    "Shipment.dispatched": false,
+    "Notification.sent": false,
+    "AuditLog.written": false,
+    "UI.theme_mode": "LIGHT",
+    "Report.generated": false
+  },
+  "primary_goal": [
+    {
+      "variable": "Order.exists",
+      "value": true,
+      "operator": "=="
+    },
+    {
+      "variable": "Payment.status",
+      "value": "SUCCESS",
+      "operator": "=="
+    },
+    {
+      "variable": "Notification.sent",
+      "value": true,
+      "operator": "=="
+    }
+  ],
+  "extended_goal": [
+    {
+      "variable": "Order.exists",
+      "value": true,
+      "operator": "=="
+    },
+    {
+      "variable": "Payment.status",
+      "value": "SUCCESS",
+      "operator": "=="
+    },
+    {
+      "variable": "Invoice.generated",
+      "value": true,
+      "operator": "=="
+    },
+    {
+      "variable": "Shipment.dispatched",
+      "value": true,
+      "operator": "=="
+    },
+    {
+      "variable": "Notification.sent",
+      "value": true,
+      "operator": "=="
+    }
+  ],
+  "available_resources": [
+    "Database",
+    "PaymentGateway",
+    "AuthenticationToken",
+    "Network",
+    "FileSystem",
+    "NotificationService",
+    "InventoryDB"
+  ],
+  "global_constraints": [
+    "quantity > 0",
+    "quantity <= inventory_available",
+    "payment_amount <= transaction_limit",
+    "user.role in {CUSTOMER, ADMIN}"
+  ],
+  "capabilities": {
+    "C1_CreateOrder_API": {
+      "id": "C1_CreateOrder_API",
+      "name": "CreateOrder (REST API)",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "UUID",
+          "domain": "Cart identifier",
+          "required": true
+        },
+        {
+          "name": "user_id",
+          "data_type": "UUID",
+          "domain": "User identifier",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "Generated order identifier"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "value": true,
+          "operator": "=="
+        },
+        {
+          "variable": "Cart.item_count",
+          "value": 0,
+          "operator": ">"
+        },
+        {
+          "variable": "Inventory.available",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "value": true,
+          "operator": "=="
+        },
+        {
+          "variable": "Order.status",
+          "value": "CREATED",
+          "operator": "=="
+        },
+        {
+          "variable": "Cart.locked",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "constraints": [
+        "cart_item_count > 0",
+        "inventory_available == true"
+      ],
+      "resources": [
+        "Database",
+        "Network",
+        "InventoryDB"
+      ],
+      "operational": {
+        "time_ms": 120.0,
+        "cost_money": 0.015,
+        "resource_cost": 2.0,
+        "risk": 0.04,
+        "energy": 1.2,
+        "reliability": 0.992,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "type": "API",
+        "details": {
+          "method": "POST",
+          "endpoint": "/orders"
+        }
+      }
+    },
+    "C1_CreateOrder_DB": {
+      "id": "C1_CreateOrder_DB",
+      "name": "CreateOrder (Direct DB INSERT)",
+      "type": "DATABASE",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "UUID",
+          "domain": "Cart identifier",
+          "required": true
+        },
+        {
+          "name": "user_id",
+          "data_type": "UUID",
+          "domain": "User identifier",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "Generated order identifier"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "value": true,
+          "operator": "=="
+        },
+        {
+          "variable": "Cart.item_count",
+          "value": 0,
+          "operator": ">"
+        },
+        {
+          "variable": "Inventory.available",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "value": true,
+          "operator": "=="
+        },
+        {
+          "variable": "Order.status",
+          "value": "CREATED",
+          "operator": "=="
+        },
+        {
+          "variable": "Cart.locked",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "constraints": [
+        "cart_item_count > 0"
+      ],
+      "resources": [
+        "Database"
+      ],
+      "operational": {
+        "time_ms": 45.0,
+        "cost_money": 0.005,
+        "resource_cost": 3.5,
+        "risk": 0.02,
+        "energy": 0.8,
+        "reliability": 0.998,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "type": "DATABASE",
+        "details": {
+          "operation": "INSERT",
+          "table": "orders"
+        }
+      }
+    },
+    "C1_CreateOrder_GUI": {
+      "id": "C1_CreateOrder_GUI",
+      "name": "CreateOrder (GUI Automation Click)",
+      "type": "GUI",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "UUID",
+          "domain": "Cart identifier",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "Generated order identifier"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cart.exists",
+          "value": true,
+          "operator": "=="
+        },
+        {
+          "variable": "Cart.item_count",
+          "value": 0,
+          "operator": ">"
+        },
+        {
+          "variable": "Inventory.available",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Order.exists",
+          "value": true,
+          "operator": "=="
+        },
+        {
+          "variable": "Order.status",
+          "value": "CREATED",
+          "operator": "=="
+        },
+        {
+          "variable": "Cart.locked",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "constraints": [
+        "browser_session_active == true"
+      ],
+      "resources": [
+        "Network",
+        "Database"
+      ],
+      "operational": {
+        "time_ms": 850.0,
+        "cost_money": 0.08,
+        "resource_cost": 5.0,
+        "risk": 0.15,
+        "energy": 3.5,
+        "reliability": 0.94,
+        "availability": 0.95
+      },
+      "mechanism": {
+        "type": "GUI",
+        "details": {
+          "action": "CLICK",
+          "component": "submit_button"
+        }
+      }
+    },
+    "C2_MakePayment": {
+      "id": "C2_MakePayment",
+      "name": "MakePayment (Stripe Gateway)",
+      "type": "SERVICE",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "Order identifier",
+          "required": true
+        },
+        {
+          "name": "payment_token",
+          "data_type": "TOKEN",
+          "domain": "Credit card / token",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "receipt_id",
+          "data_type": "UUID",
+          "domain": "Payment receipt confirmation"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "value": true,
+          "operator": "=="
+        },
+        {
+          "variable": "Order.status",
+          "value": "CREATED",
+          "operator": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Payment.status",
+          "value": "SUCCESS",
+          "operator": "=="
+        }
+      ],
+      "constraints": [
+        "payment_amount <= transaction_limit"
+      ],
+      "resources": [
+        "PaymentGateway",
+        "Network",
+        "Database"
+      ],
+      "operational": {
+        "time_ms": 250.0,
+        "cost_money": 0.035,
+        "resource_cost": 2.0,
+        "risk": 0.03,
+        "energy": 1.5,
+        "reliability": 0.995,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "type": "SERVICE",
+        "details": {
+          "gateway": "Stripe",
+          "action": "charge_token"
+        }
+      }
+    },
+    "C2_MakePayment_Wallet": {
+      "id": "C2_MakePayment_Wallet",
+      "name": "MakePayment (Internal Wallet)",
+      "type": "FUNCTION",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "Order identifier",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "receipt_id",
+          "data_type": "UUID",
+          "domain": "Wallet debit confirmation"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "value": true,
+          "operator": "=="
+        },
+        {
+          "variable": "Order.status",
+          "value": "CREATED",
+          "operator": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Payment.status",
+          "value": "SUCCESS",
+          "operator": "=="
+        }
+      ],
+      "constraints": [
+        "wallet_balance >= order_amount"
+      ],
+      "resources": [
+        "Database"
+      ],
+      "operational": {
+        "time_ms": 35.0,
+        "cost_money": 0.002,
+        "resource_cost": 1.2,
+        "risk": 0.01,
+        "energy": 0.5,
+        "reliability": 0.999,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "type": "FUNCTION",
+        "details": {
+          "module": "wallet_service",
+          "method": "debit_balance"
+        }
+      }
+    },
+    "C3_CancelCart": {
+      "id": "C3_CancelCart",
+      "name": "CancelCart (Abort Cart Before Order)",
+      "type": "API",
+      "inputs": [
+        {
+          "name": "cart_id",
+          "data_type": "UUID",
+          "domain": "Cart identifier",
+          "required": true
+        }
+      ],
+      "outputs": [],
+      "preconditions": [
+        {
+          "variable": "Order.exists",
+          "value": false,
+          "operator": "=="
+        },
+        {
+          "variable": "Cart.exists",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Cart.exists",
+          "value": false,
+          "operator": "=="
+        },
+        {
+          "variable": "Cart.item_count",
+          "value": 0,
+          "operator": "=="
+        }
+      ],
+      "constraints": [
+        "cart_not_locked == true"
+      ],
+      "resources": [
+        "Database"
+      ],
+      "operational": {
+        "time_ms": 80.0,
+        "cost_money": 0.005,
+        "resource_cost": 1.0,
+        "risk": 0.02,
+        "energy": 0.6,
+        "reliability": 0.99,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "type": "API",
+        "details": {
+          "method": "DELETE",
+          "endpoint": "/carts"
+        }
+      }
+    },
+    "C4_SendNotification": {
+      "id": "C4_SendNotification",
+      "name": "SendNotification (Order Confirmation Email)",
+      "type": "EVENT",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "Order identifier",
+          "required": true
+        },
+        {
+          "name": "receipt_id",
+          "data_type": "UUID",
+          "domain": "Receipt identifier",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "preconditions": [
+        {
+          "variable": "Payment.status",
+          "value": "SUCCESS",
+          "operator": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Notification.sent",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "NotificationService",
+        "Network"
+      ],
+      "operational": {
+        "time_ms": 180.0,
+        "cost_money": 0.008,
+        "resource_cost": 1.5,
+        "risk": 0.05,
+        "energy": 0.9,
+        "reliability": 0.985,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "type": "EVENT",
+        "details": {
+          "trigger": "PaymentSucceeded",
+          "handler": "SendNotification"
+        }
+      }
+    },
+    "C5_GenerateInvoice": {
+      "id": "C5_GenerateInvoice",
+      "name": "GenerateInvoice (PDF Accounting Document)",
+      "type": "COMPUTATION",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "Order identifier",
+          "required": true
+        },
+        {
+          "name": "receipt_id",
+          "data_type": "UUID",
+          "domain": "Receipt identifier",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "receipt_id",
+          "data_type": "DOCUMENT",
+          "domain": "Formatted invoice PDF"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Payment.status",
+          "value": "SUCCESS",
+          "operator": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Invoice.generated",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "FileSystem"
+      ],
+      "operational": {
+        "time_ms": 320.0,
+        "cost_money": 0.012,
+        "resource_cost": 4.0,
+        "risk": 0.03,
+        "energy": 2.1,
+        "reliability": 0.99,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "type": "COMPUTATION",
+        "details": {
+          "library": "ReportLab",
+          "output": "/invoices"
+        }
+      }
+    },
+    "C6_DispatchShipment": {
+      "id": "C6_DispatchShipment",
+      "name": "DispatchShipment (Warehouse Dispatch)",
+      "type": "SERVICE",
+      "inputs": [
+        {
+          "name": "order_id",
+          "data_type": "UUID",
+          "domain": "Order identifier",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tracking_number",
+          "data_type": "STRING",
+          "domain": "Courier tracking number"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Payment.status",
+          "value": "SUCCESS",
+          "operator": "=="
+        },
+        {
+          "variable": "Invoice.generated",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Shipment.dispatched",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "constraints": [
+        "warehouse_operating_hours == true"
+      ],
+      "resources": [
+        "Network",
+        "Database"
+      ],
+      "operational": {
+        "time_ms": 450.0,
+        "cost_money": 0.05,
+        "resource_cost": 2.5,
+        "risk": 0.06,
+        "energy": 2.8,
+        "reliability": 0.975,
+        "availability": 0.98
+      },
+      "mechanism": {
+        "type": "SERVICE",
+        "details": {
+          "carrier": "FedEx",
+          "service": "PriorityExpress"
+        }
+      }
+    },
+    "C_IRR_1_SalesReport": {
+      "id": "C_IRR_1_SalesReport",
+      "name": "GenerateSalesReport (Admin BI Analytics)",
+      "type": "COMPUTATION",
+      "inputs": [
+        {
+          "name": "user_id",
+          "data_type": "UUID",
+          "domain": "Admin user ID",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report_id",
+          "data_type": "DOCUMENT",
+          "domain": "Aggregated sales metrics"
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "User.authenticated",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Report.generated",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "constraints": [
+        "user.role == ADMIN"
+      ],
+      "resources": [
+        "Database",
+        "FileSystem"
+      ],
+      "operational": {
+        "time_ms": 1500.0,
+        "cost_money": 0.12,
+        "resource_cost": 8.0,
+        "risk": 0.02,
+        "energy": 6.5,
+        "reliability": 0.99,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "type": "COMPUTATION",
+        "details": {
+          "query": "SELECT SUM(total) FROM orders",
+          "format": "PDF"
+        }
+      }
+    },
+    "C_IRR_2_ToggleTheme": {
+      "id": "C_IRR_2_ToggleTheme",
+      "name": "ToggleUITheme (Dark/Light Preference)",
+      "type": "GUI",
+      "inputs": [
+        {
+          "name": "theme_name",
+          "data_type": "STRING",
+          "domain": "Target theme name",
+          "required": true
+        }
+      ],
+      "outputs": [],
+      "preconditions": [],
+      "effects": [
+        {
+          "variable": "UI.theme_mode",
+          "value": "DARK",
+          "operator": "=="
+        }
+      ],
+      "constraints": [],
+      "resources": [],
+      "operational": {
+        "time_ms": 15.0,
+        "cost_money": 0.0001,
+        "resource_cost": 0.2,
+        "risk": 0.001,
+        "energy": 0.05,
+        "reliability": 0.9999,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "type": "GUI",
+        "details": {
+          "action": "SWITCH_CSS_THEME"
+        }
+      }
+    },
+    "C_IRR_3_WriteAuditLog": {
+      "id": "C_IRR_3_WriteAuditLog",
+      "name": "WriteAuditLog (System Log Flush)",
+      "type": "FILE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [],
+      "effects": [
+        {
+          "variable": "AuditLog.written",
+          "value": true,
+          "operator": "=="
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "FileSystem"
+      ],
+      "operational": {
+        "time_ms": 30.0,
+        "cost_money": 0.001,
+        "resource_cost": 1.0,
+        "risk": 0.01,
+        "energy": 0.3,
+        "reliability": 0.995,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "type": "FILE",
+        "details": {
+          "file": "/var/log/audit.log",
+          "mode": "append"
+        }
+      }
+    }
+  }
+}

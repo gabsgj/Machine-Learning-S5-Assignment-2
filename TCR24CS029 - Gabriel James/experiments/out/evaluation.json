@@ -1,0 +1,80 @@
+{
+  "criteria": [
+    {
+      "conclusion": "Yes: every capability has its own vector and even the closest pair keeps a visible distance.",
+      "measurement": "nearest-neighbour full-vector cosine over the 53 capability corpus (53 by 52 pairs)",
+      "number": 1,
+      "property": "Capability representation",
+      "value": "duplicate vectors 0; nearest neighbour mean 0.8385, max 0.9878 (CV-RegisterPatient / AR-RegisterPatient)"
+    },
+    {
+      "conclusion": "Yes: capabilities and states share one condition space, so a precondition aligns with exactly the states that satisfy it.",
+      "measurement": "state core movement when effects apply (and no movement for a capability without effects); alignment of the precondition's desired-condition form with the state before and after",
+      "number": 2,
+      "property": "State relationship",
+      "value": "movement 1-cos 0.8948 for create, bitwise unchanged for payment; payment precondition alignment 0.1199 -> 0.9865; cancel precondition 0.9810 -> 0.1414"
+    },
+    {
+      "conclusion": "Yes: composable pairs are separated from contradictory ones, and the signed effects read as alignment and contradiction rather than as distance.",
+      "measurement": "pattern pair verdicts and scores; the 17 frozen dataset verdicts; vector score AUC over the six decidable pairs",
+      "number": 3,
+      "property": "Precondition-effect compatibility",
+      "value": "C_1 -> C_2 compatible (vector score 1.0000, signed cosine 1.0000); C_1 -> C_3 incompatible (vector score 0.0000, signed cosine -1.0000); dataset verdicts 17 of 17 reproduced; decidable AUC 1.0000"
+    },
+    {
+      "conclusion": "Yes: dependencies are represented through named bindings, and what a caller must still supply is exactly what stays unbound.",
+      "measurement": "field assignment rows over the six required mappings; input-output check outcomes over the 17 dataset pairs; the composite interface",
+      "number": 4,
+      "property": "Input-output compatibility",
+      "value": "bound 10 of 10 field rows; input-output check 3 pass, 14 unknown, 0 fail; composite exposes [customer_id]"
+    },
+    {
+      "conclusion": "Yes: composites keep the caller interface, the net delta, the quality laws and the contradiction structure of their members.",
+      "measurement": "compose the pattern members; quality laws; associativity of both bracketings; composite self check of the valid and the contradictory order",
+      "number": 5,
+      "property": "Composition",
+      "value": "interface [customer_id]; net delta Order.exists; time 320 ms, money 0.5, risk 0.0397, reliability 0.9702; associativity cosine 1.0000; self checks: two-member not incompatible, three-member incompatible"
+    },
+    {
+      "conclusion": "Yes: a goal is expressed in the same condition space as the capabilities, and every goal condition is reachable by a named effect.",
+      "measurement": "goal conditions writable by at least one capability across the five applications; best goal-to-effect alignment per application (both in the shared condition space)",
+      "number": 6,
+      "property": "Goal relevance",
+      "value": "writable 17 of 17 goal conditions; weakest best alignment 0.7246 (hospital_clinic_visit.yaml)"
+    },
+    {
+      "conclusion": "Yes: cost, risk, reliability, availability windows, resources and roles are represented and checked as first class context.",
+      "measurement": "six numeric attribute toggles (cap at the composed value against just past it); availability window arithmetic at five points plus the omitted control; resource and role inventories enforced and gated",
+      "number": 7,
+      "property": "Operational properties",
+      "value": "numeric toggles 6 of 6; window opens at 480, open at 1019, closed at 200 and at 1020 (half open), closed on the weekend, skipped without a time point; inventories pass when covering and fail when missing, enforce flags gate both"
+    },
+    {
+      "conclusion": "Yes: the same specification always produces the same numbers, and the labeled behaviour holds across the three problem domains.",
+      "measurement": "replay of every dataset label through the real components; repeated encoding, scoring and checking for bitwise reproducibility",
+      "number": 8,
+      "property": "Consistency",
+      "value": "label checks reproduced 31 of 31 (required, negative, full pool, ambiguity and compatibility cases); vectors bitwise identical 53 of 53; repeated scoring and checking identical"
+    },
+    {
+      "conclusion": "Everything runs offline in microseconds per operation with kilobyte sized vectors, so the representation fits the interactive tooling above it.",
+      "measurement": "wall clock means over repeated runs (5000 encodings, 100 rankings against the 53 candidate pool, 500 compatibility checks) and the storage arithmetic of the vectors",
+      "number": 9,
+      "property": "Efficiency",
+      "value": "encode 236.1 us per capability; rank 53 2590.7 us per requirement; check 493.7 us per pair; 259 doubles (2072 bytes) per capability, 109816 bytes for the corpus; state vectors 128 doubles; lexicon 328 terms"
+    }
+  ],
+  "evaluation": "nine criteria",
+  "raw": {
+    "associativity_cosine": 0.9999999999999998,
+    "check_micros": 493.722,
+    "discrimination_auc": 1.0,
+    "encode_micros": 236.0964,
+    "label_checks": 31,
+    "label_ok": 31,
+    "nearest_neighbour_max": 0.9877632174001706,
+    "nearest_neighbour_mean": 0.838492664772312,
+    "rank_micros": 2590.69,
+    "state_move": 0.8947505197505197
+  }
+}

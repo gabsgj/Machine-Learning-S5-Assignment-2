@@ -1,0 +1,13 @@
+{
+  "embedding_dimension": 80,
+  "capability_count": 7,
+  "state_vector_dimension": 80,
+  "goal_vector_dimension": 80,
+  "composite_name": "CreateOrder \u2218 MakePayment \u2218 SendNotification",
+  "composition_reliability": 0.9554984999999999,
+  "composition_availability": 0.98,
+  "createorder_makepayment_compatibility": 0.9730000000000001,
+  "createorder_cancelcart_compatibility": 0.44949999999999996,
+  "createorder_goal_relevance": 0.3333333333333333,
+  "complete_purchase_goal_relevance": 1.0
+}

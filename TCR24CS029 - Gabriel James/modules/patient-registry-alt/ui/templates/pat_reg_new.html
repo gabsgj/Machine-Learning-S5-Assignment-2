@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}New registration{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Register patient</h1>
+  <p id="capability_hint">
+    Submits the GUI capability <code id="capability_id">PA-Form</code>, the same code path as
+    the API capability <code id="api_capability_id">PA-Register</code> whose name is
+    <code>Pat_reg</code>.
+  </p>
+  <form id="pat_reg_form" data-capability-endpoint="/ui/pat_reg/new" data-result-target="result_output">
+    <label for="pat_no_input">Patient number</label>
+    <input type="text" id="pat_no_input" name="pat_no" required placeholder="P-1001">
+    <label for="pat_name_input">Patient name</label>
+    <input type="text" id="pat_name_input" name="pat_name" required placeholder="Ada Lovelace">
+    <button type="submit" id="submit_button">Register patient</button>
+  </form>
+  <pre id="result_output" class="result" aria-live="polite"></pre>
+</section>
+{% endblock %}

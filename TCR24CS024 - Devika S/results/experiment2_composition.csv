@@ -1,0 +1,8 @@
+Metric,Value
+VectorDimension,78
+TimeMs,220
+MoneyCost,0.032
+Reliability,0.9860597
+Similarity_CreateOrder,0.69
+Similarity_MakePayment,0.43
+Similarity_SendNotification,0.49

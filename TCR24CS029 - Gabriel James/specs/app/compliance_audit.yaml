@@ -1,0 +1,549 @@
+# Application specification sheet: compliance audit workflow.
+#
+# A cross domain application, heavy in services and screens: audits are scheduled, findings are
+# recorded and approved through an external approval service, an exported report file closes the
+# cycle, and two GUI screens drive the work. It exercises the SERVICE and GUI mechanisms together
+# with FILE, EVENT, MESSAGE, COMPUTATION and FUNCTION steps.
+spec_version: "1.0"
+
+module:
+  module_id: app-compliance-audit
+  version: "1.0"
+  domain: generic
+  port: 5105
+  base_url: "http://127.0.0.1:5105"
+  health: /health
+  description: Compliance audit workflow with scheduled audits, recorded findings, service approval, reporting and two screens.
+  language: specification
+
+state_schema:
+  - name: Audit.open
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Finding.recorded
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Finding.approved
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Report.exported
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Notification.sent
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+
+initial_state:
+  Audit.open: false
+  Finding.recorded: false
+  Finding.approved: false
+  Report.exported: false
+  Notification.sent: false
+
+resources:
+  - id: audit_db
+    kind: database
+    available: true
+    details: Audits, findings and approvals
+  - id: approval_service
+    kind: external_service
+    available: true
+    details: Independent finding approval service
+  - id: report_dir
+    kind: file_system
+    available: true
+    details: Directory for exported audit reports
+  - id: audit_clock
+    kind: clock
+    available: true
+    details: Due date and overdue escalation timestamps
+  - id: auditor_token
+    kind: authentication_token
+    available: true
+    details: Authenticated auditor session
+
+constraints:
+  - id: K-Finding-Needs-Audit
+    kind: dependency
+    expression: Finding.recorded = true implies Audit.open = true
+    enforced_by: AUD-RecordFinding precondition on Audit.open
+  - id: K-Approval-Needs-Finding
+    kind: state
+    expression: Finding.approved = true requires Finding.recorded = true earlier
+    enforced_by: AUD-ApproveFinding precondition on Finding.recorded
+  - id: K-Report-Needs-Finding
+    kind: state
+    expression: Report.exported = true requires Finding.recorded = true
+    enforced_by: AUD-ExportReport precondition on Finding.recorded
+  - id: K-Auth-Required
+    kind: security
+    expression: every write runs with auditor_token
+    enforced_by: session middleware of the audit application
+
+goal:
+  - variable: Audit.open
+    op: "="
+    value: true
+  - variable: Finding.recorded
+    op: "="
+    value: true
+  - variable: Finding.approved
+    op: "="
+    value: true
+  - variable: Report.exported
+    op: "="
+    value: true
+
+capabilities:
+  - id: AUD-ScheduleAudit
+    name: schedule_audit
+    type: API
+    description: Open a compliance audit for one organisational unit with a due date.
+    inputs:
+      - name: unit
+        type: string
+        domain: organisational unit name
+        required: true
+      - name: due_date
+        type: string
+        domain: ISO 8601 date
+        required: true
+    outputs:
+      - name: audit_id
+        type: string
+        domain: generated audit identifier
+    preconditions: []
+    effects:
+      - variable: Audit.open
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - audit_db
+      - auditor_token
+    quality:
+      time_ms: 110
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/audits
+    roles:
+      - auditor
+
+  - id: AUD-RecordFinding
+    name: record_finding
+    type: API
+    description: Record one compliance finding of an open audit with its severity.
+    inputs:
+      - name: audit_id
+        type: string
+        domain: open audit identifier
+        required: true
+      - name: severity
+        type: enumerated
+        domain:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - CRITICAL
+        required: true
+      - name: detail
+        type: string
+        domain: finding description text
+        required: false
+    outputs:
+      - name: finding_id
+        type: string
+        domain: generated finding identifier
+    preconditions:
+      - variable: Audit.open
+        op: "="
+        value: true
+    effects:
+      - variable: Finding.recorded
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - audit_db
+      - auditor_token
+    quality:
+      time_ms: 90
+      money: 0
+      resource: 0.01
+      risk: 0.03
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/findings
+    roles:
+      - auditor
+
+  - id: AUD-ApproveFinding
+    name: approve_finding
+    type: SERVICE
+    description: Call the independent approval service to approve a recorded finding.
+    inputs:
+      - name: finding_id
+        type: string
+        domain: recorded finding identifier
+        required: true
+      - name: approver
+        type: string
+        domain: approver name
+        required: true
+    outputs:
+      - name: approved
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Finding.recorded
+        op: "="
+        value: true
+    effects:
+      - variable: Finding.approved
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - approval_service
+      - audit_db
+    quality:
+      time_ms: 220
+      money: 0
+      resource: 0.02
+      risk: 0.04
+      energy: 0.002
+    reliability: 0.98
+    availability:
+      always: true
+    mechanism:
+      kind: SERVICE
+      service: finding_approval_service
+    roles:
+      - approver
+
+  - id: AUD-ExportReport
+    name: export_report
+    type: FILE
+    description: Write the audit report with all recorded findings to the report directory.
+    inputs:
+      - name: audit_id
+        type: string
+        domain: audit identifier
+        required: true
+    outputs:
+      - name: report_path
+        type: string
+        domain: path of the written report
+    preconditions:
+      - variable: Finding.recorded
+        op: "="
+        value: true
+    effects:
+      - variable: Report.exported
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - report_dir
+    quality:
+      time_ms: 35
+      money: 0
+      resource: 0.01
+      risk: 0.005
+      energy: 0.0005
+    reliability: 0.995
+    availability:
+      always: true
+    mechanism:
+      kind: FILE
+      path: data/exports/audit_report.json
+      format: json
+    roles:
+      - auditor
+
+  - id: AUD-EscalateOverdue
+    name: on_audit_overdue
+    type: EVENT
+    description: React to the schedule event that an audit passed its due date and notify the owner.
+    inputs:
+      - name: audit_id
+        type: string
+        domain: overdue audit identifier
+        required: true
+    outputs:
+      - name: escalated
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Audit.open
+        op: "="
+        value: true
+    effects:
+      - variable: Notification.sent
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - audit_clock
+      - audit_db
+    quality:
+      time_ms: 50
+      money: 0
+      resource: 0.01
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.995
+    availability:
+      always: true
+    mechanism:
+      kind: EVENT
+      trigger: schedule.overdue
+      handler: on_audit_overdue
+    roles:
+      - service
+
+  - id: AUD-NotifyOwner
+    name: notify_owner
+    type: MESSAGE
+    description: Publish a notification about a recorded finding to the audit notification topic.
+    inputs:
+      - name: finding_id
+        type: string
+        domain: recorded finding identifier
+        required: true
+    outputs:
+      - name: queued
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Finding.recorded
+        op: "="
+        value: true
+    effects:
+      - variable: Notification.sent
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - approval_service
+    quality:
+      time_ms: 45
+      money: 0
+      resource: 0.01
+      risk: 0.01
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: MESSAGE
+      topic: audit.notifications
+    roles:
+      - service
+
+  - id: AUD-RiskScore
+    name: risk_score
+    type: FUNCTION
+    description: Pure function combining a severity weight and a finding count into a risk score.
+    inputs:
+      - name: severity_weight
+        type: integer
+        domain:
+          - 1
+          - 10
+        required: true
+      - name: count
+        type: integer
+        domain:
+          - 1
+          - 1000
+        required: true
+    outputs:
+      - name: score
+        type: integer
+        domain:
+          - 1
+          - 10000
+    preconditions: []
+    effects: []
+    constraints: []
+    resources:
+      - audit_db
+    quality:
+      time_ms: 1
+      money: 0
+      resource: 0.0001
+      risk: 0.0001
+      energy: 0.00001
+    reliability: 0.9999
+    availability:
+      always: true
+    mechanism:
+      kind: FUNCTION
+      function: risk_score
+    roles:
+      - auditor
+
+  - id: AUD-PolicyCheck
+    name: policy_check
+    type: COMPUTATION
+    description: Compute the exposure of a finding class from a severity weight and a count.
+    inputs:
+      - name: severity_weight
+        type: integer
+        domain:
+          - 1
+          - 10
+        required: true
+      - name: count
+        type: integer
+        domain:
+          - 1
+          - 1000
+        required: true
+    outputs:
+      - name: exposure
+        type: integer
+        domain:
+          - 1
+          - 10000
+    preconditions: []
+    effects: []
+    constraints: []
+    resources:
+      - audit_db
+    quality:
+      time_ms: 5
+      money: 0
+      resource: 0.001
+      risk: 0.001
+      energy: 0.0001
+    reliability: 0.999
+    availability:
+      always: true
+    mechanism:
+      kind: COMPUTATION
+      expression: "exposure = severity_weight * count"
+    roles:
+      - auditor
+
+  - id: AUD-AuditForm
+    name: audit_form
+    type: GUI
+    description: Screen that opens a new compliance audit.
+    inputs:
+      - name: unit
+        type: string
+        domain: organisational unit name
+        required: true
+      - name: due_date
+        type: string
+        domain: ISO 8601 date
+        required: true
+    outputs:
+      - name: audit_id
+        type: string
+        domain: generated audit identifier
+    preconditions: []
+    effects:
+      - variable: Audit.open
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - audit_db
+    quality:
+      time_ms: 260
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.002
+    reliability: 0.97
+    availability:
+      always: true
+    mechanism:
+      kind: GUI
+      action: SUBMIT
+      component: audit_form
+      page: /ui/audits/new
+    roles:
+      - auditor
+
+  - id: AUD-FindingsBoard
+    name: findings_board
+    type: GUI
+    description: Read only board listing the findings of the open audits.
+    inputs:
+      - name: severity_filter
+        type: enumerated
+        domain:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - CRITICAL
+        required: false
+    outputs:
+      - name: finding_count
+        type: integer
+        domain:
+          - 0
+          - 10000
+    preconditions:
+      - variable: Audit.open
+        op: "="
+        value: true
+    effects: []
+    constraints: []
+    resources:
+      - audit_db
+    quality:
+      time_ms: 150
+      money: 0
+      resource: 0.01
+      risk: 0.005
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: GUI
+      action: NAVIGATE
+      component: findings_board
+      page: /ui/findings
+    roles:
+      - auditor
+      - manager

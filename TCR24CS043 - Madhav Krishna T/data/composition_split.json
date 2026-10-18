@@ -1,0 +1,36 @@
+{
+  "metadata": {
+    "name": "SCE-128 v2.1 composition evaluation split",
+    "purpose": "Leakage-free evaluation of a learned vector-only composition operator",
+    "training_rule": "Train only on designated direct atomic compatible pairs",
+    "evaluation_rule": "Gold composite vectors are encoded independently and never passed to the composer",
+    "generator_version": "v2.1"
+  },
+  "training_pairs": [
+    ["C1", "C2"],
+    ["C2", "C3"],
+    ["C3", "C4"],
+    ["C4", "C5"],
+    ["C5", "C6"],
+    ["C6", "C7"],
+    ["C4", "C9"],
+    ["C9", "C10"]
+  ],
+  "heldout_direct_pairs": [
+    ["C1", "C11"],
+    ["C4", "C12"],
+    ["C4", "C13"],
+    ["C5", "C8"]
+  ],
+  "evaluation_chains": [
+    {"id": "purchase_success_chain", "capabilities": ["C1", "C2", "C3", "C4", "C5", "C6", "C7"]},
+    {"id": "cancel_and_release_chain", "capabilities": ["C4", "C9", "C10"]},
+    {"id": "inventory_to_order", "capabilities": ["C2", "C3", "C4"]},
+    {"id": "order_to_verify", "capabilities": ["C4", "C5", "C6"]},
+    {"id": "payment_to_notify", "capabilities": ["C5", "C6", "C7"]},
+    {"id": "create_to_update", "capabilities": ["C4", "C12"]},
+    {"id": "create_to_get", "capabilities": ["C4", "C13"]},
+    {"id": "create_to_refund", "capabilities": ["C4", "C5", "C8"]},
+    {"id": "add_to_remove", "capabilities": ["C1", "C11"]}
+  ]
+}

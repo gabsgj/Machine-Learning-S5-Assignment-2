@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Register patient{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Register patient</h1>
+  <p id="capability_hint">
+    Submits the GUI capability <code id="capability_id">{{ capabilities["PR-Form"].id }}</code>
+    (<code id="capability_name">{{ capabilities["PR-Form"].name }}</code>), the same code path as
+    the API capability <code id="api_capability_id">{{ capabilities["PR-Register"].id }}</code>.
+  </p>
+  <form id="patient_form" data-capability-endpoint="/ui/patients/new" data-result-target="result_output">
+    <label for="mrn_input">Medical record number</label>
+    <input type="text" id="mrn_input" name="mrn" required placeholder="MRN-1001">
+    <label for="full_name_input">Full name</label>
+    <input type="text" id="full_name_input" name="full_name" required placeholder="Ada Lovelace">
+    <label for="date_of_birth_input">Date of birth (optional)</label>
+    <input type="text" id="date_of_birth_input" name="date_of_birth" placeholder="1985-12-10">
+    <button type="submit" id="submit_button">Register</button>
+  </form>
+  <pre id="result_output" class="result" aria-live="polite"></pre>
+</section>
+{% endblock %}

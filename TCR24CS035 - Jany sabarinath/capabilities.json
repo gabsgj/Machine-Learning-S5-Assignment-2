@@ -1,0 +1,91 @@
+[
+    {
+        "name": "CreateOrder",
+        "type": "API",
+        "inputs": ["cart_id"],
+        "outputs": ["order_id"],
+        "preconditions": [
+            "Cart.exists=true",
+            "Cart.item_count>0",
+            "Inventory.available=true"
+        ],
+        "effects": [
+            "Order.exists=true",
+            "Order.status=CREATED"
+        ],
+        "constraints": [
+            "quantity>0"
+        ],
+        "resources": [
+            "Database",
+            "Authentication token"
+        ],
+        "cost": 0.01,
+        "reliability": 0.99,
+        "availability": 1
+    },
+
+    {
+        "name": "MakePayment",
+        "type": "API",
+        "inputs": ["order_id"],
+        "outputs": ["payment_id"],
+        "preconditions": [
+            "Order.exists=true"
+        ],
+        "effects": [
+            "Payment.status=SUCCESS"
+        ],
+        "constraints": [
+            "payment_amount<=transaction_limit"
+        ],
+        "resources": [
+            "Payment gateway",
+            "Network"
+        ],
+        "cost": 0.05,
+        "reliability": 0.98,
+        "availability": 1
+    },
+
+    {
+        "name": "SendNotification",
+        "type": "EVENT",
+        "inputs": ["payment_id"],
+        "outputs": ["notification_id"],
+        "preconditions": [
+            "Payment.status=SUCCESS"
+        ],
+        "effects": [
+            "Notification.sent=true"
+        ],
+        "constraints": [],
+        "resources": [
+            "External service",
+            "Network"
+        ],
+        "cost": 0.01,
+        "reliability": 0.97,
+        "availability": 1
+    },
+
+    {
+        "name": "CancelCart",
+        "type": "FUNCTION",
+        "inputs": ["cart_id"],
+        "outputs": [],
+        "preconditions": [
+            "Order.exists=false"
+        ],
+        "effects": [
+            "Cart.exists=false"
+        ],
+        "constraints": [],
+        "resources": [
+            "Database"
+        ],
+        "cost": 0.01,
+        "reliability": 0.99,
+        "availability": 1
+    }
+]

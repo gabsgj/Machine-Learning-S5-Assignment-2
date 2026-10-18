@@ -1,0 +1,890 @@
+# Application specification sheet: one complete hospital clinic visit.
+#
+# The visit runs register, queue, encounter, vitals, prescription, dispensing, laboratory order,
+# sample, result, invoice, payment and the receipt notice. It reuses the hospital vocabulary of
+# specs/state_variables.json, so its state variables are the same names the hospital modules
+# declare, and a consistency comparison between the two is meaningful.
+spec_version: "1.0"
+
+module:
+  module_id: app-hospital-clinic-visit
+  version: "1.0"
+  domain: hospital
+  port: 5102
+  base_url: "http://127.0.0.1:5102"
+  health: /health
+  description: Model of a complete outpatient clinic visit from registration to the receipt notice.
+  language: specification
+
+state_schema:
+  - name: Patient.registered
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Ticket.open
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Ticket.priority
+    type: enumerated
+    domain:
+      - LOW
+      - NORMAL
+      - HIGH
+      - EMERGENCY
+    kind: status
+  - name: Queue.length
+    type: integer
+    domain:
+      - 0
+      - 10000
+    kind: counter
+  - name: Encounter.active
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Vitals.recorded
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Vitals.temperature_c
+    type: real
+    domain:
+      - 25.0
+      - 45.0
+    kind: value
+  - name: Vitals.heart_rate
+    type: integer
+    domain:
+      - 20
+      - 300
+    kind: value
+  - name: Prescription.issued
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Prescription.count
+    type: integer
+    domain:
+      - 0
+      - 1000
+    kind: counter
+  - name: Stock.quantity
+    type: integer
+    domain:
+      - 0
+      - 100000
+    kind: resource
+  - name: Drug.dispensed
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Lab.ordered
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Sample.received
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Lab.resulted
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Invoice.generated
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Invoice.paid
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Invoice.amount
+    type: real
+    domain:
+      - 0.0
+      - 1000000.0
+    kind: value
+  - name: Notification.sent
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+
+initial_state:
+  Patient.registered: false
+  Ticket.open: false
+  Ticket.priority: NORMAL
+  Queue.length: 0
+  Encounter.active: false
+  Vitals.recorded: false
+  Vitals.temperature_c: 36.6
+  Vitals.heart_rate: 70
+  Prescription.issued: false
+  Prescription.count: 0
+  Stock.quantity: 120
+  Drug.dispensed: false
+  Lab.ordered: false
+  Sample.received: false
+  Lab.resulted: false
+  Invoice.generated: false
+  Invoice.paid: false
+  Invoice.amount: 0.0
+  Notification.sent: false
+
+resources:
+  - id: clinic_db
+    kind: database
+    available: true
+    details: Patients, queue, encounters, prescriptions, stock, laboratory orders and invoices
+  - id: laboratory_link
+    kind: network
+    available: true
+    details: Loopback link to the legacy laboratory service
+  - id: payment_terminal
+    kind: payment_gateway
+    available: true
+    details: Card and transfer terminal at the cash desk
+  - id: notice_relay
+    kind: external_service
+    available: true
+    details: Outbound receipt notice relay
+  - id: dispensing_clock
+    kind: clock
+    available: true
+    details: Timestamps for dispensing and notice records
+
+constraints:
+  - id: K-One-Active-Encounter
+    kind: state
+    expression: at most one encounter is active at any time
+    enforced_by: CV-StartEncounter precondition on Encounter.active
+  - id: K-Vitals-Ranges
+    kind: input
+    expression: temperature 25 to 45 celsius, heart rate 20 to 300, systolic 60 to 260
+    enforced_by: CV-RecordVitals input domains
+  - id: K-Sample-Before-Result
+    kind: temporal
+    expression: Lab.resulted = true requires Sample.received = true earlier
+    enforced_by: CV-EnterResult precondition on Sample.received
+  - id: K-Pay-Before-Notice
+    kind: dependency
+    expression: the receipt notice requires Invoice.paid = true
+    enforced_by: CV-SendReceiptNotice precondition on Invoice.paid
+
+goal:
+  - variable: Patient.registered
+    op: "="
+    value: true
+  - variable: Lab.resulted
+    op: "="
+    value: true
+  - variable: Invoice.paid
+    op: "="
+    value: true
+  - variable: Notification.sent
+    op: "="
+    value: true
+
+capabilities:
+  - id: CV-RegisterPatient
+    name: register_patient
+    type: API
+    description: Register a patient in the clinic registry.
+    inputs:
+      - name: patient_mrn
+        type: string
+        domain: medical record number
+        required: true
+      - name: full_name
+        type: string
+        domain: patient name text
+        required: true
+      - name: date_of_birth
+        type: string
+        domain: ISO 8601 date
+        required: false
+    outputs:
+      - name: patient_id
+        type: string
+        domain: generated patient identifier
+    preconditions: []
+    effects:
+      - variable: Patient.registered
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - clinic_db
+    quality:
+      time_ms: 120
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/register_patient
+    roles:
+      - clerk
+
+  - id: CV-CreateTicket
+    name: create_ticket
+    type: API
+    description: Create a queue ticket for a patient with a priority.
+    inputs:
+      - name: patient_mrn
+        type: string
+        domain: medical record number
+        required: true
+      - name: reason
+        type: string
+        domain: visit reason text
+        required: true
+      - name: priority
+        type: enumerated
+        domain:
+          - LOW
+          - NORMAL
+          - HIGH
+          - EMERGENCY
+        required: false
+    outputs:
+      - name: ticket_id
+        type: string
+        domain: generated ticket identifier
+    preconditions:
+      - variable: Patient.registered
+        op: "="
+        value: true
+    effects:
+      - variable: Ticket.open
+        op: SET
+        value: true
+      - variable: Queue.length
+        op: INCREMENT
+        value: 1
+    constraints: []
+    resources:
+      - clinic_db
+    quality:
+      time_ms: 80
+      money: 0
+      resource: 0.01
+      risk: 0.01
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/create_ticket
+    roles:
+      - clerk
+      - nurse
+
+  - id: CV-CallNext
+    name: call_next_ticket
+    type: API
+    description: Call the highest priority open ticket to a desk and close it.
+    inputs:
+      - name: desk
+        type: string
+        domain: desk label
+        required: false
+    outputs:
+      - name: ticket_id
+        type: string
+        domain: called ticket identifier
+    preconditions:
+      - variable: Queue.length
+        op: ">"
+        value: 0
+    effects:
+      - variable: Ticket.open
+        op: SET
+        value: false
+      - variable: Queue.length
+        op: DECREMENT
+        value: 1
+    constraints: []
+    resources:
+      - clinic_db
+    quality:
+      time_ms: 60
+      money: 0
+      resource: 0.01
+      risk: 0.01
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/call_next_ticket
+    roles:
+      - nurse
+
+  - id: CV-StartEncounter
+    name: start_encounter
+    type: API
+    description: Open the consultation encounter of a patient with a clinician.
+    inputs:
+      - name: patient_mrn
+        type: string
+        domain: medical record number
+        required: true
+      - name: clinician
+        type: string
+        domain: clinician name
+        required: true
+      - name: visit_type
+        type: enumerated
+        domain:
+          - CONSULTATION
+          - FOLLOW_UP
+          - EMERGENCY
+        required: false
+    outputs:
+      - name: encounter_id
+        type: string
+        domain: generated encounter identifier
+    preconditions: []
+    effects:
+      - variable: Encounter.active
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - clinic_db
+    quality:
+      time_ms: 110
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/start_encounter
+    roles:
+      - physician
+
+  - id: CV-RecordVitals
+    name: record_vitals
+    type: API
+    description: Record the temperature, heart rate and blood pressure of an active encounter.
+    inputs:
+      - name: encounter_id
+        type: string
+        domain: active encounter identifier
+        required: true
+      - name: temperature_c
+        type: real
+        domain:
+          - 25.0
+          - 45.0
+        required: true
+      - name: heart_rate
+        type: integer
+        domain:
+          - 20
+          - 300
+        required: true
+      - name: systolic
+        type: integer
+        domain:
+          - 60
+          - 260
+        required: false
+    outputs:
+      - name: vitals_id
+        type: string
+        domain: generated vitals record identifier
+    preconditions:
+      - variable: Encounter.active
+        op: "="
+        value: true
+    effects:
+      - variable: Vitals.recorded
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - clinic_db
+    quality:
+      time_ms: 70
+      money: 0
+      resource: 0.01
+      risk: 0.01
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/record_vitals
+    roles:
+      - nurse
+
+  - id: CV-IssuePrescription
+    name: issue_prescription
+    type: API
+    description: Issue one prescription line of an active encounter.
+    inputs:
+      - name: encounter_id
+        type: string
+        domain: active encounter identifier
+        required: true
+      - name: drug
+        type: string
+        domain: drug name
+        required: true
+      - name: dose_mg
+        type: real
+        domain:
+          - 0.1
+          - 5000.0
+        required: true
+    outputs:
+      - name: prescription_id
+        type: string
+        domain: generated prescription identifier
+    preconditions:
+      - variable: Encounter.active
+        op: "="
+        value: true
+    effects:
+      - variable: Prescription.issued
+        op: SET
+        value: true
+      - variable: Prescription.count
+        op: INCREMENT
+        value: 1
+    constraints: []
+    resources:
+      - clinic_db
+    quality:
+      time_ms: 90
+      money: 0
+      resource: 0.01
+      risk: 0.03
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/issue_prescription
+    roles:
+      - physician
+
+  - id: CV-DispenseDrug
+    name: dispense_drug
+    type: API
+    description: Dispense one unit of a stocked drug against a prescription; repeat for several units.
+    inputs:
+      - name: sku
+        type: string
+        domain: drug stock keeping unit
+        required: true
+      - name: patient_mrn
+        type: string
+        domain: medical record number
+        required: true
+    outputs:
+      - name: dispensed
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Stock.quantity
+        op: ">"
+        value: 0
+    effects:
+      - variable: Drug.dispensed
+        op: SET
+        value: true
+      - variable: Stock.quantity
+        op: DECREMENT
+        value: 1
+    constraints: []
+    resources:
+      - clinic_db
+    quality:
+      time_ms: 80
+      money: 0
+      resource: 0.01
+      risk: 0.03
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/dispense_drug
+    roles:
+      - pharmacist
+
+  - id: CV-OrderLabTest
+    name: order_lab_test
+    type: API
+    description: Order a laboratory test for a patient with a legacy urgency level.
+    inputs:
+      - name: patient_mrn
+        type: string
+        domain: medical record number
+        required: true
+      - name: test_code
+        type: string
+        domain: code in the test catalogue
+        required: true
+      - name: urgency_level
+        type: enumerated
+        domain:
+          - ROUTINE
+          - URGENT
+          - STAT
+        required: false
+    outputs:
+      - name: lab_order_id
+        type: string
+        domain: generated laboratory order identifier
+    preconditions: []
+    effects:
+      - variable: Lab.ordered
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - clinic_db
+      - laboratory_link
+    quality:
+      time_ms: 120
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/order_lab_test
+    roles:
+      - physician
+      - nurse
+
+  - id: CV-ReceiveSample
+    name: receive_sample
+    type: API
+    description: Accept the physical sample of an ordered test at the laboratory bench.
+    inputs:
+      - name: lab_order_id
+        type: string
+        domain: ordered laboratory order identifier
+        required: true
+      - name: sample_label
+        type: string
+        domain: sample tube label
+        required: false
+    outputs:
+      - name: received
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Lab.ordered
+        op: "="
+        value: true
+    effects:
+      - variable: Sample.received
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - clinic_db
+    quality:
+      time_ms: 70
+      money: 0
+      resource: 0.01
+      risk: 0.01
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/receive_sample
+    roles:
+      - technician
+
+  - id: CV-EnterResult
+    name: enter_result
+    type: API
+    description: Enter the measured result of a sample that has been received.
+    inputs:
+      - name: lab_order_id
+        type: string
+        domain: received laboratory order identifier
+        required: true
+      - name: result_value
+        type: real
+        domain:
+          - 0.0
+          - 100000.0
+        required: true
+    outputs:
+      - name: resulted
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Sample.received
+        op: "="
+        value: true
+    effects:
+      - variable: Lab.resulted
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - clinic_db
+    quality:
+      time_ms: 90
+      money: 0
+      resource: 0.01
+      risk: 0.03
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/enter_result
+    roles:
+      - technician
+
+  - id: CV-GenerateInvoice
+    name: generate_invoice
+    type: API
+    description: Generate the bill of the visit for a patient.
+    inputs:
+      - name: patient_mrn
+        type: string
+        domain: medical record number
+        required: true
+      - name: amount
+        type: real
+        domain:
+          - 0.01
+          - 100000.0
+        required: true
+    outputs:
+      - name: invoice_id
+        type: string
+        domain: generated invoice identifier
+    preconditions: []
+    effects:
+      - variable: Invoice.generated
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - clinic_db
+    quality:
+      time_ms: 120
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/generate_invoice
+    roles:
+      - clerk
+
+  - id: CV-ProcessPayment
+    name: process_payment
+    type: API
+    description: Process the payment of a generated invoice at the cash desk.
+    inputs:
+      - name: invoice_id
+        type: string
+        domain: generated invoice identifier
+        required: true
+      - name: method
+        type: enumerated
+        domain:
+          - CARD
+          - CASH
+          - TRANSFER
+        required: true
+    outputs:
+      - name: paid
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Invoice.generated
+        op: "="
+        value: true
+    effects:
+      - variable: Invoice.paid
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - clinic_db
+      - payment_terminal
+    quality:
+      time_ms: 140
+      money: 0
+      resource: 0.02
+      risk: 0.04
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/process_payment
+    roles:
+      - clerk
+
+  - id: CV-SendReceiptNotice
+    name: send_receipt_notice
+    type: MESSAGE
+    description: Publish the receipt notice of a paid invoice on one channel.
+    inputs:
+      - name: invoice_id
+        type: string
+        domain: paid invoice identifier
+        required: true
+      - name: channel
+        type: enumerated
+        domain:
+          - EMAIL
+          - SMS
+        required: true
+    outputs:
+      - name: sent
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Invoice.paid
+        op: "="
+        value: true
+    effects:
+      - variable: Notification.sent
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - notice_relay
+      - dispensing_clock
+    quality:
+      time_ms: 90
+      money: 0
+      resource: 0.02
+      risk: 0.03
+      energy: 0.001
+    reliability: 0.98
+    availability:
+      always: true
+    mechanism:
+      kind: MESSAGE
+      topic: billing.receipt_notices
+    roles:
+      - clerk
+
+  - id: CV-ClinicVisitForm
+    name: clinic_visit_form
+    type: GUI
+    description: Front desk screen that registers a patient and opens the visit.
+    inputs:
+      - name: patient_mrn
+        type: string
+        domain: medical record number
+        required: true
+      - name: full_name
+        type: string
+        domain: patient name text
+        required: true
+    outputs:
+      - name: patient_id
+        type: string
+        domain: generated patient identifier
+    preconditions: []
+    effects:
+      - variable: Patient.registered
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - clinic_db
+    quality:
+      time_ms: 260
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.002
+    reliability: 0.97
+    availability:
+      always: true
+    mechanism:
+      kind: GUI
+      action: SUBMIT
+      component: clinic_visit_form
+      page: /ui/visit/new
+    roles:
+      - clerk

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Ticket {{ ticket.ticket_no }}{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1 id="ticket_number">Ticket {{ ticket.ticket_no }}</h1>
+  <ul class="facts">
+    <li>Ticket id: <code id="ticket_id">{{ ticket.ticket_id }}</code></li>
+    <li>Patient MRN: <code id="ticket_mrn">{{ ticket.patient_mrn }}</code></li>
+    <li>Reason: <code>{{ ticket.reason or "" }}</code></li>
+    <li>Priority: <code id="ticket_priority">{{ ticket.priority }}</code></li>
+    <li>Triaged: <code id="ticket_triaged">{{ "yes" if ticket.triaged else "no" }}</code></li>
+    <li>Notes: <code id="ticket_notes">{{ ticket.notes or "" }}</code></li>
+    <li>Status: <code id="ticket_status">{{ "waiting" if ticket.open else "closed" }}</code></li>
+    <li>Created: <code>{{ ticket.created_at }}</code></li>
+    <li>Called: <code>{{ ticket.called_at or "" }}</code></li>
+    <li>Closed: <code>{{ ticket.closed_at or "" }}</code></li>
+  </ul>
+</section>
+
+{% if ticket.open %}
+<section class="panel">
+  <h2>Update triage</h2>
+  <form id="triage_form" data-capability-endpoint="/api/update_triage" data-result-target="result_output">
+    <input type="hidden" name="ticket_id" value="{{ ticket.ticket_id }}">
+    <label for="triage_priority_select">Priority</label>
+    <select id="triage_priority_select" name="priority" required>
+      {% for priority in priorities %}
+      <option value="{{ priority }}" {% if priority == ticket.priority %}selected{% endif %}>{{ priority }}</option>
+      {% endfor %}
+    </select>
+    <label for="notes_input">Notes (optional)</label>
+    <input type="text" id="notes_input" name="notes" placeholder="Observed by triage nurse">
+    <button type="submit" id="update_triage_button">Save triage</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Cancel ticket</h2>
+  <form id="cancel_form" data-capability-endpoint="/api/cancel_ticket" data-result-target="result_output">
+    <input type="hidden" name="ticket_id" value="{{ ticket.ticket_id }}">
+    <label for="cancel_reason_input">Reason (optional)</label>
+    <input type="text" id="cancel_reason_input" name="reason" placeholder="Left without being seen">
+    <button type="submit" id="cancel_button">Cancel ticket</button>
+  </form>
+</section>
+{% else %}
+<section class="panel">
+  <h2>This ticket is closed</h2>
+  <p id="closed_notice">No further actions are available for a closed ticket.</p>
+</section>
+{% endif %}
+
+<pre id="result_output" class="result" aria-live="polite"></pre>
+{% endblock %}

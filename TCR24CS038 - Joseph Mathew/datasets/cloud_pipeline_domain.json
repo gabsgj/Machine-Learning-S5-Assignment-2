@@ -1,0 +1,346 @@
+{
+  "domain_name": "CloudDevOpsPipeline",
+  "schema": {
+    "state_variables": [
+      "Repo.cloned",
+      "Code.compiled",
+      "Tests.passed",
+      "Image.built",
+      "Image.scanned",
+      "Cluster.deployed",
+      "Team.notified",
+      "Metrics.exported",
+      "Disk.cleaned"
+    ],
+    "data_types": [
+      "commit_hash",
+      "binary_artifact",
+      "test_report",
+      "container_image_tag",
+      "cve_scan_report",
+      "deployment_manifest",
+      "alert_message"
+    ],
+    "resource_types": [
+      "BuildRunner",
+      "DockerDaemon",
+      "SecurityScanner",
+      "K8sCluster",
+      "SlackWebhook",
+      "Network"
+    ],
+    "capability_types": [
+      "API",
+      "DATABASE",
+      "GUI",
+      "EVENT",
+      "FUNCTION",
+      "FILE",
+      "COMPUTATION",
+      "MESSAGE",
+      "SERVICE"
+    ],
+    "total_dim": 78
+  },
+  "initial_state": {
+    "name": "S_DevOps_Initial",
+    "variables": {
+      "Repo.cloned": true,
+      "Code.compiled": false,
+      "Tests.passed": false,
+      "Image.built": false,
+      "Image.scanned": false,
+      "Cluster.deployed": false,
+      "Team.notified": false,
+      "Metrics.exported": false,
+      "Disk.cleaned": false
+    }
+  },
+  "goal": {
+    "name": "DevOpsGoal",
+    "conditions": [
+      {
+        "variable": "Cluster.deployed",
+        "operator": "==",
+        "value": true
+      },
+      {
+        "variable": "Team.notified",
+        "operator": "==",
+        "value": true
+      }
+    ]
+  },
+  "capabilities": [
+    {
+      "name": "CompileCode",
+      "capability_type": "COMPUTATION",
+      "inputs": [
+        {
+          "name": "commit_hash",
+          "data_type": "commit_hash",
+          "domain": "SHA1",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "binary_artifact",
+          "data_type": "binary_artifact",
+          "domain": "ELF",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Repo.cloned",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Code.compiled",
+          "action": "set",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "BuildRunner",
+          "amount": 1.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 45000.0,
+        "monetary_cost": 0.05,
+        "resource_units": 4.0,
+        "risk": 0.01,
+        "energy_joules": 500.0
+      },
+      "reliability": 0.99,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "COMPUTATION",
+        "details": {
+          "cmd": "go build ./..."
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "BuildContainer",
+      "capability_type": "SERVICE",
+      "inputs": [
+        {
+          "name": "binary_artifact",
+          "data_type": "binary_artifact",
+          "domain": "ELF",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "container_image_tag",
+          "data_type": "container_image_tag",
+          "domain": "DockerTag",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Code.compiled",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Image.built",
+          "action": "set",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "DockerDaemon",
+          "amount": 1.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 60000.0,
+        "monetary_cost": 0.08,
+        "resource_units": 6.0,
+        "risk": 0.02,
+        "energy_joules": 800.0
+      },
+      "reliability": 0.985,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "SERVICE",
+        "details": {
+          "engine": "kaniko"
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "DeployK8s",
+      "capability_type": "API",
+      "inputs": [
+        {
+          "name": "container_image_tag",
+          "data_type": "container_image_tag",
+          "domain": "DockerTag",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "deployment_manifest",
+          "data_type": "deployment_manifest",
+          "domain": "YAML",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Image.built",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Cluster.deployed",
+          "action": "set",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "K8sCluster",
+          "amount": 1.0,
+          "exclusive": false
+        },
+        {
+          "name": "Network",
+          "amount": 1.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 15000.0,
+        "monetary_cost": 0.1,
+        "resource_units": 2.0,
+        "risk": 0.01,
+        "energy_joules": 150.0
+      },
+      "reliability": 0.995,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "API",
+        "details": {
+          "method": "PATCH",
+          "endpoint": "/apis/apps/v1/deployments"
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "NotifySlack",
+      "capability_type": "MESSAGE",
+      "inputs": [
+        {
+          "name": "deployment_manifest",
+          "data_type": "deployment_manifest",
+          "domain": "YAML",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "alert_message",
+          "data_type": "alert_message",
+          "domain": "String",
+          "required": true
+        }
+      ],
+      "preconditions": [
+        {
+          "variable": "Cluster.deployed",
+          "operator": "==",
+          "value": true
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Team.notified",
+          "action": "set",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        {
+          "name": "SlackWebhook",
+          "amount": 1.0,
+          "exclusive": false
+        }
+      ],
+      "cost": {
+        "execution_time_ms": 500.0,
+        "monetary_cost": 0.001,
+        "resource_units": 1.0,
+        "risk": 0.005,
+        "energy_joules": 5.0
+      },
+      "reliability": 0.999,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "MESSAGE",
+        "details": {
+          "channel": "#deployments"
+        }
+      },
+      "sub_capabilities": []
+    },
+    {
+      "name": "CleanDiskCaches",
+      "capability_type": "FILE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [],
+      "effects": [
+        {
+          "variable": "Disk.cleaned",
+          "action": "set",
+          "value": true
+        }
+      ],
+      "constraints": [],
+      "resources": [],
+      "cost": {
+        "execution_time_ms": 2000.0,
+        "monetary_cost": 0.0,
+        "resource_units": 1.0,
+        "risk": 0.0,
+        "energy_joules": 10.0
+      },
+      "reliability": 1.0,
+      "availability": 1.0,
+      "execution_mechanism": {
+        "type": "FILE",
+        "details": {
+          "cmd": "rm -rf /tmp/*"
+        }
+      },
+      "sub_capabilities": []
+    }
+  ]
+}

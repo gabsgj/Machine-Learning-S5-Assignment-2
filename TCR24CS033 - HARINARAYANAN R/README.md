@@ -1,0 +1,4 @@
+# vector-embedding
+HARINARAYANAN R
+TCR24CS033
+ROLL NO :: 33

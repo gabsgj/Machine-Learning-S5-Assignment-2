@@ -1,0 +1,210 @@
+{
+ "problem_id": "P0_assignment_minimal",
+ "domain": "e-commerce (minimal)",
+ "description": "C1=CreateOrder, C2=MakePayment, C3=CancelCart exactly as in Sec.7 Exp.1.",
+ "state_variables": [
+  {
+   "name": "Order.exists",
+   "type": "bool"
+  },
+  {
+   "name": "Cart.exists",
+   "type": "bool"
+  },
+  {
+   "name": "Payment.status",
+   "type": "enum",
+   "values": [
+    "NOT_STARTED",
+    "SUCCESS"
+   ]
+  }
+ ],
+ "initial_state": {
+  "Order.exists": false,
+  "Cart.exists": true,
+  "Payment.status": "NOT_STARTED"
+ },
+ "goals": {
+  "main": [
+   {
+    "var": "Payment.status",
+    "op": "==",
+    "value": "SUCCESS"
+   }
+  ]
+ },
+ "goal_text": {
+  "main": "payment succeeds for the order"
+ },
+ "resources": [
+  "Database",
+  "PaymentGateway"
+ ],
+ "environment": [
+  "Database",
+  "PaymentGateway"
+ ],
+ "domain_parent": {},
+ "context_ports": [
+  {
+   "name": "cart_id",
+   "type": "UUID",
+   "domain": "valid_uuid",
+   "required": true
+  }
+ ],
+ "capabilities": [
+  {
+   "id": "CreateOrder",
+   "type": "API",
+   "description": "create an order from the cart",
+   "inputs": [
+    {
+     "name": "cart_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "order_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "preconditions": [],
+   "effects": [
+    {
+     "var": "Order.exists",
+     "value": true
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Database"
+   ],
+   "qos": {
+    "time_ms": 60,
+    "money": 0.01,
+    "resource_cost": 2,
+    "risk": 0.01,
+    "energy": 0.1
+   },
+   "reliability": 0.999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "POST",
+    "endpoint": "/orders"
+   }
+  },
+  {
+   "id": "MakePayment",
+   "type": "API",
+   "description": "pay for the order",
+   "inputs": [
+    {
+     "name": "order_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "outputs": [
+    {
+     "name": "payment_id",
+     "type": "UUID",
+     "domain": "valid_uuid",
+     "required": true
+    }
+   ],
+   "preconditions": [
+    {
+     "var": "Order.exists",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "effects": [
+    {
+     "var": "Payment.status",
+     "value": "SUCCESS"
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "PaymentGateway"
+   ],
+   "qos": {
+    "time_ms": 180,
+    "money": 0.03,
+    "resource_cost": 2,
+    "risk": 0.01,
+    "energy": 0.1
+   },
+   "reliability": 0.995,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "POST",
+    "endpoint": "/payments"
+   }
+  },
+  {
+   "id": "CancelCart",
+   "type": "API",
+   "description": "cancel the cart (only before an order exists)",
+   "inputs": [],
+   "outputs": [],
+   "preconditions": [
+    {
+     "var": "Order.exists",
+     "op": "==",
+     "value": false
+    }
+   ],
+   "effects": [
+    {
+     "var": "Cart.exists",
+     "value": false
+    }
+   ],
+   "constraints": [],
+   "resources": [
+    "Database"
+   ],
+   "qos": {
+    "time_ms": 30,
+    "money": 0.0,
+    "resource_cost": 1,
+    "risk": 0.01,
+    "energy": 0.1
+   },
+   "reliability": 0.999,
+   "availability": {
+    "available": true,
+    "window": [
+     0,
+     24
+    ]
+   },
+   "mechanism": {
+    "method": "DELETE",
+    "endpoint": "/carts"
+   }
+  }
+ ]
+}

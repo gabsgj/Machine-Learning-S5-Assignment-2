@@ -1,0 +1,9 @@
+Capability,Goal Similarity
+CreateOrder,0.1825741858350554
+MakePayment,0.19245008972987526
+SendNotification,0.2041241452319315
+CancelCart,0.0
+CreateOrderDB,0.19245008972987526
+CreateOrderGUI,0.1825741858350554
+RefundPayment,0.0
+TrackDelivery,0.0

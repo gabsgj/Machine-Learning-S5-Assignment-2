@@ -1,0 +1,49 @@
+========================================================================
+ASSIGNMENT 2 - VECTOR EMBEDDING FOR CAPABILITY COMPOSITION
+========================================================================
+Embedding dimension: 168
+
+1. CAPABILITY COMPATIBILITY
+CreateOrder      -> MakePayment        score=1.000 | effect Order.exists=true satisfies precondition Order.exists=true; Compatible input/output type
+CreateOrder      -> CancelCart         score=0.231 | No direct effect-precondition match
+CreateOrder      -> SendNotification   score=0.246 | No direct effect-precondition match; Compatible input/output type
+
+2. CAPABILITY COMPOSITION
+Composite: CreateOrder -> MakePayment -> SendNotification
+Valid: True
+Links:
+  CreateOrder -> MakePayment score=1.000
+  MakePayment -> SendNotification score=0.858
+
+3. ALTERNATIVE IMPLEMENTATIONS
+CreateOrder similarity with CreateOrderDB  : 0.920
+CreateOrder similarity with CreateOrderGUI : 0.946
+CreateOrder similarity with ViewProfile    : 0.421
+
+4. GOAL RELEVANCE
+CreateOrder       : 0.333
+MakePayment       : 0.333
+CancelCart        : 0.000
+SendNotification  : 0.333
+CreateOrderDB     : 0.333
+CreateOrderGUI    : 0.333
+ViewProfile       : 0.000
+
+5. OPERATIONAL ATTRIBUTES
+CreateOrder       : reliability=0.990, availability=1.000, time=100, money=0.01, risk=0.1
+CreateOrderDB     : reliability=0.995, availability=1.000, time=60, money=0.002, risk=0.08
+CreateOrderGUI    : reliability=0.950, availability=1.000, time=300, money=0.01, risk=0.15
+MakePayment       : reliability=0.980, availability=1.000, time=180, money=0.02, risk=0.2
+
+Conclusion: functional relationships are encoded primarily through state, precondition, effect, I/O, constraint and resource features; implementation mechanisms are represented separately with lower weight.
+
+Spreadsheet runtime warmup failed during python startup
+Traceback (most recent call last):
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py", line 26, in warm_spreadsheet_runtime_on_startup
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py", line 785, in warm_spreadsheet_runtime
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py", line 720, in _warm_feature_flows
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py", line 704, in _warm_collaboration_flows
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py", line 32317, in hydrate_crdt_from_proto
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py", line 749, in __call__
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py", line 150, in call
+artifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.

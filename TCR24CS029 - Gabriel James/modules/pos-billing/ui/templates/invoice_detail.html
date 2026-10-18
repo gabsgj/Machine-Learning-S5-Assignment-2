@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Invoice {{ invoice.invoice_id }}{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1 id="invoice_id">Invoice {{ invoice.invoice_id }}</h1>
+  <ul class="facts">
+    <li>Patient MRN: <code id="invoice_mrn">{{ invoice.patient_mrn }}</code></li>
+    <li>Amount: <code id="invoice_amount">{{ "%.2f" % invoice.amount }}</code></li>
+    <li>Description: <code>{{ invoice.description or "" }}</code></li>
+    <li>Status: <code id="invoice_status">{{ invoice.status }}</code></li>
+    <li>Generated: <code>{{ invoice.generated_at }}</code></li>
+    <li>Paid: <code id="invoice_paid_at">{{ invoice.paid_at or "" }}</code></li>
+    <li>Payment method: <code id="invoice_method">{{ invoice.payment_method or "" }}</code></li>
+  </ul>
+</section>
+
+{% if invoice.status == "generated" %}
+<section class="panel">
+  <h2>Pay this invoice</h2>
+  <form id="payment_form" data-capability-endpoint="/api/process_payment" data-result-target="result_output">
+    <input type="hidden" name="invoice_id" value="{{ invoice.invoice_id }}">
+    <label for="method_select">Payment method</label>
+    <select id="method_select" name="method" required>
+      {% for method in payment_methods %}
+      <option value="{{ method }}" {% if method == "CARD" %}selected{% endif %}>{{ method }}</option>
+      {% endfor %}
+    </select>
+    <label for="tendered_input">Amount tendered (optional; cash must cover the invoice)</label>
+    <input type="number" id="tendered_input" name="amount_tendered" step="0.01" min="0" placeholder="50.00">
+    <button type="submit" id="pay_button">Take payment</button>
+  </form>
+</section>
+{% else %}
+<section class="panel">
+  <h2>Send receipt notice</h2>
+  <form id="notice_form" data-capability-endpoint="/api/send_receipt_notice" data-result-target="result_output">
+    <input type="hidden" name="invoice_id" value="{{ invoice.invoice_id }}">
+    <label for="channel_select">Channel</label>
+    <select id="channel_select" name="channel" required>
+      {% for channel in channels %}
+      <option value="{{ channel }}" {% if channel == "EMAIL" %}selected{% endif %}>{{ channel }}</option>
+      {% endfor %}
+    </select>
+    <label for="destination_input">Destination (optional)</label>
+    <input type="text" id="destination_input" name="destination" placeholder="patient contact">
+    <button type="submit" id="send_notice_button">Send notice</button>
+  </form>
+</section>
+{% endif %}
+
+<pre id="result_output" class="result" aria-live="polite"></pre>
+
+<section class="panel">
+  <h2>Receipt notices</h2>
+  <table id="notice_table" class="grid">
+    <thead><tr><th>Id</th><th>Channel</th><th>Destination</th><th>Sent at</th></tr></thead>
+    <tbody>
+      {% for notice in notices %}
+      <tr>
+        <td><code>{{ notice.notice_id }}</code></td>
+        <td>{{ notice.channel }}</td>
+        <td>{{ notice.destination or "" }}</td>
+        <td>{{ notice.sent_at }}</td>
+      </tr>
+      {% else %}
+      <tr id="no_notices_row"><td colspan="4">No receipt notices sent.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

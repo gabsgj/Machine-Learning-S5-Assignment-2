@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ patient.full_name }}{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1 id="patient_name">{{ patient.full_name }}</h1>
+  <ul class="facts">
+    <li>Patient id: <code id="patient_id">{{ patient.patient_id }}</code></li>
+    <li>MRN: <code id="patient_mrn">{{ patient.mrn }}</code></li>
+    <li>Date of birth: <code>{{ patient.date_of_birth or "" }}</code></li>
+    <li>Admitted: <code id="patient_admitted">{{ "yes" if patient.admitted else "no" }}</code></li>
+  </ul>
+</section>
+
+<section class="panel">
+  <h2>Admit to ward</h2>
+  <form id="admit_form" data-capability-endpoint="/api/admit_patient" data-result-target="result_output">
+    <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+    <label for="ward_input">Ward</label>
+    <input type="text" id="ward_input" name="ward" required placeholder="Ward A">
+    <label for="stay_input">Expected stay in days (optional)</label>
+    <input type="number" id="stay_input" name="expected_stay_days" min="1" max="365" placeholder="3">
+    <button type="submit" id="admit_button">Admit</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Flag allergy</h2>
+  <form id="allergy_form" data-capability-endpoint="/api/flag_allergy" data-result-target="result_output">
+    <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+    <label for="allergen_input">Allergen</label>
+    <input type="text" id="allergen_input" name="allergen" required placeholder="Penicillin">
+    <label for="severity_select">Severity</label>
+    <select id="severity_select" name="severity" required>
+      <option value="MILD">MILD</option>
+      <option value="MODERATE">MODERATE</option>
+      <option value="SEVERE">SEVERE</option>
+    </select>
+    <button type="submit" id="flag_allergy_button">Flag allergy</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Discharge</h2>
+  <form id="discharge_form" data-capability-endpoint="/api/discharge_patient" data-result-target="result_output">
+    <label for="admission_select">Active admission</label>
+    <select id="admission_select" name="admission_id" required>
+      {% for admission in admissions if admission.active %}
+      <option value="{{ admission.admission_id }}">{{ admission.admission_id }} &middot; {{ admission.ward }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" id="discharge_button">Discharge</button>
+  </form>
+</section>
+
+<pre id="result_output" class="result" aria-live="polite"></pre>
+
+<section class="panel">
+  <h2>Admissions</h2>
+  <table id="admission_table" class="grid">
+    <thead><tr><th>Id</th><th>Ward</th><th>Stay days</th><th>Admitted at</th><th>Discharged at</th></tr></thead>
+    <tbody>
+      {% for admission in admissions %}
+      <tr>
+        <td><code>{{ admission.admission_id }}</code></td>
+        <td>{{ admission.ward }}</td>
+        <td>{{ admission.expected_stay_days if admission.expected_stay_days is not none else "" }}</td>
+        <td>{{ admission.admitted_at }}</td>
+        <td>{{ admission.discharged_at or "" }}</td>
+      </tr>
+      {% else %}
+      <tr id="no_admissions_row"><td colspan="5">No admissions recorded.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="panel">
+  <h2>Allergies</h2>
+  <table id="allergy_table" class="grid">
+    <thead><tr><th>Id</th><th>Allergen</th><th>Severity</th><th>Flagged at</th></tr></thead>
+    <tbody>
+      {% for allergy in allergies %}
+      <tr>
+        <td><code>{{ allergy.allergy_id }}</code></td>
+        <td>{{ allergy.allergen }}</td>
+        <td>{{ allergy.severity }}</td>
+        <td>{{ allergy.flagged_at }}</td>
+      </tr>
+      {% else %}
+      <tr id="no_allergies_row"><td colspan="4">No allergies recorded.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

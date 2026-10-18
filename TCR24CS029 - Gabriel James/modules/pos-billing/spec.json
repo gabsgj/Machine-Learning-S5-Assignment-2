@@ -1,0 +1,204 @@
+{
+  "spec_version": "1.0",
+  "module": {
+    "module_id": "pos-billing",
+    "version": "1.0.0",
+    "domain": "hospital",
+    "port": 5005,
+    "base_url": "http://127.0.0.1:5005",
+    "health": "/health",
+    "description": "Point of sale billing: invoice generation, payment processing with cash tender checks, receipts and receipt notices.",
+    "language": "python",
+    "database_file": "data/pos_billing.db",
+    "ui": "/ui/"
+  },
+  "state_schema": [
+    {"name": "Invoice.generated", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Invoice.paid", "type": "boolean", "domain": [false, true], "kind": "flag"},
+    {"name": "Invoice.amount", "type": "real", "domain": [0.0, 1000000.0], "kind": "value"},
+    {"name": "Notification.sent", "type": "boolean", "domain": [false, true], "kind": "flag"}
+  ],
+  "initial_state": {
+    "Invoice.generated": false,
+    "Invoice.paid": false,
+    "Invoice.amount": 0.0,
+    "Notification.sent": false
+  },
+  "resources": [
+    {
+      "id": "billing_db",
+      "kind": "database",
+      "available": true,
+      "details": "SQLite database in WAL mode owned by this module"
+    },
+    {
+      "id": "network",
+      "kind": "network",
+      "available": true,
+      "details": "Loopback HTTP interface used by the gateway and the dashboard"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "K-Amount-Positive",
+      "kind": "input",
+      "expression": "invoice and tendered amounts are in 0.01..100000",
+      "enforced_by": "services.billing.require_amount and process_payment"
+    },
+    {
+      "id": "K-Outstanding-Reading",
+      "kind": "state",
+      "expression": "Invoice.amount reports the outstanding sum of unpaid invoices",
+      "enforced_by": "services.billing.state_snapshot"
+    },
+    {
+      "id": "K-Pay-Once",
+      "kind": "domain",
+      "expression": "an invoice is paid at most once",
+      "enforced_by": "services.billing.process_payment status check"
+    }
+  ],
+  "goal": [
+    {"variable": "Invoice.generated", "op": "=", "value": true},
+    {"variable": "Invoice.paid", "op": "=", "value": true},
+    {"variable": "Notification.sent", "op": "=", "value": true}
+  ],
+  "capabilities": [
+    {
+      "id": "BILL-GenerateInvoice",
+      "name": "generate_invoice",
+      "type": "API",
+      "description": "Generate an invoice for a patient with an amount and optional description.",
+      "inputs": [
+        {"name": "patient_mrn", "type": "string", "domain": "medical record number", "required": true},
+        {"name": "amount", "type": "real", "domain": [0.01, 100000.0], "required": true},
+        {"name": "description", "type": "string", "domain": "invoice description text", "required": false}
+      ],
+      "outputs": [
+        {"name": "invoice_id", "type": "string", "domain": "generated invoice identifier"},
+        {"name": "amount", "type": "real", "domain": [0.01, 100000.0]},
+        {"name": "generated_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [],
+      "effects": [
+        {"variable": "Invoice.generated", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["billing_db"],
+      "quality": {"time_ms": 120, "money": 0, "resource": 0.02, "risk": 0.02, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/generate_invoice"},
+      "roles": ["clerk"]
+    },
+    {
+      "id": "BILL-ProcessPayment",
+      "name": "process_payment",
+      "type": "API",
+      "description": "Process the payment of an invoice; a cash tender below the amount is rejected.",
+      "inputs": [
+        {"name": "invoice_id", "type": "string", "domain": "unpaid invoice identifier", "required": true},
+        {"name": "method", "type": "enumerated", "domain": ["CARD", "CASH", "TRANSFER"], "required": true},
+        {"name": "amount_tendered", "type": "real", "domain": [0.01, 100000.0], "required": false}
+      ],
+      "outputs": [
+        {"name": "paid", "type": "boolean", "domain": [false, true]},
+        {"name": "paid_at", "type": "string", "domain": "ISO 8601 timestamp"},
+        {"name": "change_due", "type": "real", "domain": [0.0, 100000.0]}
+      ],
+      "preconditions": [
+        {"variable": "Invoice.generated", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Invoice.paid", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["billing_db"],
+      "quality": {"time_ms": 140, "money": 0, "resource": 0.02, "risk": 0.04, "energy": 0.001},
+      "reliability": 0.99,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/process_payment"},
+      "roles": ["clerk"]
+    },
+    {
+      "id": "BILL-GetReceipt",
+      "name": "get_receipt",
+      "type": "API",
+      "description": "Read the receipt text and payment status of an invoice.",
+      "inputs": [
+        {"name": "invoice_id", "type": "string", "domain": "invoice identifier", "required": true}
+      ],
+      "outputs": [
+        {"name": "receipt_text", "type": "string", "domain": "human readable receipt line"},
+        {"name": "amount", "type": "real", "domain": [0.01, 100000.0]},
+        {"name": "paid", "type": "boolean", "domain": [false, true]}
+      ],
+      "preconditions": [
+        {"variable": "Invoice.generated", "op": "=", "value": true}
+      ],
+      "effects": [],
+      "constraints": [],
+      "resources": ["billing_db"],
+      "quality": {"time_ms": 40, "money": 0, "resource": 0.01, "risk": 0.005, "energy": 0.0005},
+      "reliability": 0.995,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/get_receipt"},
+      "roles": ["clerk", "patient"]
+    },
+    {
+      "id": "BILL-SendReceiptNotice",
+      "name": "send_receipt_notice",
+      "type": "API",
+      "description": "Send a receipt notice for a paid invoice over one channel.",
+      "inputs": [
+        {"name": "invoice_id", "type": "string", "domain": "paid invoice identifier", "required": true},
+        {"name": "channel", "type": "enumerated", "domain": ["EMAIL", "SMS"], "required": true},
+        {"name": "destination", "type": "string", "domain": "contact address or number", "required": false}
+      ],
+      "outputs": [
+        {"name": "sent", "type": "boolean", "domain": [false, true]},
+        {"name": "sent_at", "type": "string", "domain": "ISO 8601 timestamp"}
+      ],
+      "preconditions": [
+        {"variable": "Invoice.paid", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Notification.sent", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["billing_db", "network"],
+      "quality": {"time_ms": 90, "money": 0, "resource": 0.02, "risk": 0.03, "energy": 0.001},
+      "reliability": 0.98,
+      "availability": {"always": true},
+      "mechanism": {"kind": "API", "method": "POST", "endpoint": "/api/send_receipt_notice"},
+      "roles": ["clerk"]
+    },
+    {
+      "id": "BILL-Form",
+      "name": "process_payment_form",
+      "type": "GUI",
+      "description": "Payment screen that submits a payment for a generated invoice.",
+      "inputs": [
+        {"name": "invoice_id", "type": "string", "domain": "unpaid invoice identifier", "required": true},
+        {"name": "method", "type": "enumerated", "domain": ["CARD", "CASH", "TRANSFER"], "required": true},
+        {"name": "amount_tendered", "type": "real", "domain": [0.01, 100000.0], "required": false}
+      ],
+      "outputs": [
+        {"name": "paid", "type": "boolean", "domain": [false, true]}
+      ],
+      "preconditions": [
+        {"variable": "Invoice.generated", "op": "=", "value": true}
+      ],
+      "effects": [
+        {"variable": "Invoice.paid", "op": "SET", "value": true}
+      ],
+      "constraints": [],
+      "resources": ["billing_db"],
+      "quality": {"time_ms": 250, "money": 0, "resource": 0.02, "risk": 0.04, "energy": 0.002},
+      "reliability": 0.97,
+      "availability": {"always": true},
+      "mechanism": {"kind": "GUI", "action": "SUBMIT", "component": "payment_form", "page": "/ui/payments/new"},
+      "roles": ["clerk"]
+    }
+  ]
+}

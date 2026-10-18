@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Encounter {{ encounter.encounter_id }}{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1 id="encounter_id">Encounter {{ encounter.encounter_id }}</h1>
+  <ul class="facts">
+    <li>Patient MRN: <code id="encounter_mrn">{{ encounter.patient_mrn }}</code></li>
+    <li>Clinician: <code>{{ encounter.clinician }}</code></li>
+    <li>Visit type: <code id="encounter_visit_type">{{ encounter.visit_type }}</code></li>
+    <li>Status: <code id="encounter_status">{{ encounter.status }}</code></li>
+    <li>Started: <code>{{ encounter.started_at }}</code></li>
+    <li>Closed: <code>{{ encounter.closed_at or "" }}</code></li>
+    <li>Summary: <code id="encounter_summary">{{ encounter.summary or "" }}</code></li>
+  </ul>
+</section>
+
+{% if encounter.status == "active" %}
+<section class="panel">
+  <h2>Record vitals</h2>
+  <form id="vitals_form" data-capability-endpoint="/api/record_vitals" data-result-target="result_output">
+    <input type="hidden" name="encounter_id" value="{{ encounter.encounter_id }}">
+    <label for="temperature_input">Temperature in degrees Celsius</label>
+    <input type="number" id="temperature_input" name="temperature_c" step="0.1" min="25" max="45" required placeholder="37.2">
+    <label for="heart_rate_input">Heart rate</label>
+    <input type="number" id="heart_rate_input" name="heart_rate" min="20" max="300" required placeholder="72">
+    <label for="systolic_input">Systolic blood pressure (optional)</label>
+    <input type="number" id="systolic_input" name="systolic" min="60" max="260" placeholder="118">
+    <button type="submit" id="record_vitals_button">Record vitals</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Issue prescription</h2>
+  <form id="prescription_form" data-capability-endpoint="/api/issue_prescription" data-result-target="result_output">
+    <input type="hidden" name="encounter_id" value="{{ encounter.encounter_id }}">
+    <label for="drug_input">Drug</label>
+    <input type="text" id="drug_input" name="drug" required placeholder="Amoxicillin">
+    <label for="dose_input">Dose in milligrams</label>
+    <input type="number" id="dose_input" name="dose_mg" step="0.1" min="0.1" max="5000" required placeholder="500">
+    <label for="instructions_input">Instructions (optional)</label>
+    <input type="text" id="instructions_input" name="instructions" placeholder="Three times daily for seven days">
+    <button type="submit" id="issue_prescription_button">Issue prescription</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Close encounter</h2>
+  <form id="close_form" data-capability-endpoint="/api/close_encounter" data-result-target="result_output">
+    <input type="hidden" name="encounter_id" value="{{ encounter.encounter_id }}">
+    <label for="summary_input">Summary (optional)</label>
+    <input type="text" id="summary_input" name="summary" placeholder="Upper respiratory infection, resolved">
+    <button type="submit" id="close_encounter_button">Close encounter</button>
+  </form>
+</section>
+{% else %}
+<section class="panel">
+  <h2>This encounter is closed</h2>
+  <p id="closed_notice">No further clinical actions are available for a closed encounter.</p>
+</section>
+{% endif %}
+
+<pre id="result_output" class="result" aria-live="polite"></pre>
+
+<section class="panel">
+  <h2>Vitals</h2>
+  <table id="vitals_table" class="grid">
+    <thead><tr><th>Id</th><th>Temperature</th><th>Heart rate</th><th>Systolic</th><th>Recorded</th></tr></thead>
+    <tbody>
+      {% for record in vitals %}
+      <tr>
+        <td><code>{{ record.vitals_id }}</code></td>
+        <td>{{ record.temperature_c }}</td>
+        <td>{{ record.heart_rate }}</td>
+        <td>{{ record.systolic if record.systolic is not none else "" }}</td>
+        <td>{{ record.recorded_at }}</td>
+      </tr>
+      {% else %}
+      <tr id="no_vitals_row"><td colspan="5">No vitals recorded.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="panel">
+  <h2>Prescriptions</h2>
+  <table id="prescription_table" class="grid">
+    <thead><tr><th>Id</th><th>Drug</th><th>Dose mg</th><th>Instructions</th><th>Issued</th></tr></thead>
+    <tbody>
+      {% for record in prescriptions %}
+      <tr>
+        <td><code>{{ record.prescription_id }}</code></td>
+        <td>{{ record.drug }}</td>
+        <td>{{ record.dose_mg }}</td>
+        <td>{{ record.instructions or "" }}</td>
+        <td>{{ record.issued_at }}</td>
+      </tr>
+      {% else %}
+      <tr id="no_prescriptions_row"><td colspan="5">No prescriptions issued.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

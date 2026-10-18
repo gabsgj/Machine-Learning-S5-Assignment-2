@@ -1,0 +1,18 @@
+metric,value
+composite_id,C1_C2_C4
+composite_name,CreateOrder -> MakePayment -> SendNotification
+components,C1 -> C2 -> C4
+external_inputs,cart_id
+external_preconditions,"Cart.exists, Inventory.available"
+terminal_outputs,notification_id
+final_effects,"Order.exists, Cart.locked, Order.status, Payment.status, Notification.sent"
+comp_vs_C1,0.7144
+comp_vs_C2,0.3324
+comp_vs_C4,0.4297
+execution_time_ms,410.0
+expected_time_ms,410.0
+monetary_cost,0.035
+reliability,0.92169
+expected_reliability,0.92169
+availability,1.0
+expected_availability,1.0

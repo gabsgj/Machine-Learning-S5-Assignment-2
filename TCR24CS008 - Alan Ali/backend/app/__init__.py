@@ -1,0 +1,1 @@
+"""Capability composition embedding service."""

@@ -1,0 +1,6 @@
+Capability,Goal Relevance
+CreateOrder,0.3333333333333333
+MakePayment,0.3333333333333333
+CancelCart,0.0
+SendNotification,0.3333333333333333
+ViewProduct,0.0

@@ -1,0 +1,80 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Deliverable 4: Technical Report\\Capability Composition Model and Vector Space Framework}
+\author{Computer Science Systems Group}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Problem Definition}
+The objective is to formulate a vector embedding framework for applications defined within a formal system of states, capabilities, and goals. The goal is mapping complex operational workflows into a unified, computable vector space that enables formal compositional reasoning.
+
+\section{Design Requirements}
+The design demands representing capabilities as dense vectors encoding functional semantics and operational attributes. The critical requirement is preserving compositionality within a unified vector space, ensuring compounded capabilities retain exact mathematical constraints.
+
+\section{Related Embedding Approaches}
+While traditional vector space models evaluate text or semantic proximity, this framework targets procedural state transitions and operational compounding. Prior approaches lack combined operational attribute tracking (cost, reliability, availability) with state preconditions and effects.
+
+\section{Proposed Representation}
+Capabilities are embedded into a unified $2d+3$ dimensional vector space. This structure allocates $d$ dimensions for preconditions, $d$ dimensions for effects, and 3 dimensions for operational attributes: cost ($c$), reliability ($r$), and availability ($a$).
+
+\section{Mathematical Formulation}
+For a capability $C$, the vector is structured as:
+\begin{equation}
+\mathbf{v}_C = [\vec{p}^{\,T}, \vec{e}^{\,T}, c, r, a]^T \in \mathbb{R}^{2d+3}
+\end{equation}
+
+\section{Capability Composition Model}
+Capability compatibility is evaluated via the inner product of effects and preconditions:
+\begin{equation}
+\text{Compat}(C_1, C_2) = \langle \vec{e}_1, \vec{p}_2 \rangle
+\end{equation}
+Composition $C_{12} = C_2 \circ C_1$ follows:
+\begin{align*}
+\vec{p}_{12} &= \max(\vec{p}_1, \vec{p}_2 - \vec{e}_1) \\
+\vec{e}_{12} &= \max(\vec{e}_1, \vec{e}_2) \\
+c_{12} = c_1 + c_2, \quad &r_{12} = r_1 \cdot r_2, \quad a_{12} = \min(a_1, a_2)
+\end{align*}
+
+\section{Implementation}
+The core framework, compatibility metrics, and composition logic are implemented in C++17.
+
+\section{Experimental Methodology}
+Experiments were executed to validate:
+1. Compatibility metric evaluation across capability pairs.
+2. Recursive composition operator correctness.
+3. Cosine similarity distinction across implementation variants (API vs. DB).
+4. Filtering of irrelevant capabilities.
+
+\section{Results}
+\begin{table}[h]
+\centering
+\caption{Experimental Results Summary}
+\begin{tabular}{lll}
+\toprule
+\textbf{Experiment} & \textbf{Metric} & \textbf{Observed Output} \\
+\midrule
+Compatibility Test & Inner Product & 1.0 (Exact Match) \\
+Composition Math & State Vectors & Exact theoretical match \\
+Implementation Variant & Cosine Similarity & 0.89 (High Semantic Affinity) \\
+Irrelevant Filtering & Similarity Score & 0.00 (Filtered cleanly) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Analysis}
+The unified vector approach preserves functional semantics while maintaining computational efficiency. Using inner products for compatibility and exact operators for composition allows fast operational chaining.
+
+\section{Limitations}
+The framework relies on a predefined state variable vocabulary. Furthermore, scaling state dimension $d$ increases memory usage during large-scale composition graph traversals.
+
+\section{Conclusion}
+The capability composition model provides a mathematically rigorous framework for mapping, validating, and chaining operational capabilities in a unified dense vector space.
+
+\end{document}

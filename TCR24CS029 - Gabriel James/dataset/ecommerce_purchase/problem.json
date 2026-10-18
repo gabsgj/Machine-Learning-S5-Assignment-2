@@ -1,0 +1,184 @@
+{
+  "problem_id": "ecommerce-place-order",
+  "domain": "ecommerce",
+  "description": "The specification pattern problem: a checkout requirement over the e-commerce application, with a screen persona of the same operation, a full pool run against all applications and a negative case in a foreign domain.",
+  "pool": [
+    "specs/app/ecommerce_purchase.yaml",
+    "specs/app/hospital_clinic_visit.yaml",
+    "specs/app/hospital_alias_resolution.yaml",
+    "specs/app/document_processing.yaml",
+    "specs/app/compliance_audit.yaml"
+  ],
+  "required_mappings": [
+    {
+      "case_id": "ecommerce-place-order",
+      "requirement_spec": "specs/app/requirements/place_order.yaml",
+      "candidate_specs": [
+        "specs/app/ecommerce_purchase.yaml"
+      ],
+      "expectation": "selected",
+      "expected_capability_ids": [
+        "EC-PlaceOrder"
+      ],
+      "notes": "Measured: 0.9760, margin 0.1416 over the checkout screen. Every field binds without renaming and the desired effect Order.exists is shared."
+    }
+  ],
+  "negative_cases": [
+    {
+      "case_id": "place-order-in-document-app",
+      "requirement_spec": "specs/app/requirements/place_order.yaml",
+      "candidate_specs": [
+        "specs/app/document_processing.yaml"
+      ],
+      "expectation": "rejected",
+      "notes": "Measured: best 0.2878, below the 0.45 threshold."
+    }
+  ],
+  "full_pool_cases": [
+    {
+      "case_id": "full-pool-place-order",
+      "requirement_spec": "specs/app/requirements/place_order.yaml",
+      "expectation": "top1",
+      "expected_capability_ids": [
+        "EC-PlaceOrder"
+      ],
+      "notes": "Against all 53 capabilities: top 1 EC-PlaceOrder (0.9760), runner up EC-CheckoutForm (0.8344), margin 0.1416 outside the ambiguity margin, so the screen persona is ranked but does not create a tie."
+    }
+  ],
+  "ambiguity_cases": [],
+  "compatibility_cases": [
+    {
+      "case_id": "ecom-place-pay",
+      "app": "specs/app/ecommerce_purchase.yaml",
+      "sequence": [
+        "EC-PlaceOrder",
+        "EC-PayOrder"
+      ],
+      "expectation": "uncertain",
+      "expected_check": "input-output",
+      "notes": "The order is established and the identifier binds, but the payable amount is input dependent and binds to nothing, so the engine refuses to prove the payment pair."
+    },
+    {
+      "case_id": "ecom-add-place",
+      "app": "specs/app/ecommerce_purchase.yaml",
+      "sequence": [
+        "EC-AddToCart",
+        "EC-PlaceOrder"
+      ],
+      "expectation": "uncertain",
+      "expected_check": "input-output",
+      "notes": "Cart.exists is established, but the payment method of the placement is bound by nothing on this path."
+    },
+    {
+      "case_id": "ecom-ship-before-pay",
+      "app": "specs/app/ecommerce_purchase.yaml",
+      "sequence": [
+        "EC-ShipOrder",
+        "EC-PayOrder"
+      ],
+      "expectation": "uncertain",
+      "expected_check": "precondition-entailment",
+      "notes": "The dispatch does not write Order.exists, so the payment precondition stays unprovable. The conflict form of a dispatch against a payment is the confirmation case below."
+    },
+    {
+      "case_id": "ecom-totals-then-pay",
+      "app": "specs/app/ecommerce_purchase.yaml",
+      "sequence": [
+        "EC-ComputeTotals",
+        "EC-PayOrder"
+      ],
+      "expectation": "uncertain",
+      "expected_check": "precondition-entailment",
+      "notes": "A pure computation writes no state, so the payment precondition stays unprovable."
+    },
+    {
+      "case_id": "ecom-ship-then-confirm",
+      "app": "specs/app/ecommerce_purchase.yaml",
+      "sequence": [
+        "EC-ShipOrder",
+        "EC-EmailConfirmation"
+      ],
+      "expectation": "incompatible",
+      "expected_check": "precondition-entailment",
+      "notes": "The conflict form: the dispatch sets Order.status to FULFILLED while the confirmation requires PAID, so the effects contradict the precondition."
+    },
+    {
+      "case_id": "ecom-cancel-then-confirm",
+      "app": "specs/app/ecommerce_purchase.yaml",
+      "sequence": [
+        "EC-CancelOrder",
+        "EC-EmailConfirmation"
+      ],
+      "expectation": "incompatible",
+      "expected_check": "precondition-entailment",
+      "notes": "The cancellation sets CANCELLED against the PAID requirement of the confirmation."
+    },
+    {
+      "case_id": "ecom-cancel-then-ship",
+      "app": "specs/app/ecommerce_purchase.yaml",
+      "sequence": [
+        "EC-CancelOrder",
+        "EC-ShipOrder"
+      ],
+      "expectation": "incompatible",
+      "expected_check": "precondition-entailment",
+      "notes": "A cancelled order cannot be dispatched: CANCELLED against the PAID requirement of the dispatch."
+    }
+  ],
+  "equivalence_groups": [
+    {
+      "logical_operation": "place the order of the current cart",
+      "members": [
+        {
+          "app": "specs/app/ecommerce_purchase.yaml",
+          "capability_id": "EC-PlaceOrder",
+          "persona": "API"
+        },
+        {
+          "app": "specs/app/ecommerce_purchase.yaml",
+          "capability_id": "EC-CheckoutForm",
+          "persona": "GUI"
+        }
+      ],
+      "notes": "The same placement through the JSON API and through the checkout screen."
+    }
+  ],
+  "name_pairs": [
+    {
+      "left": "place_order",
+      "right": "checkout_form",
+      "label": "mechanism",
+      "notes": "The same placement as a call and as a screen: the two names share no vocabulary, so the name view is expected to place them apart; the equivalence group pins the operation."
+    },
+    {
+      "left": "add_to_cart",
+      "right": "place_order",
+      "label": "distinct",
+      "notes": "Building the cart against committing it."
+    },
+    {
+      "left": "pay_order",
+      "right": "place_order",
+      "label": "distinct",
+      "notes": "Ordering against paying."
+    },
+    {
+      "left": "browse_catalog",
+      "right": "add_to_cart",
+      "label": "distinct",
+      "notes": "Reading the catalogue against writing the cart."
+    },
+    {
+      "left": "compute_totals",
+      "right": "loyalty_points",
+      "label": "distinct",
+      "notes": "Two pure computations with different purposes."
+    },
+    {
+      "left": "email_confirmation",
+      "right": "checkout_form",
+      "label": "distinct",
+      "notes": "A message publication against a screen."
+    }
+  ]
+}

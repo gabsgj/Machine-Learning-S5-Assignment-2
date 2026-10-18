@@ -1,0 +1,21 @@
+# ============================================================
+# Vector Embedding for Capability Composition
+# Requirements
+# ============================================================
+# Python >= 3.10 required (uses built-in union type hints: list[str], etc.)
+#
+# Install all dependencies with:
+#   pip install -r requirements.txt
+# ============================================================
+
+# Core numerical library — the only third-party dependency.
+# All encoding, similarity, compatibility, and composition logic
+# uses numpy arrays and linear-algebra operations.
+numpy>=1.24.0
+
+# ------------------------------------------------------------
+# Standard library modules used (no install needed):
+#   json    — loading domain JSON files
+#   os      — path resolution across platforms
+#   glob    — discovering domain files in data/
+# ------------------------------------------------------------

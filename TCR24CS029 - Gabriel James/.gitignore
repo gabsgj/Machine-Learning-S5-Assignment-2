@@ -1,0 +1,33 @@
+# Build and runtime artifacts
+core/build/
+modules/*/data/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local environments and generated output
+.venv/
+logs/
+dist/
+generated/
+.run/
+*.pid
+
+# Evidence runtime artifacts (regenerable; transcripts and coverage summaries are kept)
+documents/evidence/modules/*.db
+documents/evidence/modules/*.db-wal
+documents/evidence/modules/*.db-shm
+documents/evidence/modules/*.server.log
+
+# Editor and OS noise
+.DS_Store
+.idea/
+.vscode/
+
+# Internal process documents (kept locally, not part of the repository)
+documents/00_PARENT_AUDIT.md
+documents/00a_SPEC_DIGEST.md
+documents/01_WORK_PLAN.md
+documents/BUILD_LOG.md

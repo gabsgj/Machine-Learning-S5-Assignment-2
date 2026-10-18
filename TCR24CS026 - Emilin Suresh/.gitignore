@@ -1,0 +1,14 @@
+*.exe
+*.o
+*.obj
+
+.vscode/
+
+hello.cpp
+hello.exe
+hello_static.exe
+
+capability_embedding.exe
+capability_embedding_static.exe
+
+*.log

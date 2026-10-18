@@ -1,0 +1,165 @@
+{
+  "application": {
+    "name": "Online Shopping Application",
+    "description": "A small application used to evaluate vector representations and capability composition."
+  },
+
+  "initial_state": {
+    "User.authenticated": true,
+    "Cart.exists": true,
+    "Cart.item_count_positive": true,
+    "Order.exists": false,
+    "Order.status_created": false,
+    "Payment.status_success": false,
+    "Notification.sent": false,
+    "Inventory.available": true
+  },
+
+  "goal": {
+    "Order.exists": true,
+    "Payment.status_success": true,
+    "Notification.sent": true
+  },
+
+  "capabilities": [
+    {
+      "name": "CreateOrder",
+      "preconditions": {
+        "Cart.exists": true,
+        "Cart.item_count_positive": true,
+        "Inventory.available": true
+      },
+      "effects": {
+        "Order.exists": true,
+        "Order.status_created": true
+      },
+      "inputs": [
+        "cart"
+      ],
+      "outputs": [
+        "order"
+      ],
+      "constraints": [],
+      "resources": [
+        "database"
+      ],
+      "cost": 2.0,
+      "reliability": 0.99,
+      "availability": 1.0
+    },
+
+    {
+      "name": "MakePayment",
+      "preconditions": {
+        "Order.exists": true,
+        "Order.status_created": true
+      },
+      "effects": {
+        "Payment.status_success": true
+      },
+      "inputs": [
+        "order"
+      ],
+      "outputs": [
+        "payment"
+      ],
+      "constraints": [],
+      "resources": [
+        "payment_gateway"
+      ],
+      "cost": 3.0,
+      "reliability": 0.97,
+      "availability": 1.0
+    },
+
+    {
+      "name": "SendNotification",
+      "preconditions": {
+        "Payment.status_success": true
+      },
+      "effects": {
+        "Notification.sent": true
+      },
+      "inputs": [
+        "payment"
+      ],
+      "outputs": [
+        "notification"
+      ],
+      "constraints": [],
+      "resources": [
+        "notification_service"
+      ],
+      "cost": 1.0,
+      "reliability": 0.95,
+      "availability": 1.0
+    },
+
+    {
+      "name": "CancelCart",
+      "preconditions": {
+        "Order.exists": false
+      },
+      "effects": {
+        "Cart.exists": false
+      },
+      "inputs": [
+        "cart"
+      ],
+      "outputs": [],
+      "constraints": [],
+      "resources": [
+        "database"
+      ],
+      "cost": 1.0,
+      "reliability": 0.98,
+      "availability": 1.0
+    },
+
+    {
+      "name": "SendEmailConfirmation",
+      "preconditions": {
+        "Payment.status_success": true
+      },
+      "effects": {
+        "Notification.sent": true
+      },
+      "inputs": [
+        "payment"
+      ],
+      "outputs": [
+        "email"
+      ],
+      "constraints": [],
+      "resources": [
+        "notification_service"
+      ],
+      "cost": 1.5,
+      "reliability": 0.96,
+      "availability": 1.0
+    },
+
+    {
+      "name": "UpdateUserProfile",
+      "preconditions": {
+        "User.authenticated": true
+      },
+      "effects": {
+        "User.profile_updated": true
+      },
+      "inputs": [
+        "user"
+      ],
+      "outputs": [
+        "profile"
+      ],
+      "constraints": [],
+      "resources": [
+        "database"
+      ],
+      "cost": 1.0,
+      "reliability": 0.99,
+      "availability": 1.0
+    }
+  ]
+}

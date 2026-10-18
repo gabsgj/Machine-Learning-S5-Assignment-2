@@ -1,0 +1,34 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Formal Design Specification: Capability Embedding Framework}
+\author{Computer Science Systems Group}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{System Overview}
+This document specifies the formal design of the capability composition model. State transitions are governed by dense vector mappings.
+
+\section{Vector Space Model}
+Let $d$ be the dimensionality of the state space. Each capability $C$ is embedded in a vector space $\mathbb{R}^{2d+3}$:
+\begin{equation}
+\vec{v}_C = \begin{bmatrix} \vec{p} \\ \vec{e} \\ c \\ r \\ a \end{bmatrix} \in \mathbb{R}^{2d+3}
+\end{equation}
+where $\vec{p} \in \mathbb{R}^d$ represents preconditions, $\vec{e} \in \mathbb{R}^d$ represents effects, $c \in \mathbb{R}^+$ denotes cost, $r \in [0, 1]$ denotes reliability, and $a \in [0, 1]$ denotes availability.
+
+\section{Composition Operators}
+Given $C_1$ and $C_2$, the composition $C_{12} = C_2 \circ C_1$ is defined component-wise as:
+\begin{align}
+p_{12, i} &= \max(p_{1, i}, p_{2, i} - e_{1, i}) \quad \forall i \in \{1, \dots, d\} \\
+e_{12, i} &= \max(e_{1, i}, e_{2, i}) \quad \forall i \in \{1, \dots, d\} \\
+c_{12} &= c_1 + c_2 \\
+r_{12} &= r_1 \times r_2 \\
+a_{12} &= \min(a_1, a_2)
+\end{align}
+
+\end{document}

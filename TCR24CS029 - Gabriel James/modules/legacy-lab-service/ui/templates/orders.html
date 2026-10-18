@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Lab orders{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Lab orders</h1>
+  <form id="search_form" method="get" action="{{ url_for('ui.orders') }}">
+    <label for="search_input">Search by patient MRN or test code</label>
+    <input type="text" id="search_input" name="q" value="{{ query }}" placeholder="e.g. MRN-1001">
+    <button type="submit" id="search_button">Search</button>
+  </form>
+  <table id="order_table" class="grid">
+    <thead>
+      <tr><th>Order</th><th>MRN</th><th>Test code</th><th>Urgency</th><th>Status</th><th>Ordered</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr id="order_row_{{ order.lab_order_id }}">
+        <td><code>{{ order.lab_order_id }}</code></td>
+        <td><code>{{ order.patient_mrn }}</code></td>
+        <td><code>{{ order.test_code }}</code></td>
+        <td>{{ order.urgency_level }}</td>
+        <td>{{ order.status }}</td>
+        <td>{{ order.ordered_at }}</td>
+        <td><a href="{{ url_for('ui.order_detail', lab_order_id=order.lab_order_id) }}">Open</a></td>
+      </tr>
+      {% else %}
+      <tr id="empty_row"><td colspan="7">No lab orders match the search.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

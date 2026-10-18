@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CareWeave Mini dashboard</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>CareWeave Mini</h1>
+    <p id="status_line">contacting the gateway</p>
+  </div>
+  <div class="actions">
+    <button id="discover_button">Rediscover modules</button>
+    <button id="refresh_button" class="secondary">Refresh</button>
+  </div>
+</header>
+
+<nav id="tabs">
+  <button data-panel="overview" class="active">Modules</button>
+  <button data-panel="registry">Registry</button>
+  <button data-panel="embedding">Embedding</button>
+  <button data-panel="mapping">Mapping</button>
+  <button data-panel="builder">Requirement</button>
+  <button data-panel="adapter">Adapter</button>
+  <button data-panel="plan">Plan</button>
+  <button data-panel="bundle">Bundle</button>
+  <button data-panel="workflow">Workflow</button>
+  <button data-panel="experiments">Experiments</button>
+  <button data-panel="audit">Audit</button>
+</nav>
+
+<main>
+  <section id="panel-overview" class="panel active">
+    <h2>Modules</h2>
+    <p class="muted">Discovery reads each module's specification from its port, falling back to
+       the spec file when a module is down. The registry feeds every other panel.</p>
+    <div id="modules_result"><p class="muted">loading</p></div>
+  </section>
+
+  <section id="panel-registry" class="panel">
+    <h2>Capability registry</h2>
+    <label class="inline">Filter <input id="registry_filter" type="text" placeholder="module, id, name or type"></label>
+    <div id="registry_result"><p class="muted">open this panel to load</p></div>
+  </section>
+
+  <section id="panel-embedding" class="panel">
+    <h2>Embedding explorer</h2>
+    <p class="muted">The encoder turns every capability into one partitioned vector: the blocks
+       are shown with their dimensions and norms, and two capabilities of the same sheet can be
+       compared view by view.</p>
+    <div class="row">
+      <label>Sheet <select id="embed_sheet"></select></label>
+      <button id="embed_load">Encode sheet</button>
+    </div>
+    <div id="embed_result"><p class="muted">pick a sheet</p></div>
+    <div class="row">
+      <label>Left <select id="compare_left"></select></label>
+      <label>Right <select id="compare_right"></select></label>
+      <button id="compare_button">Compare</button>
+    </div>
+    <div id="compare_result"></div>
+  </section>
+
+  <section id="panel-mapping" class="panel">
+    <h2>Mapping studio</h2>
+    <p class="muted">A requirement sheet is scored against every registry capability. Scores
+       inside the ambiguity margin are flagged instead of being hidden; the adapter button opens
+       the synthesized adapter for a row.</p>
+    <div class="row">
+      <label>Requirement <select id="resolve_sheet"></select></label>
+      <button id="resolve_run">Resolve</button>
+    </div>
+    <div id="resolve_result"><p class="muted">pick a requirement</p></div>
+  </section>
+
+  <section id="panel-builder" class="panel">
+    <h2>Requirement builder</h2>
+    <p class="muted">Fill the requirement's inputs and the gateway resolves, synthesizes, calls
+       the module and reports the outcome with its full attempt trace.</p>
+    <div class="row">
+      <label>Requirement <select id="builder_sheet"></select></label>
+      <label>Preferred module <select id="builder_preferred"></select></label>
+      <button id="builder_run">Resolve and call</button>
+    </div>
+    <form id="builder_inputs" class="inputs"></form>
+    <div id="builder_result"></div>
+  </section>
+
+  <section id="panel-adapter" class="panel">
+    <h2>Adapter studio</h2>
+    <p class="muted">The synthesizer binds a requirement to one concrete capability: the field
+       renames, transforms and the transport it will use, with the confidence of the match.</p>
+    <div class="row">
+      <label>Requirement <select id="adapter_sheet"></select></label>
+      <label>Module <select id="adapter_module"></select></label>
+      <label>Capability <select id="adapter_capability"></select></label>
+      <button id="adapter_run">Synthesize adapter</button>
+    </div>
+    <div id="adapter_result"></div>
+  </section>
+
+  <section id="panel-plan" class="panel">
+    <h2>Plan view</h2>
+    <p class="muted">Background machinery: the planner searches the application's state space
+       towards a goal. It is shown for completeness and is outside the Assignment 2 evaluation
+       scope, which covers compatibility, mapping, adapters and the runtime.</p>
+    <div class="row">
+      <label>Sheet <select id="plan_sheet"></select></label>
+      <label>Strategy <select id="plan_strategy">
+        <option value="fewest-steps">fewest steps</option>
+        <option value="least-time">least time</option>
+        <option value="least-money">least money</option>
+        <option value="most-reliable">most reliable</option>
+      </select></label>
+      <label>Depth limit <input id="plan_depth" type="number" min="1" max="20" value="6"></label>
+      <label class="check"><input id="plan_backward" type="checkbox"> backward search</label>
+      <button id="plan_run">Plan</button>
+    </div>
+    <label>Goal override (JSON object of variable to value, empty uses the sheet's goal)
+      <textarea id="plan_goals" rows="2" placeholder='{"Patient.registered": true}'></textarea>
+    </label>
+    <div id="plan_result"></div>
+  </section>
+
+  <section id="panel-bundle" class="panel">
+    <h2>Bundle builder</h2>
+    <p class="muted">Assembles a self contained copy of the system (modules, specs, gateway
+       binary, dashboard and start scripts) under the chosen directory, default
+       dist/careweave-mini. Untick modules or workflows to trim the bundle; a module a shipped
+       workflow binds is added back automatically and reported below.</p>
+    <div class="row">
+      <label>Destination <input id="bundle_out" type="text" value="dist/careweave-mini"></label>
+      <label class="check"><input id="bundle_no_dashboard" type="checkbox"> without the dashboard</label>
+      <button id="bundle_run">Build bundle</button>
+    </div>
+    <div class="row">
+      <div>
+        <div class="muted">Modules</div>
+        <div id="bundle_modules" class="choices"><p class="muted">loading modules</p></div>
+      </div>
+      <div>
+        <div class="muted">Workflows</div>
+        <div id="bundle_workflows" class="choices"><p class="muted">loading workflows</p></div>
+      </div>
+    </div>
+    <div id="bundle_result"></div>
+  </section>
+
+  <section id="panel-workflow" class="panel">
+    <h2>Workflow runner</h2>
+    <p class="muted">A workflow runs step by step: mapped steps resolve like single calls, direct
+       steps bind one capability, and the compatibility engine guards every adjacent pair.</p>
+    <div class="row">
+      <label>Workflow <select id="workflow_select"></select></label>
+      <button id="workflow_run">Run workflow</button>
+    </div>
+    <div id="workflow_result"></div>
+  </section>
+
+  <section id="panel-experiments" class="panel">
+    <h2>Experiments</h2>
+    <p class="muted">The frozen results of the experiment suite: the five experiments and the
+       nine evaluation criteria, exactly as the report quotes them.</p>
+    <button id="experiments_load">Load results</button>
+    <div id="experiments_result"></div>
+  </section>
+
+  <section id="panel-audit" class="panel">
+    <h2>Audit trail</h2>
+    <p class="muted">Every call the gateway performed, in order, including the skipped and
+       failed attempts.</p>
+    <div class="row">
+      <label>Limit <input id="audit_limit" type="number" min="1" max="500" value="100"></label>
+      <button id="audit_load">Load audit</button>
+    </div>
+    <div id="audit_result"><p class="muted">load when needed</p></div>
+  </section>
+</main>
+
+<footer>
+  <p>CareWeave Mini serves only local assets; no page here reaches the network beyond the
+     gateway on this machine.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}New ticket{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Create ticket</h1>
+  <p id="capability_hint">
+    Submits the GUI capability <code id="capability_id">AQ-Form</code>, the same code path as the
+    API capability <code id="api_capability_id">AQ-CreateTicket</code>.
+  </p>
+  <form id="ticket_form" data-capability-endpoint="/ui/tickets/new" data-result-target="result_output">
+    <label for="patient_mrn_input">Patient MRN</label>
+    <input type="text" id="patient_mrn_input" name="patient_mrn" required placeholder="MRN-1001">
+    <label for="reason_input">Reason for visit</label>
+    <input type="text" id="reason_input" name="reason" placeholder="Fever">
+    <label for="priority_select">Priority</label>
+    <select id="priority_select" name="priority">
+      {% for priority in priorities %}
+      <option value="{{ priority }}" {% if priority == "NORMAL" %}selected{% endif %}>{{ priority }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" id="submit_button">Create ticket</button>
+  </form>
+  <pre id="result_output" class="result" aria-live="polite"></pre>
+</section>
+{% endblock %}

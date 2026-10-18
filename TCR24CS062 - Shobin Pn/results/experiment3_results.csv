@@ -1,0 +1,4 @@
+Capability,Type,Effect,Similarity with API
+CreateOrder_API,API,{'order_exists': True},1.0
+CreateOrder_DATABASE,DATABASE,{'order_exists': True},0.8430037428137119
+CreateOrder_GUI,GUI,{'order_exists': True},0.8996985385382813

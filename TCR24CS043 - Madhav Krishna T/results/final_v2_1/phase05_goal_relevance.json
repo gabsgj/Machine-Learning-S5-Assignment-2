@@ -1,0 +1,175 @@
+{
+  "summary": {
+    "relevant_mean": 0.7551545570294063,
+    "irrelevant_mean": 0.44039371112982434,
+    "score_gap": 0.3147608458995819,
+    "auc": 0.9722222222222222,
+    "precision_at_5": 1.0,
+    "precision_at_10": 1.0
+  },
+  "ranked": [
+    {
+      "id": "C4",
+      "name": "CreateOrder",
+      "relevant": true,
+      "semantic_effect_goal": 0.9659520983695984,
+      "exact_goal_effect_coverage": 0.3333333333333333,
+      "backward_goal_reachability": 1.0,
+      "score": 0.8496427158514659
+    },
+    {
+      "id": "C4_API",
+      "name": "CreateOrder_API",
+      "relevant": true,
+      "semantic_effect_goal": 0.9659520983695984,
+      "exact_goal_effect_coverage": 0.3333333333333333,
+      "backward_goal_reachability": 1.0,
+      "score": 0.8496427158514659
+    },
+    {
+      "id": "C4_DB",
+      "name": "CreateOrder_DATABASE",
+      "relevant": true,
+      "semantic_effect_goal": 0.9659520983695984,
+      "exact_goal_effect_coverage": 0.3333333333333333,
+      "backward_goal_reachability": 1.0,
+      "score": 0.8496427158514659
+    },
+    {
+      "id": "C4_GUI",
+      "name": "CreateOrder_GUI",
+      "relevant": true,
+      "semantic_effect_goal": 0.9659520983695984,
+      "exact_goal_effect_coverage": 0.3333333333333333,
+      "backward_goal_reachability": 1.0,
+      "score": 0.8496427158514659
+    },
+    {
+      "id": "C5",
+      "name": "MakePayment",
+      "relevant": true,
+      "semantic_effect_goal": 0.9324966669082642,
+      "exact_goal_effect_coverage": 0.3333333333333333,
+      "backward_goal_reachability": 1.0,
+      "score": 0.8329150001207988
+    },
+    {
+      "id": "C7",
+      "name": "SendNotification",
+      "relevant": true,
+      "semantic_effect_goal": 0.9124016761779785,
+      "exact_goal_effect_coverage": 0.3333333333333333,
+      "backward_goal_reachability": 1.0,
+      "score": 0.822867504755656
+    },
+    {
+      "id": "C3",
+      "name": "ReserveInventory",
+      "relevant": true,
+      "semantic_effect_goal": 0.9730596542358398,
+      "exact_goal_effect_coverage": 0.0,
+      "backward_goal_reachability": 1.0,
+      "score": 0.78652982711792
+    },
+    {
+      "id": "C1",
+      "name": "AddToCart",
+      "relevant": true,
+      "semantic_effect_goal": 0.961663007736206,
+      "exact_goal_effect_coverage": 0.0,
+      "backward_goal_reachability": 1.0,
+      "score": 0.7808315038681031
+    },
+    {
+      "id": "C2",
+      "name": "CheckInventory",
+      "relevant": true,
+      "semantic_effect_goal": 0.9586104154586792,
+      "exact_goal_effect_coverage": 0.0,
+      "backward_goal_reachability": 1.0,
+      "score": 0.7793052077293396
+    },
+    {
+      "id": "C6",
+      "name": "VerifyPayment",
+      "relevant": true,
+      "semantic_effect_goal": 0.8917989134788513,
+      "exact_goal_effect_coverage": 0.0,
+      "backward_goal_reachability": 1.0,
+      "score": 0.7458994567394257
+    },
+    {
+      "id": "C9",
+      "name": "CancelOrder",
+      "relevant": false,
+      "semantic_effect_goal": 0.9663987159729004,
+      "exact_goal_effect_coverage": 0.0,
+      "backward_goal_reachability": 0.0,
+      "score": 0.4831993579864502
+    },
+    {
+      "id": "C13",
+      "name": "GetOrder",
+      "relevant": true,
+      "semantic_effect_goal": 0.9219584465026855,
+      "exact_goal_effect_coverage": 0.0,
+      "backward_goal_reachability": 0.0,
+      "score": 0.4609792232513428
+    },
+    {
+      "id": "C12",
+      "name": "UpdateOrder",
+      "relevant": true,
+      "semantic_effect_goal": 0.9079121947288513,
+      "exact_goal_effect_coverage": 0.0,
+      "backward_goal_reachability": 0.0,
+      "score": 0.45395609736442566
+    },
+    {
+      "id": "C15",
+      "name": "GenerateSalesReport",
+      "relevant": false,
+      "semantic_effect_goal": 0.8897945880889893,
+      "exact_goal_effect_coverage": 0.0,
+      "backward_goal_reachability": 0.0,
+      "score": 0.44489729404449463
+    },
+    {
+      "id": "C14",
+      "name": "UpdateProfile",
+      "relevant": false,
+      "semantic_effect_goal": 0.8873843550682068,
+      "exact_goal_effect_coverage": 0.0,
+      "backward_goal_reachability": 0.0,
+      "score": 0.4436921775341034
+    },
+    {
+      "id": "C11",
+      "name": "RemoveFromCart",
+      "relevant": false,
+      "semantic_effect_goal": 0.8733767867088318,
+      "exact_goal_effect_coverage": 0.0,
+      "backward_goal_reachability": 0.0,
+      "score": 0.4366883933544159
+    },
+    {
+      "id": "C8",
+      "name": "RefundPayment",
+      "relevant": false,
+      "semantic_effect_goal": 0.862339437007904,
+      "exact_goal_effect_coverage": 0.0,
+      "backward_goal_reachability": 0.0,
+      "score": 0.431169718503952
+    },
+    {
+      "id": "C10",
+      "name": "ReleaseInventory",
+      "relevant": false,
+      "semantic_effect_goal": 0.8054306507110596,
+      "exact_goal_effect_coverage": 0.0,
+      "backward_goal_reachability": 0.0,
+      "score": 0.4027153253555298
+    }
+  ],
+  "method": "hybrid embedding + symbolic backward goal reachability; not embedding-only prediction"
+}

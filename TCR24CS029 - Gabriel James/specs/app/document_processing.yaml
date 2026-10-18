@@ -1,0 +1,487 @@
+# Application specification sheet: document intake and processing.
+#
+# The third, small domain. It is deliberately rich in the execution types the hospital modules
+# use less: FILE reads and writes, pure COMPUTATION steps, a MESSAGE publication and an EVENT
+# handler, with one DATABASE insert and one GUI screen. The reports of the experiments use it to
+# show that the model is not hospital specific.
+spec_version: "1.0"
+
+module:
+  module_id: app-document-processing
+  version: "1.0"
+  domain: documents
+  port: 5104
+  base_url: "http://127.0.0.1:5104"
+  health: /health
+  description: Document intake pipeline that parses an uploaded file, classifies its size, indexes and archives it.
+  language: specification
+
+state_schema:
+  - name: Document.uploaded
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Document.parsed
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Document.page_count
+    type: integer
+    domain:
+      - 0
+      - 100000
+    kind: counter
+  - name: Index.updated
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Summary.generated
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Message.queued
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Archive.written
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+
+initial_state:
+  Document.uploaded: false
+  Document.parsed: false
+  Document.page_count: 0
+  Index.updated: false
+  Summary.generated: false
+  Message.queued: false
+  Archive.written: false
+
+resources:
+  - id: documents_db
+    kind: database
+    available: true
+    details: Document index table
+  - id: inbox_dir
+    kind: file_system
+    available: true
+    details: Watched directory for uploaded documents
+  - id: outbox_dir
+    kind: file_system
+    available: true
+    details: Directory for archived documents
+  - id: review_relay
+    kind: external_service
+    available: true
+    details: Review team notification queue
+  - id: pipeline_clock
+    kind: clock
+    available: true
+    details: Timestamps of intake and archival
+
+constraints:
+  - id: K-Parse-Before-Index
+    kind: temporal
+    expression: Index.updated = true requires Document.parsed = true earlier
+    enforced_by: DOC-IndexRecord precondition on Document.parsed
+  - id: K-Archive-After-Parse
+    kind: state
+    expression: Archive.written = true implies Document.parsed = true
+    enforced_by: DOC-ArchiveFile precondition on Document.parsed
+  - id: K-Bounded-Size
+    kind: input
+    expression: byte_size in 1 to 200000000
+    enforced_by: input domains of the pipeline steps
+
+goal:
+  - variable: Document.parsed
+    op: "="
+    value: true
+  - variable: Index.updated
+    op: "="
+    value: true
+  - variable: Summary.generated
+    op: "="
+    value: true
+  - variable: Archive.written
+    op: "="
+    value: true
+
+capabilities:
+  - id: DOC-UploadDocument
+    name: upload_document
+    type: FILE
+    description: Read an uploaded document file from the inbox directory.
+    inputs:
+      - name: source_name
+        type: string
+        domain: uploaded file name
+        required: true
+    outputs:
+      - name: file_path
+        type: string
+        domain: path of the read file
+    preconditions: []
+    effects:
+      - variable: Document.uploaded
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - inbox_dir
+    quality:
+      time_ms: 25
+      money: 0
+      resource: 0.01
+      risk: 0.01
+      energy: 0.0005
+    reliability: 0.995
+    availability:
+      always: true
+    mechanism:
+      kind: FILE
+      path: data/inbox/document.json
+      format: json
+    roles:
+      - operator
+
+  - id: DOC-ParseDocument
+    name: parse_document
+    type: COMPUTATION
+    description: Estimate the page count of the document from its byte size and store it in the document record. The declared effect is the parsed flag only; the page count itself is input dependent and therefore not expressed as a constant effect.
+    inputs:
+      - name: byte_size
+        type: integer
+        domain:
+          - 1
+          - 200000000
+        required: true
+    outputs:
+      - name: page_count
+        type: integer
+        domain:
+          - 1
+          - 100000
+    preconditions: []
+    effects:
+      - variable: Document.parsed
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - documents_db
+    quality:
+      time_ms: 10
+      money: 0
+      resource: 0.001
+      risk: 0.001
+      energy: 0.0001
+    reliability: 0.999
+    availability:
+      always: true
+    mechanism:
+      kind: COMPUTATION
+      expression: "page_count = byte_size / 3000 + 1"
+    roles:
+      - service
+
+  - id: DOC-IndexRecord
+    name: index_record
+    type: DATABASE
+    description: Insert the parsed document into the index table.
+    inputs:
+      - name: doc_id
+        type: string
+        domain: document identifier
+        required: true
+      - name: page_count
+        type: integer
+        domain:
+          - 1
+          - 100000
+        required: true
+    outputs:
+      - name: row_id
+        type: integer
+        domain:
+          - 1
+          - 1000000
+    preconditions:
+      - variable: Document.parsed
+        op: "="
+        value: true
+    effects:
+      - variable: Index.updated
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - documents_db
+    quality:
+      time_ms: 20
+      money: 0
+      resource: 0.005
+      risk: 0.01
+      energy: 0.0005
+    reliability: 0.999
+    availability:
+      always: true
+    mechanism:
+      kind: DATABASE
+      operation: insert
+      table: document_index
+    roles:
+      - service
+
+  - id: DOC-Summarize
+    name: summarize
+    type: COMPUTATION
+    description: Compute the length of the summary that will be written for the document.
+    inputs:
+      - name: page_count
+        type: integer
+        domain:
+          - 1
+          - 100000
+        required: true
+    outputs:
+      - name: summary_length
+        type: integer
+        domain:
+          - 25
+          - 1000000
+    preconditions:
+      - variable: Document.parsed
+        op: "="
+        value: true
+    effects:
+      - variable: Summary.generated
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - documents_db
+    quality:
+      time_ms: 8
+      money: 0
+      resource: 0.001
+      risk: 0.001
+      energy: 0.0001
+    reliability: 0.999
+    availability:
+      always: true
+    mechanism:
+      kind: COMPUTATION
+      expression: "summary_length = page_count * 25"
+    roles:
+      - service
+
+  - id: DOC-NotifyReviewer
+    name: notify_reviewer
+    type: MESSAGE
+    description: Publish the review request of a parsed document to the review queue.
+    inputs:
+      - name: doc_id
+        type: string
+        domain: document identifier
+        required: true
+    outputs:
+      - name: queued
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions:
+      - variable: Document.parsed
+        op: "="
+        value: true
+    effects:
+      - variable: Message.queued
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - review_relay
+    quality:
+      time_ms: 40
+      money: 0
+      resource: 0.01
+      risk: 0.01
+      energy: 0.001
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: MESSAGE
+      topic: document.review_queue
+    roles:
+      - service
+
+  - id: DOC-ArchiveFile
+    name: archive_file
+    type: FILE
+    description: Write the archived document record to the outbox directory.
+    inputs:
+      - name: doc_id
+        type: string
+        domain: document identifier
+        required: true
+    outputs:
+      - name: archived_path
+        type: string
+        domain: path of the written file
+    preconditions:
+      - variable: Document.parsed
+        op: "="
+        value: true
+    effects:
+      - variable: Archive.written
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - outbox_dir
+    quality:
+      time_ms: 30
+      money: 0
+      resource: 0.01
+      risk: 0.005
+      energy: 0.0005
+    reliability: 0.995
+    availability:
+      always: true
+    mechanism:
+      kind: FILE
+      path: data/outbox/archive.json
+      format: json
+    roles:
+      - service
+
+  - id: DOC-IntakeHandler
+    name: on_document_received
+    type: EVENT
+    description: React to the inbox watcher event and mark the document as uploaded.
+    inputs:
+      - name: source_name
+        type: string
+        domain: uploaded file name
+        required: true
+    outputs:
+      - name: accepted
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions: []
+    effects:
+      - variable: Document.uploaded
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - inbox_dir
+      - pipeline_clock
+    quality:
+      time_ms: 35
+      money: 0
+      resource: 0.01
+      risk: 0.01
+      energy: 0.0005
+    reliability: 0.995
+    availability:
+      always: true
+    mechanism:
+      kind: EVENT
+      trigger: document.received
+      handler: on_document_received
+    roles:
+      - service
+
+  - id: DOC-PageEstimator
+    name: estimate_pages
+    type: FUNCTION
+    description: Pure function estimating the page count of a byte size without touching any state.
+    inputs:
+      - name: byte_size
+        type: integer
+        domain:
+          - 1
+          - 200000000
+        required: true
+    outputs:
+      - name: page_count
+        type: integer
+        domain:
+          - 1
+          - 100000
+    preconditions: []
+    effects: []
+    constraints: []
+    resources:
+      - documents_db
+    quality:
+      time_ms: 1
+      money: 0
+      resource: 0.0001
+      risk: 0.0001
+      energy: 0.00001
+    reliability: 0.9999
+    availability:
+      always: true
+    mechanism:
+      kind: FUNCTION
+      function: estimate_pages
+    roles:
+      - service
+
+  - id: DOC-UploadForm
+    name: upload_form
+    type: GUI
+    description: Intake screen that uploads one document into the pipeline.
+    inputs:
+      - name: source_name
+        type: string
+        domain: uploaded file name
+        required: true
+    outputs:
+      - name: accepted
+        type: boolean
+        domain:
+          - false
+          - true
+    preconditions: []
+    effects:
+      - variable: Document.uploaded
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - documents_db
+    quality:
+      time_ms: 250
+      money: 0
+      resource: 0.02
+      risk: 0.02
+      energy: 0.002
+    reliability: 0.97
+    availability:
+      always: true
+    mechanism:
+      kind: GUI
+      action: SUBMIT
+      component: upload_form
+      page: /ui/documents/new
+    roles:
+      - operator

@@ -1,0 +1,23 @@
+# SECTION 1: PSD-160 OPERATIONAL VECTOR COMPARISONS (REPRESENTATION LEVEL)
+pair,cosine_similarity,euclidean_distance
+C11 (DB) vs C10 (API),0.8246,0.1646
+C11 (DB) vs C12 (GUI),0.7002,0.5776
+C10 (API) vs C12 (GUI),0.8572,0.4812
+C11 (DB) vs C13 (Unavail),0.223,1.0088
+C10 (API) vs C13 (Unavail),0.2555,1.0005
+C12 (GUI) vs C13 (Unavail),0.218,1.1171
+
+# SECTION 2: UTILITY-BASED SELECTION (APPLICATION-LEVEL DECISION POLICY)
+scenario,rank,id,name,effective_utility,time_ms,cost_money,reliability,availability
+Speed-focused,1,C11,DB_CreateOrder,0.1848,20.0,0.001,0.999,1.0
+Speed-focused,2,C10,API_CreateOrder,0.101,120.0,0.012,0.985,1.0
+Speed-focused,3,C13,UnavailableOrderService,0.0,100.0,0.01,0.99,0.0
+Speed-focused,4,C12,GUI_CreateOrder,-0.16,500.0,0.0,0.95,1.0
+Reliability-focused,1,C11,DB_CreateOrder,0.7962,20.0,0.001,0.999,1.0
+Reliability-focused,2,C10,API_CreateOrder,0.764,120.0,0.012,0.985,1.0
+Reliability-focused,3,C12,GUI_CreateOrder,0.71,500.0,0.0,0.95,1.0
+Reliability-focused,4,C13,UnavailableOrderService,0.0,100.0,0.01,0.99,0.0
+Cost-focused,1,C11,DB_CreateOrder,0.0899,20.0,0.001,0.999,1.0
+Cost-focused,2,C12,GUI_CreateOrder,0.045,500.0,0.0,0.95,1.0
+Cost-focused,3,C13,UnavailableOrderService,0.0,100.0,0.01,0.99,0.0
+Cost-focused,4,C10,API_CreateOrder,-0.0095,120.0,0.012,0.985,1.0

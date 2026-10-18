@@ -1,0 +1,5 @@
+atomic_capability,similarity_to_composite
+SelectCourse,0.5237
+MakePayment,0.6632
+EnrollStudent,0.7394
+SendNotification,0.5191

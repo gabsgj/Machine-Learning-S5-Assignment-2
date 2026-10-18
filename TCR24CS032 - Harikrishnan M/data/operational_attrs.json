@@ -1,0 +1,8 @@
+{
+    "test_name": "operational_attrs",
+    "attribute_weights": {
+        "cost_weight": 0.4,
+        "reliability_weight": 0.4,
+        "availability_weight": 0.2
+    }
+}

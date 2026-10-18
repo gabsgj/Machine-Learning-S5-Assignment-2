@@ -1,0 +1,47 @@
+[
+    {
+        "name": "CreateOrder",
+        "inputs": ["cart_id"],
+        "outputs": ["order_id"],
+        "preconditions": ["cart_exists"],
+        "effects": ["order_exists"],
+        "cost": 0.01,
+        "reliability": 0.99
+    },
+    {
+        "name": "MakePayment",
+        "inputs": ["order_id"],
+        "outputs": ["payment_id"],
+        "preconditions": ["order_exists"],
+        "effects": ["payment_success"],
+        "cost": 0.05,
+        "reliability": 0.98
+    },
+    {
+        "name": "ConfirmOrder",
+        "inputs": ["payment_id"],
+        "outputs": ["confirmation_id"],
+        "preconditions": ["payment_success"],
+        "effects": ["order_confirmed"],
+        "cost": 0.02,
+        "reliability": 0.99
+    },
+    {
+        "name": "CancelCart",
+        "inputs": ["cart_id"],
+        "outputs": [],
+        "preconditions": ["cart_exists"],
+        "effects": ["order_cancelled"],
+        "cost": 0.02,
+        "reliability": 0.97
+    },
+    {
+        "name": "SendEmail",
+        "inputs": ["email_address", "message"],
+        "outputs": ["email_id"],
+        "preconditions": ["email_address_available"],
+        "effects": ["email_sent"],
+        "cost": 0.03,
+        "reliability": 0.95
+    }
+]

@@ -1,0 +1,190 @@
+{
+  "domain": "smarthome",
+  "initial_state": {
+    "Motion.detected": true,
+    "Room.illuminated": false,
+    "Camera.recording": false,
+    "Alarm.siren_active": false,
+    "Guard.dispatched": false
+  },
+  "goal": {
+    "Room.illuminated": true,
+    "Camera.recording": true,
+    "Alarm.siren_active": true
+  },
+  "capabilities": {
+    "TurnOnSmartBulb": {
+      "name": "TurnOnSmartBulb",
+      "type": "SERVICE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Motion.detected": true
+      },
+      "effects": {
+        "Room.illuminated": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "ZigbeeGateway",
+          "resource_type": "IOT_GATEWAY",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 50.0,
+        "monetary_cost": 0.0001,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.999,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "SERVICE",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "StartCameraRecording": {
+      "name": "StartCameraRecording",
+      "type": "SERVICE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Motion.detected": true
+      },
+      "effects": {
+        "Camera.recording": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "LocalNVR",
+          "resource_type": "STORAGE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 120.0,
+        "monetary_cost": 0.0005,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.995,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "SERVICE",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "TriggerAlarmSiren": {
+      "name": "TriggerAlarmSiren",
+      "type": "EVENT",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Camera.recording": true
+      },
+      "effects": {
+        "Alarm.siren_active": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "SirenActuator",
+          "resource_type": "HARDWARE",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 20.0,
+        "monetary_cost": 0.0,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.999,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "EVENT",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "DispatchSecurityGuard": {
+      "name": "DispatchSecurityGuard",
+      "type": "MESSAGE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {
+        "Alarm.siren_active": true
+      },
+      "effects": {
+        "Guard.dispatched": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "CellularModem",
+          "resource_type": "NETWORK",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 1500.0,
+        "monetary_cost": 25.0,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.99,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "MESSAGE",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    },
+    "PlayRelaxingMusic": {
+      "name": "PlayRelaxingMusic",
+      "type": "SERVICE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": {},
+      "effects": {
+        "Music.playing": true
+      },
+      "constraints": [],
+      "resources": [
+        {
+          "name": "Speaker",
+          "resource_type": "AUDIO",
+          "quantity": 1.0
+        }
+      ],
+      "quality": {
+        "execution_time_ms": 200.0,
+        "monetary_cost": 0.001,
+        "resource_cost": 1.0,
+        "risk": 0.05,
+        "energy_cost": 0.5,
+        "reliability": 0.98,
+        "availability": 1.0
+      },
+      "mechanism": {
+        "mechanism_type": "SERVICE",
+        "details": {}
+      },
+      "is_composite": false,
+      "sub_capabilities": []
+    }
+  }
+}

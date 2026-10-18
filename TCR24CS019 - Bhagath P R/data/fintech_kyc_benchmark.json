@@ -1,0 +1,268 @@
+{
+  "name": "Fintech_KYC_Settlement",
+  "description": "Regulated financial customer onboarding and instant payment settlement domain.",
+  "state_variables": [
+    {
+      "name": "Identity.submitted",
+      "var_type": "BOOLEAN",
+      "domain": null,
+      "default_value": false,
+      "description": ""
+    },
+    {
+      "name": "Documents.verified",
+      "var_type": "BOOLEAN",
+      "domain": null,
+      "default_value": false,
+      "description": ""
+    },
+    {
+      "name": "Risk.assessed",
+      "var_type": "BOOLEAN",
+      "domain": null,
+      "default_value": false,
+      "description": ""
+    },
+    {
+      "name": "AML.cleared",
+      "var_type": "BOOLEAN",
+      "domain": null,
+      "default_value": false,
+      "description": ""
+    },
+    {
+      "name": "Account.activated",
+      "var_type": "BOOLEAN",
+      "domain": null,
+      "default_value": false,
+      "description": ""
+    },
+    {
+      "name": "Transfer.settled",
+      "var_type": "BOOLEAN",
+      "domain": null,
+      "default_value": false,
+      "description": ""
+    }
+  ],
+  "initial_state": {
+    "name": "FintechInitialState",
+    "values": {
+      "Identity.submitted": true,
+      "Documents.verified": false,
+      "Risk.assessed": false,
+      "AML.cleared": false,
+      "Account.activated": false,
+      "Transfer.settled": false
+    }
+  },
+  "goal": {
+    "name": "Goal_KYCAndSettlement",
+    "conditions": [
+      {
+        "variable": "Account.activated",
+        "target_value": true,
+        "op": "==",
+        "weight": 1.0
+      },
+      {
+        "variable": "Transfer.settled",
+        "target_value": true,
+        "op": "==",
+        "weight": 1.0
+      }
+    ]
+  },
+  "available_resources": [
+    "ExternalService",
+    "Database",
+    "PaymentGateway",
+    "Network"
+  ],
+  "global_constraints": [],
+  "capabilities": [
+    {
+      "id": "FinTech_VerifyDocs",
+      "name": "VerifyDocuments",
+      "type": "SERVICE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [
+        {
+          "variable": "Identity.submitted",
+          "expected_value": true,
+          "op": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Documents.verified",
+          "new_value": true,
+          "action": "SET"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "ExternalService",
+        "Network"
+      ],
+      "quality": {
+        "time_ms": 1500.0,
+        "resource_cost": 2.0,
+        "monetary_cost": 0.5,
+        "risk": 0.02,
+        "energy_cost": 0.03
+      },
+      "reliability": 0.98,
+      "availability": 0.999,
+      "mechanism": {
+        "mechanism_type": "ID_VERIFICATION_SERVICE",
+        "details": {
+          "provider": "Onfido"
+        }
+      },
+      "description": "",
+      "sub_capabilities": []
+    },
+    {
+      "id": "FinTech_AMLScreening",
+      "name": "AMLScreening",
+      "type": "SERVICE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [
+        {
+          "variable": "Documents.verified",
+          "expected_value": true,
+          "op": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "AML.cleared",
+          "new_value": true,
+          "action": "SET"
+        },
+        {
+          "variable": "Risk.assessed",
+          "new_value": true,
+          "action": "SET"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "ExternalService",
+        "Database"
+      ],
+      "quality": {
+        "time_ms": 800.0,
+        "resource_cost": 2.0,
+        "monetary_cost": 0.3,
+        "risk": 0.01,
+        "energy_cost": 0.02
+      },
+      "reliability": 0.995,
+      "availability": 1.0,
+      "mechanism": {
+        "mechanism_type": "AML_WATCHLIST",
+        "details": {
+          "provider": "LexisNexis"
+        }
+      },
+      "description": "",
+      "sub_capabilities": []
+    },
+    {
+      "id": "FinTech_ActivateAccount",
+      "name": "ActivateAccount",
+      "type": "DATABASE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [
+        {
+          "variable": "AML.cleared",
+          "expected_value": true,
+          "op": "=="
+        },
+        {
+          "variable": "Risk.assessed",
+          "expected_value": true,
+          "op": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Account.activated",
+          "new_value": true,
+          "action": "SET"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "Database"
+      ],
+      "quality": {
+        "time_ms": 50.0,
+        "resource_cost": 1.0,
+        "monetary_cost": 0.005,
+        "risk": 0.005,
+        "energy_cost": 0.005
+      },
+      "reliability": 0.999,
+      "availability": 1.0,
+      "mechanism": {
+        "mechanism_type": "CORE_BANKING_DB",
+        "details": {
+          "table": "accounts",
+          "action": "ACTIVATE"
+        }
+      },
+      "description": "",
+      "sub_capabilities": []
+    },
+    {
+      "id": "FinTech_InstantSettlement",
+      "name": "InstantSettlement",
+      "type": "SERVICE",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [
+        {
+          "variable": "Account.activated",
+          "expected_value": true,
+          "op": "=="
+        }
+      ],
+      "effects": [
+        {
+          "variable": "Transfer.settled",
+          "new_value": true,
+          "action": "SET"
+        }
+      ],
+      "constraints": [],
+      "resources": [
+        "PaymentGateway",
+        "Network"
+      ],
+      "quality": {
+        "time_ms": 350.0,
+        "resource_cost": 3.0,
+        "monetary_cost": 0.15,
+        "risk": 0.01,
+        "energy_cost": 0.02
+      },
+      "reliability": 0.992,
+      "availability": 1.0,
+      "mechanism": {
+        "mechanism_type": "FEDNOW_ACH",
+        "details": {
+          "network": "FedNow",
+          "type": "INSTANT"
+        }
+      },
+      "description": "",
+      "sub_capabilities": []
+    }
+  ]
+}

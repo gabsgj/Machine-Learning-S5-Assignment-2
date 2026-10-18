@@ -1,0 +1,239 @@
+{
+  "applicationName": "Ecommerce_Extended_Benchmark",
+  "domain": "E-Commerce",
+  "initialState": {
+    "authenticated": true,
+    "customer_exists": true,
+    "cart_exists": true,
+    "cart_has_items": true,
+    "inventory_available": true,
+    "order_exists": false,
+    "order_created": false,
+    "payment_success": false,
+    "notification_sent": false,
+    "order_cancelled": false,
+    "shipment_dispatched": false
+  },
+  "goal": [
+    { "variable": "order_exists", "expectedValue": true },
+    { "variable": "payment_success", "expectedValue": true },
+    { "variable": "notification_sent", "expectedValue": true }
+  ],
+  "capabilities": [
+    {
+      "id": "MakePayment_API",
+      "name": "Process Payment via REST Gateway",
+      "description": "Processes payment via external Stripe REST API",
+      "type": "API",
+      "mechanism": "POST /v1/charges",
+      "inputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "payment_id", "type": "UUID", "domain": "valid UUIDs" }
+      ],
+      "preconditions": [
+        { "variable": "order_exists", "expectedValue": true }
+      ],
+      "effects": [
+        { "variable": "payment_success", "value": true }
+      ],
+      "qos": {
+        "timeCostMs": 120.0,
+        "moneyCost": 0.05,
+        "resourceCost": 1.0,
+        "risk": 0.01
+      },
+      "reliability": 0.992,
+      "availability": 1.0
+    },
+    {
+      "id": "MakePayment_DATABASE",
+      "name": "Process Payment via Direct DB Ledger",
+      "description": "Records payment directly via internal database ledger insert",
+      "type": "DATABASE",
+      "mechanism": "INSERT INTO payments_ledger",
+      "inputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "payment_id", "type": "UUID", "domain": "valid UUIDs" }
+      ],
+      "preconditions": [
+        { "variable": "order_exists", "expectedValue": true }
+      ],
+      "effects": [
+        { "variable": "payment_success", "value": true }
+      ],
+      "qos": {
+        "timeCostMs": 30.0,
+        "moneyCost": 0.002,
+        "resourceCost": 2.0,
+        "risk": 0.04
+      },
+      "reliability": 0.965,
+      "availability": 1.0
+    },
+    {
+      "id": "MakePayment_GUI",
+      "name": "Process Payment via Frontend Modal",
+      "description": "Client browser executes payment checkout form modal",
+      "type": "GUI",
+      "mechanism": "React CheckoutModal Submit",
+      "inputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "payment_id", "type": "UUID", "domain": "valid UUIDs" }
+      ],
+      "preconditions": [
+        { "variable": "order_exists", "expectedValue": true }
+      ],
+      "effects": [
+        { "variable": "payment_success", "value": true }
+      ],
+      "qos": {
+        "timeCostMs": 450.0,
+        "moneyCost": 0.0,
+        "resourceCost": 1.0,
+        "risk": 0.02
+      },
+      "reliability": 0.985,
+      "availability": 1.0
+    },
+    {
+      "id": "BrowseCatalog",
+      "name": "Browse Catalog",
+      "description": "Inspects product categories in catalog",
+      "type": "API",
+      "mechanism": "GET /api/v1/catalog",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [],
+      "effects": [],
+      "qos": {
+        "timeCostMs": 25.0,
+        "moneyCost": 0.0,
+        "resourceCost": 1.0,
+        "risk": 0.0
+      },
+      "reliability": 0.999,
+      "availability": 1.0
+    },
+    {
+      "id": "UpdateWishlist",
+      "name": "Update Wishlist",
+      "description": "Saves an item to user wishlist",
+      "type": "API",
+      "mechanism": "POST /api/v1/wishlist",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [
+        { "variable": "authenticated", "expectedValue": true }
+      ],
+      "effects": [],
+      "qos": {
+        "timeCostMs": 35.0,
+        "moneyCost": 0.0,
+        "resourceCost": 1.0,
+        "risk": 0.0
+      },
+      "reliability": 0.999,
+      "availability": 1.0
+    },
+    {
+      "id": "ViewProfile",
+      "name": "View Profile",
+      "description": "Displays account profile page",
+      "type": "GUI",
+      "mechanism": "React UserProfile render",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [
+        { "variable": "authenticated", "expectedValue": true }
+      ],
+      "effects": [],
+      "qos": {
+        "timeCostMs": 40.0,
+        "moneyCost": 0.0,
+        "resourceCost": 1.0,
+        "risk": 0.0
+      },
+      "reliability": 0.999,
+      "availability": 1.0
+    },
+    {
+      "id": "ChangeTheme",
+      "name": "Change Theme",
+      "description": "Toggles application UI color scheme",
+      "type": "GUI",
+      "mechanism": "DOM toggle class .dark-mode",
+      "inputs": [],
+      "outputs": [],
+      "preconditions": [],
+      "effects": [],
+      "qos": {
+        "timeCostMs": 5.0,
+        "moneyCost": 0.0,
+        "resourceCost": 1.0,
+        "risk": 0.0
+      },
+      "reliability": 1.0,
+      "availability": 1.0
+    },
+    {
+      "id": "FastPayment",
+      "name": "Fast Payment Gateway",
+      "description": "High-priority direct line payment service with minimal latency",
+      "type": "SERVICE",
+      "mechanism": "Direct Fiber Socket charge",
+      "inputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "payment_id", "type": "UUID", "domain": "valid UUIDs" }
+      ],
+      "preconditions": [
+        { "variable": "order_exists", "expectedValue": true }
+      ],
+      "effects": [
+        { "variable": "payment_success", "value": true }
+      ],
+      "qos": {
+        "timeCostMs": 20.0,
+        "moneyCost": 0.10,
+        "resourceCost": 2.0,
+        "risk": 0.005
+      },
+      "reliability": 0.998,
+      "availability": 1.0
+    },
+    {
+      "id": "CheapPayment",
+      "name": "Cheap Batch Payment",
+      "description": "Low-cost ACH batch processor with high latency",
+      "type": "SERVICE",
+      "mechanism": "Batch ACH file transfer",
+      "inputs": [
+        { "name": "order_id", "type": "UUID", "domain": "valid UUIDs", "required": true }
+      ],
+      "outputs": [
+        { "name": "payment_id", "type": "UUID", "domain": "valid UUIDs" }
+      ],
+      "preconditions": [
+        { "variable": "order_exists", "expectedValue": true }
+      ],
+      "effects": [
+        { "variable": "payment_success", "value": true }
+      ],
+      "qos": {
+        "timeCostMs": 800.0,
+        "moneyCost": 0.001,
+        "resourceCost": 1.0,
+        "risk": 0.060
+      },
+      "reliability": 0.930,
+      "availability": 1.0
+    }
+  ]
+}

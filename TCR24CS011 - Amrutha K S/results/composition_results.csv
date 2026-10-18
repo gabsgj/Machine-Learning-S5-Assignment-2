@@ -1,0 +1,4 @@
+composite,atomic_capability,similarity_to_composite
+SendNotification o MakePayment o CreateOrder,CreateOrder,0.7350928839997477
+SendNotification o MakePayment o CreateOrder,MakePayment,0.7514161081089483
+SendNotification o MakePayment o CreateOrder,SendNotification,0.5828075739873554

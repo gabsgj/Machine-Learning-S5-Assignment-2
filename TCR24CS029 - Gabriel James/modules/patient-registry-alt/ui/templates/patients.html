@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Patients{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Patients</h1>
+  <form id="search_form" method="get" action="{{ url_for('ui.patients') }}">
+    <label for="search_input">Search by patient number or name</label>
+    <input type="text" id="search_input" name="q" value="{{ query }}" placeholder="e.g. P-1001">
+    <button type="submit" id="search_button">Search</button>
+  </form>
+  <table id="patient_table" class="grid">
+    <thead>
+      <tr><th>Registration</th><th>Patient number</th><th>Name</th><th>Verified</th><th>Registered</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for patient in patients %}
+      <tr id="patient_row_{{ patient.pat_reg }}">
+        <td><code>{{ patient.pat_reg }}</code></td>
+        <td><code>{{ patient.pat_no }}</code></td>
+        <td>{{ patient.pat_name }}</td>
+        <td>{{ "yes" if patient.verified else "no" }}</td>
+        <td>{{ patient.registered_at }}</td>
+        <td><a href="{{ url_for('ui.patient_detail', pat_reg=patient.pat_reg) }}">Open</a></td>
+      </tr>
+      {% else %}
+      <tr id="empty_row"><td colspan="6">No patients match the search.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

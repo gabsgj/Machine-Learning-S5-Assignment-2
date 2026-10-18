@@ -1,0 +1,6 @@
+requirement,top_rank,precision_at_1,precision_at_3,precision_at_5,recall_at_5,mrr,auc,name_baseline_auc,best_decoy,best_decoy_score
+register_pat,1,1.0000,0.3333,0.2000,1.0000,1.0000,1.0000,1.0000,DEC-RegisterEmployee,0.4558
+register_patient,1,1.0000,0.6667,0.4000,1.0000,1.0000,1.0000,1.0000,DEC-RegisterEmployee,0.4431
+place_order,1,1.0000,0.3333,0.2000,1.0000,1.0000,1.0000,1.0000,DEC-MatchVendorInvoice,0.4032
+summarize_document,1,1.0000,0.3333,0.2000,1.0000,1.0000,1.0000,1.0000,DEC-FileExpense,0.3298
+export_audit_report,1,1.0000,0.3333,0.2000,1.0000,1.0000,1.0000,1.0000,DEC-RunPayroll,0.4962

@@ -1,0 +1,316 @@
+{
+  "acceptance_synthesis": [
+    {
+      "input_map": "patient_mrn -> pat_no, full_name -> pat_name",
+      "kind": "API",
+      "output_map": "pat_reg -> patient_id",
+      "provider": "AR-PatReg",
+      "transport": "http"
+    },
+    {
+      "input_map": "patient_mrn -> pat_no, full_name -> pat_name",
+      "kind": "DATABASE",
+      "output_map": "row_id -> patient_id [to_string]",
+      "provider": "AR-PatRowWrite",
+      "transport": "sqlite"
+    },
+    {
+      "input_map": "patient_mrn -> pat_no, full_name -> pat_name",
+      "kind": "GUI",
+      "output_map": "pat_reg -> patient_id",
+      "provider": "AR-PatRegForm",
+      "transport": "form"
+    }
+  ],
+  "experiment": "exp3_alternative_implementations",
+  "groups": [
+    {
+      "adaptations": [
+        {
+          "confidence": 0.6231128716799756,
+          "from": "AR-PatReg",
+          "input_map": "pat_no -> pat_no, pat_name -> pat_name",
+          "output_map": "row_id -> pat_reg [to_string]",
+          "to": "AR-PatRowWrite",
+          "transport": "sqlite"
+        },
+        {
+          "confidence": 0.8161984586520266,
+          "from": "AR-PatReg",
+          "input_map": "pat_no -> pat_no, pat_name -> pat_name",
+          "output_map": "pat_reg -> pat_reg",
+          "to": "AR-PatRegForm",
+          "transport": "form"
+        }
+      ],
+      "logical_operation": "register a patient in the legacy vocabulary",
+      "members": [
+        {
+          "capability": "AR-PatReg",
+          "kind": "API",
+          "persona": "API"
+        },
+        {
+          "capability": "AR-PatRowWrite",
+          "kind": "DATABASE",
+          "persona": "DATABASE"
+        },
+        {
+          "capability": "AR-PatRegForm",
+          "kind": "GUI",
+          "persona": "GUI"
+        }
+      ],
+      "pairs": [
+        {
+          "from": "AR-PatReg",
+          "full_cosine": 0.8640115786227733,
+          "functional": 0.9338013020083122,
+          "implementation": 0.7703782093219479,
+          "kind_match": false,
+          "mapper_total": 0.6231128716799756,
+          "to": "AR-PatRowWrite"
+        },
+        {
+          "from": "AR-PatReg",
+          "full_cosine": 0.9131358369071144,
+          "functional": 0.9948937551570061,
+          "implementation": 0.8669475082255902,
+          "kind_match": false,
+          "mapper_total": 0.8161984586520266,
+          "to": "AR-PatRegForm"
+        },
+        {
+          "from": "AR-PatRowWrite",
+          "full_cosine": 0.8640115786227733,
+          "functional": 0.9338013020083122,
+          "implementation": 0.7703782093219479,
+          "kind_match": false,
+          "mapper_total": 0.6231128716799756,
+          "to": "AR-PatReg"
+        },
+        {
+          "from": "AR-PatRowWrite",
+          "full_cosine": 0.8733951930341137,
+          "functional": 0.9320506716994295,
+          "implementation": 0.7903132266193464,
+          "kind_match": false,
+          "mapper_total": 0.5248152930124044,
+          "to": "AR-PatRegForm"
+        },
+        {
+          "from": "AR-PatRegForm",
+          "full_cosine": 0.9131358369071144,
+          "functional": 0.9948937551570061,
+          "implementation": 0.8669475082255902,
+          "kind_match": false,
+          "mapper_total": 0.8161984586520266,
+          "to": "AR-PatReg"
+        },
+        {
+          "from": "AR-PatRegForm",
+          "full_cosine": 0.8733951930341137,
+          "functional": 0.9320506716994295,
+          "implementation": 0.7903132266193464,
+          "kind_match": false,
+          "mapper_total": 0.5248152930124044,
+          "to": "AR-PatRowWrite"
+        }
+      ],
+      "problem": "hospital_alias"
+    },
+    {
+      "adaptations": [
+        {
+          "confidence": 0.6946001869046587,
+          "from": "AR-RegisterPatient",
+          "input_map": "patient_mrn -> patient_mrn, full_name -> full_name",
+          "output_map": "patient_id -> patient_id",
+          "to": "AR-RegistrationForm",
+          "transport": "form"
+        }
+      ],
+      "logical_operation": "register a patient in the canonical vocabulary",
+      "members": [
+        {
+          "capability": "AR-RegisterPatient",
+          "kind": "API",
+          "persona": "API"
+        },
+        {
+          "capability": "AR-RegistrationForm",
+          "kind": "GUI",
+          "persona": "GUI"
+        }
+      ],
+      "pairs": [
+        {
+          "from": "AR-RegisterPatient",
+          "full_cosine": 0.88802888671099,
+          "functional": 0.9815969130889473,
+          "implementation": 0.9210849718522539,
+          "kind_match": false,
+          "mapper_total": 0.6946001869046587,
+          "to": "AR-RegistrationForm"
+        },
+        {
+          "from": "AR-RegistrationForm",
+          "full_cosine": 0.88802888671099,
+          "functional": 0.9815969130889473,
+          "implementation": 0.9210849718522539,
+          "kind_match": false,
+          "mapper_total": 0.6946001869046587,
+          "to": "AR-RegisterPatient"
+        }
+      ],
+      "problem": "hospital_alias"
+    },
+    {
+      "adaptations": [
+        {
+          "confidence": 0.8298613972553451,
+          "from": "EC-PlaceOrder",
+          "input_map": "payment_method -> payment_method",
+          "output_map": "order_id -> order_id",
+          "to": "EC-CheckoutForm",
+          "transport": "form"
+        }
+      ],
+      "logical_operation": "place the order of the current cart",
+      "members": [
+        {
+          "capability": "EC-PlaceOrder",
+          "kind": "API",
+          "persona": "API"
+        },
+        {
+          "capability": "EC-CheckoutForm",
+          "kind": "GUI",
+          "persona": "GUI"
+        }
+      ],
+      "pairs": [
+        {
+          "from": "EC-PlaceOrder",
+          "full_cosine": 0.8703559250825575,
+          "functional": 0.9564360621676804,
+          "implementation": 0.8689373871654428,
+          "kind_match": false,
+          "mapper_total": 0.8298613972553451,
+          "to": "EC-CheckoutForm"
+        },
+        {
+          "from": "EC-CheckoutForm",
+          "full_cosine": 0.8703559250825575,
+          "functional": 0.9564360621676804,
+          "implementation": 0.8689373871654428,
+          "kind_match": false,
+          "mapper_total": 0.8298613972553451,
+          "to": "EC-PlaceOrder"
+        }
+      ],
+      "problem": "ecommerce_purchase"
+    },
+    {
+      "adaptations": [
+        {
+          "confidence": 0.7096576040981675,
+          "from": "DOC-UploadDocument",
+          "input_map": "source_name -> source_name",
+          "output_map": "accepted -> file_path [to_string]",
+          "to": "DOC-UploadForm",
+          "transport": "form"
+        },
+        {
+          "confidence": 0.7880106093932294,
+          "from": "DOC-UploadDocument",
+          "input_map": "source_name -> source_name",
+          "output_map": "accepted -> file_path [to_string]",
+          "to": "DOC-IntakeHandler",
+          "transport": "local"
+        }
+      ],
+      "logical_operation": "accept an uploaded document into the pipeline",
+      "members": [
+        {
+          "capability": "DOC-UploadDocument",
+          "kind": "FILE",
+          "persona": "FILE"
+        },
+        {
+          "capability": "DOC-UploadForm",
+          "kind": "GUI",
+          "persona": "GUI"
+        },
+        {
+          "capability": "DOC-IntakeHandler",
+          "kind": "EVENT",
+          "persona": "EVENT"
+        }
+      ],
+      "pairs": [
+        {
+          "from": "DOC-UploadDocument",
+          "full_cosine": 0.8291405625284854,
+          "functional": 0.9343525062866364,
+          "implementation": 0.8164839382366751,
+          "kind_match": false,
+          "mapper_total": 0.7096576040981675,
+          "to": "DOC-UploadForm"
+        },
+        {
+          "from": "DOC-UploadDocument",
+          "full_cosine": 0.8722119589395821,
+          "functional": 0.9392824619008371,
+          "implementation": 0.8541694988152337,
+          "kind_match": false,
+          "mapper_total": 0.7880106093932294,
+          "to": "DOC-IntakeHandler"
+        },
+        {
+          "from": "DOC-UploadForm",
+          "full_cosine": 0.8291405625284854,
+          "functional": 0.9343525062866364,
+          "implementation": 0.8164839382366751,
+          "kind_match": false,
+          "mapper_total": 0.7096576040981675,
+          "to": "DOC-UploadDocument"
+        },
+        {
+          "from": "DOC-UploadForm",
+          "full_cosine": 0.8852345127859114,
+          "functional": 0.9929357764815293,
+          "implementation": 0.7755059840175869,
+          "kind_match": false,
+          "mapper_total": 0.8586765637070206,
+          "to": "DOC-IntakeHandler"
+        },
+        {
+          "from": "DOC-IntakeHandler",
+          "full_cosine": 0.8722119589395821,
+          "functional": 0.9392824619008371,
+          "implementation": 0.8541694988152337,
+          "kind_match": false,
+          "mapper_total": 0.7880106093932294,
+          "to": "DOC-UploadDocument"
+        },
+        {
+          "from": "DOC-IntakeHandler",
+          "full_cosine": 0.8852345127859114,
+          "functional": 0.9929357764815293,
+          "implementation": 0.7755059840175869,
+          "kind_match": false,
+          "mapper_total": 0.8586765637070206,
+          "to": "DOC-UploadForm"
+        }
+      ],
+      "problem": "document_processing"
+    }
+  ],
+  "metrics": {
+    "cross_functional_mean": 0.6526480977646204,
+    "cross_implementation_mean": 0.8485289219393294,
+    "within_functional_mean": 0.9581686810987972,
+    "within_implementation_mean": 0.8329775905317597
+  }
+}

@@ -1,0 +1,1175 @@
+# Experiment 4 input: capabilities unrelated to the hospital, e-commerce, document and
+# compliance goals of the corpus. The ranking experiment adds these 24 decoys to the 53
+# corpus capabilities and measures whether the representation keeps them away from the
+# intended mappings. Three of them share a token with a requirement on purpose
+# (register_employee, award_loyalty_points, summarize_customer_feedback): they are the
+# hardest irrelevant capabilities and the experiment reports their measured ceiling
+# instead of only showing easy cases. The sheet exercises all nine mechanism kinds.
+spec_version: "1.0"
+
+module:
+  module_id: experiment-irrelevant-decoys
+  version: "1.0"
+  domain: generic
+  port: 5302
+  base_url: "http://127.0.0.1:5302"
+  health: /health
+  description: Twenty four capabilities from unrelated domains used as distractor pool.
+  language: specification
+
+state_schema:
+  - name: Payroll.period_closed
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Employee.registered
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Weather.forecast_cached
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Firewall.rules_rotated
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Warehouse.shipment_loaded
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Support.ticket_escalated
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Newsletter.scheduled
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Loyalty.points_awarded
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: VendorInvoice.matched
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Model.trained
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: SigningKey.rotated
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: SecurityLog.archived
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Room.booked
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Sensor.calibrated
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: MediaAsset.uploaded
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: Cache.purged
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: ExpenseClaim.filed
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: RoutePlan.generated
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: TlsCertificate.renewed
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: CrmSync.completed
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: ForumPost.moderated
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: MaintenanceVisit.scheduled
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: CurrencyQuote.converted
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+  - name: FeedbackSummary.generated
+    type: boolean
+    domain:
+      - false
+      - true
+    kind: flag
+
+initial_state:
+  Payroll.period_closed: false
+  Employee.registered: false
+  Weather.forecast_cached: false
+  Firewall.rules_rotated: false
+  Warehouse.shipment_loaded: false
+  Support.ticket_escalated: false
+  Newsletter.scheduled: false
+  Loyalty.points_awarded: false
+  VendorInvoice.matched: false
+  Model.trained: false
+  SigningKey.rotated: false
+  SecurityLog.archived: false
+  Room.booked: false
+  Sensor.calibrated: false
+  MediaAsset.uploaded: false
+  Cache.purged: false
+  ExpenseClaim.filed: false
+  RoutePlan.generated: false
+  TlsCertificate.renewed: false
+  CrmSync.completed: false
+  ForumPost.moderated: false
+  MaintenanceVisit.scheduled: false
+  CurrencyQuote.converted: false
+  FeedbackSummary.generated: false
+
+resources:
+  - id: decoy_db
+    kind: database
+    available: true
+    details: Data store of the unrelated domains
+
+constraints:
+  - id: K-Decoy-Scope
+    kind: domain
+    expression: These capabilities belong to none of the corpus goals
+    enforced_by: experiment 4 selection of the distractor sheet
+
+goal:
+  - variable: Payroll.period_closed
+    op: "="
+    value: true
+
+capabilities:
+  - id: DEC-RunPayroll
+    name: run_payroll
+    type: FUNCTION
+    description: Close a payroll period and emit the payment file.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: Payroll.period_closed
+        op: "="
+        value: false
+    effects:
+      - variable: Payroll.period_closed
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 4000
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.97
+    availability:
+      always: true
+    mechanism:
+      kind: FUNCTION
+      function: runPayroll
+      module_path: payroll.engine
+    roles:
+      - service
+
+  - id: DEC-RegisterEmployee
+    name: register_employee
+    type: API
+    description: Register a new employee in the human resources system.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: Employee.registered
+        op: "="
+        value: false
+    effects:
+      - variable: Employee.registered
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 300
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.98
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/hr/register_employee
+    roles:
+      - service
+
+  - id: DEC-FetchWeather
+    name: fetch_weather_forecast
+    type: SERVICE
+    description: Fetch and cache the regional weather forecast.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: Weather.forecast_cached
+        op: "="
+        value: false
+    effects:
+      - variable: Weather.forecast_cached
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 900
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.95
+    availability:
+      always: true
+    mechanism:
+      kind: SERVICE
+      service: weather_feed
+      base_url: "http://127.0.0.1:5303"
+    roles:
+      - service
+
+  - id: DEC-RotateFirewall
+    name: rotate_firewall_rules
+    type: DATABASE
+    description: Rotate the firewall rule set to the reviewed revision.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: Firewall.rules_rotated
+        op: "="
+        value: false
+    effects:
+      - variable: Firewall.rules_rotated
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 700
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: DATABASE
+      operation: update
+      table: firewall_rules
+    roles:
+      - service
+
+  - id: DEC-LoadShipment
+    name: load_warehouse_shipment
+    type: DATABASE
+    description: Load an inbound shipment into the warehouse ledger.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: Warehouse.shipment_loaded
+        op: "="
+        value: false
+    effects:
+      - variable: Warehouse.shipment_loaded
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 1200
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.96
+    availability:
+      always: true
+    mechanism:
+      kind: DATABASE
+      operation: insert
+      table: shipments
+    roles:
+      - service
+
+  - id: DEC-EscalateTicket
+    name: escalate_support_ticket
+    type: API
+    description: Escalate a support ticket to the second line.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: Support.ticket_escalated
+        op: "="
+        value: false
+    effects:
+      - variable: Support.ticket_escalated
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 250
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.98
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: PATCH
+      endpoint: /api/support/escalate
+    roles:
+      - service
+
+  - id: DEC-ScheduleNewsletter
+    name: schedule_newsletter
+    type: MESSAGE
+    description: Schedule the weekly newsletter send.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: Newsletter.scheduled
+        op: "="
+        value: false
+    effects:
+      - variable: Newsletter.scheduled
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 400
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.97
+    availability:
+      always: true
+    mechanism:
+      kind: MESSAGE
+      topic: marketing.newsletter
+      queue: outbound_mail
+    roles:
+      - service
+
+  - id: DEC-AwardLoyaltyPoints
+    name: award_loyalty_points
+    type: API
+    description: Award loyalty points for a completed purchase.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: Loyalty.points_awarded
+        op: "="
+        value: false
+    effects:
+      - variable: Loyalty.points_awarded
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 180
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/loyalty/award
+    roles:
+      - service
+
+  - id: DEC-MatchVendorInvoice
+    name: match_vendor_invoice
+    type: COMPUTATION
+    description: Reconcile a vendor invoice against the purchase order totals.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: VendorInvoice.matched
+        op: "="
+        value: false
+    effects:
+      - variable: VendorInvoice.matched
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 600
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.97
+    availability:
+      always: true
+    mechanism:
+      kind: COMPUTATION
+      expression: received_total - ordered_total
+      output_artifact: reconciliation
+    roles:
+      - service
+
+  - id: DEC-TrainModel
+    name: train_recommendation_model
+    type: FUNCTION
+    description: Retrain the product recommendation model on recent interactions.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: Model.trained
+        op: "="
+        value: false
+    effects:
+      - variable: Model.trained
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 60000
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.9
+    availability:
+      always: true
+    mechanism:
+      kind: FUNCTION
+      function: trainModel
+      module_path: recommender.training
+    roles:
+      - service
+
+  - id: DEC-RotateKeys
+    name: rotate_signing_keys
+    type: FUNCTION
+    description: Rotate the document signing key material.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: SigningKey.rotated
+        op: "="
+        value: false
+    effects:
+      - variable: SigningKey.rotated
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 1500
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.995
+    availability:
+      always: true
+    mechanism:
+      kind: FUNCTION
+      function: rotateSigningKeys
+      module_path: security.keys
+    roles:
+      - service
+
+  - id: DEC-ArchiveSecurityLogs
+    name: archive_security_logs
+    type: FILE
+    description: Archive rotated security logs to cold storage.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: SecurityLog.archived
+        op: "="
+        value: false
+    effects:
+      - variable: SecurityLog.archived
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 2500
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.98
+    availability:
+      always: true
+    mechanism:
+      kind: FILE
+      path: /var/log/security/archive
+      format: text
+    roles:
+      - service
+
+  - id: DEC-BookRoom
+    name: book_meeting_room
+    type: GUI
+    description: Book a meeting room through the scheduling screen.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: Room.booked
+        op: "="
+        value: false
+    effects:
+      - variable: Room.booked
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 200
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.96
+    availability:
+      always: true
+    mechanism:
+      kind: GUI
+      action: SUBMIT
+      component: room_booking_form
+      page: /rooms
+    roles:
+      - service
+
+  - id: DEC-CalibrateSensor
+    name: calibrate_sensor
+    type: EVENT
+    description: Run the calibration routine when a sensor reports due.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: Sensor.calibrated
+        op: "="
+        value: false
+    effects:
+      - variable: Sensor.calibrated
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 5400
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.93
+    availability:
+      always: true
+    mechanism:
+      kind: EVENT
+      trigger: calibration_due
+      handler: onCalibrationDue
+    roles:
+      - service
+
+  - id: DEC-UploadMedia
+    name: upload_media_asset
+    type: FILE
+    description: Upload a media asset into the content pipeline.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: MediaAsset.uploaded
+        op: "="
+        value: false
+    effects:
+      - variable: MediaAsset.uploaded
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 3200
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.97
+    availability:
+      always: true
+    mechanism:
+      kind: FILE
+      path: /media/incoming
+      format: binary
+    roles:
+      - service
+
+  - id: DEC-PurgeCache
+    name: purge_cache_entries
+    type: FUNCTION
+    description: Purge expired entries from the shared cache.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: Cache.purged
+        op: "="
+        value: false
+    effects:
+      - variable: Cache.purged
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 150
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: FUNCTION
+      function: purgeCache
+      module_path: platform.cache
+    roles:
+      - service
+
+  - id: DEC-FileExpense
+    name: file_expense_claim
+    type: GUI
+    description: File an expense claim through the finance screen.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: ExpenseClaim.filed
+        op: "="
+        value: false
+    effects:
+      - variable: ExpenseClaim.filed
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 350
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.96
+    availability:
+      always: true
+    mechanism:
+      kind: GUI
+      action: SUBMIT
+      component: expense_claim_form
+      page: /finance/claims
+    roles:
+      - service
+
+  - id: DEC-GenerateRoute
+    name: generate_route_plan
+    type: COMPUTATION
+    description: Compute a delivery route plan from the stop list.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: RoutePlan.generated
+        op: "="
+        value: false
+    effects:
+      - variable: RoutePlan.generated
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 800
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.95
+    availability:
+      always: true
+    mechanism:
+      kind: COMPUTATION
+      expression: stops * average_leg_minutes
+      output_artifact: route_plan
+    roles:
+      - service
+
+  - id: DEC-RenewTls
+    name: renew_tls_certificate
+    type: SERVICE
+    description: Renew the TLS certificate through the certificate authority.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: TlsCertificate.renewed
+        op: "="
+        value: false
+    effects:
+      - variable: TlsCertificate.renewed
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 2200
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.98
+    availability:
+      always: true
+    mechanism:
+      kind: SERVICE
+      service: certificate_authority
+      base_url: "http://127.0.0.1:5304"
+    roles:
+      - service
+
+  - id: DEC-SyncCrm
+    name: sync_crm_contacts
+    type: API
+    description: Synchronize contact records with the CRM system.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: CrmSync.completed
+        op: "="
+        value: false
+    effects:
+      - variable: CrmSync.completed
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 1800
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.97
+    availability:
+      always: true
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/crm/sync
+    roles:
+      - service
+
+  - id: DEC-ModeratePost
+    name: moderate_forum_post
+    type: GUI
+    description: Moderate a forum post from the moderation queue.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: ForumPost.moderated
+        op: "="
+        value: false
+    effects:
+      - variable: ForumPost.moderated
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 240
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.95
+    availability:
+      always: true
+    mechanism:
+      kind: GUI
+      action: CLICK
+      component: moderation_queue
+      page: /forum/moderation
+    roles:
+      - service
+
+  - id: DEC-ScheduleMaintenance
+    name: schedule_maintenance_visit
+    type: API
+    description: Plan a preventive maintenance visit during staffed hours.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: MaintenanceVisit.scheduled
+        op: "="
+        value: false
+    effects:
+      - variable: MaintenanceVisit.scheduled
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 400
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.96
+    availability:
+      always: false
+      windows:
+        - days: [mon, tue, wed, thu, fri]
+          from: "08:00"
+          to: "17:00"
+    mechanism:
+      kind: API
+      method: POST
+      endpoint: /api/facilities/schedule_visit
+    roles:
+      - service
+
+  - id: DEC-ConvertQuote
+    name: convert_currency_quote
+    type: COMPUTATION
+    description: Convert a currency quote using the daily reference rate.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: CurrencyQuote.converted
+        op: "="
+        value: false
+    effects:
+      - variable: CurrencyQuote.converted
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 60
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.99
+    availability:
+      always: true
+    mechanism:
+      kind: COMPUTATION
+      expression: amount * rate
+      output_artifact: converted_quote
+    roles:
+      - service
+
+  - id: DEC-SummarizeFeedback
+    name: summarize_customer_feedback
+    type: COMPUTATION
+    description: Summarize customer feedback sentiment for the weekly review.
+    inputs:
+      - name: request_ref
+        type: string
+        domain: request identifier
+        required: true
+    outputs:
+      - name: result_ref
+        type: string
+        domain: result identifier
+    preconditions:
+      - variable: FeedbackSummary.generated
+        op: "="
+        value: false
+    effects:
+      - variable: FeedbackSummary.generated
+        op: SET
+        value: true
+    constraints: []
+    resources:
+      - decoy_db
+    quality:
+      time_ms: 700
+      money: 0
+      resource: 0.05
+      risk: 0.02
+      energy: 0.005
+    reliability: 0.96
+    availability:
+      always: true
+    mechanism:
+      kind: COMPUTATION
+      expression: positive - negative
+      output_artifact: feedback_summary
+    roles:
+      - service

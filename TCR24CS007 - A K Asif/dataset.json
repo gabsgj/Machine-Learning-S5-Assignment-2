@@ -1,0 +1,1593 @@
+{
+  "schema_version": 2,
+  "problems": [
+    {
+      "name": "commerce",
+      "variables": {
+        "order": [
+          false,
+          true
+        ],
+        "payment": [
+          "NOT_STARTED",
+          "SUCCESS",
+          "REFUNDED"
+        ],
+        "notification": [
+          false,
+          true
+        ],
+        "cart": [
+          false,
+          true
+        ],
+        "authenticated": [
+          false,
+          true
+        ],
+        "quantity": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "theme": [
+          "LIGHT",
+          "DARK"
+        ]
+      },
+      "initial_state": {
+        "order": false,
+        "payment": "NOT_STARTED",
+        "notification": false,
+        "cart": true,
+        "authenticated": true,
+        "quantity": 2,
+        "theme": "LIGHT"
+      },
+      "goal": [
+        {
+          "var": "payment",
+          "op": "eq",
+          "value": "SUCCESS"
+        },
+        {
+          "var": "notification",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "global_constraints": [],
+      "available_resources": [
+        "Browser",
+        "Database",
+        "Gateway",
+        "Network",
+        "Queue"
+      ],
+      "capabilities": [
+        {
+          "name": "CreateOrder",
+          "type": "API",
+          "mechanism": {
+            "operation": "CreateOrder",
+            "target": "/createorder"
+          },
+          "preconditions": [],
+          "effects": {
+            "order": true
+          },
+          "inputs": [
+            {
+              "name": "cart_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "order_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "MakePayment",
+          "type": "API",
+          "mechanism": {
+            "operation": "MakePayment",
+            "target": "/makepayment"
+          },
+          "preconditions": [
+            {
+              "var": "order",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "effects": {
+            "payment": "SUCCESS"
+          },
+          "inputs": [
+            {
+              "name": "order_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "receipt_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [],
+          "resources": [
+            "Network",
+            "Gateway"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.35,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "SendNotification",
+          "type": "MESSAGE",
+          "mechanism": {
+            "operation": "SendNotification",
+            "target": "/sendnotification"
+          },
+          "preconditions": [
+            {
+              "var": "payment",
+              "op": "eq",
+              "value": "SUCCESS"
+            }
+          ],
+          "effects": {
+            "notification": true
+          },
+          "inputs": [
+            {
+              "name": "receipt_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "message_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [],
+          "resources": [
+            "Queue"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "CancelCart",
+          "type": "API",
+          "mechanism": {
+            "operation": "CancelCart",
+            "target": "/cancelcart"
+          },
+          "preconditions": [
+            {
+              "var": "order",
+              "op": "eq",
+              "value": false
+            }
+          ],
+          "effects": {
+            "cart": false
+          },
+          "inputs": [],
+          "outputs": [],
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "CreateOrder_DATABASE",
+          "type": "DATABASE",
+          "mechanism": {
+            "operation": "INSERT",
+            "target": "records"
+          },
+          "preconditions": [],
+          "effects": {
+            "order": true
+          },
+          "inputs": [
+            {
+              "name": "cart_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "order_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [],
+          "resources": [
+            "Database"
+          ],
+          "quality": {
+            "time_ms": 60,
+            "money": 0.02,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.94,
+          "available": true
+        },
+        {
+          "name": "CreateOrder_GUI",
+          "type": "GUI",
+          "mechanism": {
+            "operation": "CLICK",
+            "target": "submit_button"
+          },
+          "preconditions": [],
+          "effects": {
+            "order": true
+          },
+          "inputs": [
+            {
+              "name": "cart_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "order_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [],
+          "resources": [
+            "Browser"
+          ],
+          "quality": {
+            "time_ms": 240,
+            "money": 0.005,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.82,
+          "available": true
+        },
+        {
+          "name": "WrongTypedPayment",
+          "type": "API",
+          "mechanism": {
+            "operation": "WrongTypedPayment",
+            "target": "/wrongtypedpayment"
+          },
+          "preconditions": [
+            {
+              "var": "order",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "effects": {
+            "payment": "SUCCESS"
+          },
+          "inputs": [
+            {
+              "name": "order_id",
+              "type": "INTEGER",
+              "domain": [
+                1,
+                2
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [],
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "ChangeTheme",
+          "type": "FUNCTION",
+          "mechanism": {
+            "operation": "ChangeTheme",
+            "target": "/changetheme"
+          },
+          "preconditions": [],
+          "effects": {
+            "theme": "DARK"
+          },
+          "inputs": [],
+          "outputs": [],
+          "constraints": [],
+          "resources": [],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "ClearCart",
+          "type": "FUNCTION",
+          "mechanism": {
+            "operation": "ClearCart",
+            "target": "/clearcart"
+          },
+          "preconditions": [
+            {
+              "var": "order",
+              "op": "eq",
+              "value": false
+            }
+          ],
+          "effects": {
+            "cart": false
+          },
+          "inputs": [],
+          "outputs": [],
+          "constraints": [],
+          "resources": [],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "CheckedOrder",
+          "type": "API",
+          "mechanism": {
+            "operation": "CheckedOrder",
+            "target": "/checkedorder"
+          },
+          "preconditions": [
+            {
+              "var": "authenticated",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "effects": {
+            "order": true
+          },
+          "inputs": [
+            {
+              "name": "cart_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "order_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [
+            {
+              "var": "quantity",
+              "op": "gt",
+              "value": 0
+            }
+          ],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "Refund",
+          "type": "API",
+          "mechanism": {
+            "operation": "Refund",
+            "target": "/refund"
+          },
+          "preconditions": [
+            {
+              "var": "payment",
+              "op": "eq",
+              "value": "SUCCESS"
+            }
+          ],
+          "effects": {
+            "payment": "REFUNDED"
+          },
+          "inputs": [
+            {
+              "name": "receipt_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [],
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        }
+      ],
+      "compositions": [
+        [
+          "CreateOrder",
+          "MakePayment",
+          "SendNotification"
+        ]
+      ]
+    },
+    {
+      "name": "logistics",
+      "variables": {
+        "reserved": [
+          false,
+          true
+        ],
+        "labelled": [
+          false,
+          true
+        ],
+        "dispatched": [
+          false,
+          true
+        ],
+        "notified": [
+          false,
+          true
+        ],
+        "audit": [
+          false,
+          true
+        ],
+        "quantity": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "role": [
+          "GUEST",
+          "STAFF",
+          "ADMIN"
+        ]
+      },
+      "initial_state": {
+        "reserved": false,
+        "labelled": false,
+        "dispatched": false,
+        "notified": false,
+        "audit": false,
+        "quantity": 2,
+        "role": "STAFF"
+      },
+      "goal": [
+        {
+          "var": "dispatched",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "var": "notified",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "global_constraints": [],
+      "available_resources": [
+        "Browser",
+        "Courier",
+        "Database",
+        "FileSystem",
+        "InventoryDB",
+        "Network",
+        "Queue"
+      ],
+      "capabilities": [
+        {
+          "name": "ReserveStock",
+          "type": "API",
+          "mechanism": {
+            "operation": "ReserveStock",
+            "target": "/reservestock"
+          },
+          "preconditions": [
+            {
+              "var": "reserved",
+              "op": "eq",
+              "value": false
+            }
+          ],
+          "effects": {
+            "reserved": true
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "stock_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [
+            {
+              "var": "quantity",
+              "op": "gt",
+              "value": 0
+            },
+            {
+              "var": "role",
+              "op": "in",
+              "value": [
+                "STAFF",
+                "ADMIN"
+              ]
+            }
+          ],
+          "resources": [
+            "InventoryDB"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "CreateLabel",
+          "type": "FILE",
+          "mechanism": {
+            "operation": "CreateLabel",
+            "target": "/createlabel"
+          },
+          "preconditions": [
+            {
+              "var": "reserved",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "effects": {
+            "labelled": true
+          },
+          "inputs": [
+            {
+              "name": "stock_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "label_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [],
+          "resources": [
+            "FileSystem"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "Dispatch",
+          "type": "API",
+          "mechanism": {
+            "operation": "Dispatch",
+            "target": "/dispatch"
+          },
+          "preconditions": [
+            {
+              "var": "labelled",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "effects": {
+            "dispatched": true
+          },
+          "inputs": [
+            {
+              "name": "label_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "tracking_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [],
+          "resources": [
+            "Courier"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.7,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "NotifyWarehouse",
+          "type": "EVENT",
+          "mechanism": {
+            "operation": "NotifyWarehouse",
+            "target": "/notifywarehouse"
+          },
+          "preconditions": [
+            {
+              "var": "reserved",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "effects": {
+            "notified": true
+          },
+          "inputs": [
+            {
+              "name": "stock_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "warehouse_message",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [],
+          "resources": [
+            "Queue"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "ReleaseStock",
+          "type": "API",
+          "mechanism": {
+            "operation": "ReleaseStock",
+            "target": "/releasestock"
+          },
+          "preconditions": [
+            {
+              "var": "reserved",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "effects": {
+            "reserved": false
+          },
+          "inputs": [
+            {
+              "name": "stock_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [],
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "ReserveStock_DATABASE",
+          "type": "DATABASE",
+          "mechanism": {
+            "operation": "INSERT",
+            "target": "records"
+          },
+          "preconditions": [
+            {
+              "var": "reserved",
+              "op": "eq",
+              "value": false
+            }
+          ],
+          "effects": {
+            "reserved": true
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "stock_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [
+            {
+              "var": "quantity",
+              "op": "gt",
+              "value": 0
+            },
+            {
+              "var": "role",
+              "op": "in",
+              "value": [
+                "STAFF",
+                "ADMIN"
+              ]
+            }
+          ],
+          "resources": [
+            "Database"
+          ],
+          "quality": {
+            "time_ms": 60,
+            "money": 0.02,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.94,
+          "available": true
+        },
+        {
+          "name": "ReserveStock_GUI",
+          "type": "GUI",
+          "mechanism": {
+            "operation": "CLICK",
+            "target": "submit_button"
+          },
+          "preconditions": [
+            {
+              "var": "reserved",
+              "op": "eq",
+              "value": false
+            }
+          ],
+          "effects": {
+            "reserved": true
+          },
+          "inputs": [
+            {
+              "name": "request",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "stock_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [
+            {
+              "var": "quantity",
+              "op": "gt",
+              "value": 0
+            },
+            {
+              "var": "role",
+              "op": "in",
+              "value": [
+                "STAFF",
+                "ADMIN"
+              ]
+            }
+          ],
+          "resources": [
+            "Browser"
+          ],
+          "quality": {
+            "time_ms": 240,
+            "money": 0.005,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.82,
+          "available": true
+        },
+        {
+          "name": "BadLabel",
+          "type": "API",
+          "mechanism": {
+            "operation": "BadLabel",
+            "target": "/badlabel"
+          },
+          "preconditions": [
+            {
+              "var": "reserved",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "effects": {
+            "labelled": true
+          },
+          "inputs": [
+            {
+              "name": "stock_id",
+              "type": "INTEGER",
+              "domain": [
+                1,
+                2
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [],
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "RotateAudit",
+          "type": "FUNCTION",
+          "mechanism": {
+            "operation": "RotateAudit",
+            "target": "/rotateaudit"
+          },
+          "preconditions": [],
+          "effects": {
+            "audit": true
+          },
+          "inputs": [],
+          "outputs": [],
+          "constraints": [],
+          "resources": [],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        }
+      ],
+      "compositions": [
+        [
+          "ReserveStock",
+          "CreateLabel",
+          "Dispatch"
+        ],
+        [
+          "ReserveStock",
+          "NotifyWarehouse",
+          "CreateLabel",
+          "Dispatch"
+        ]
+      ]
+    },
+    {
+      "name": "build",
+      "variables": {
+        "stage": [
+          "RAW",
+          "BUILT",
+          "TESTED",
+          "DEPLOYED"
+        ],
+        "artifact": [
+          false,
+          true
+        ],
+        "credentials": [
+          false,
+          true
+        ],
+        "cache": [
+          false,
+          true
+        ],
+        "size": [
+          0,
+          1,
+          2
+        ],
+        "environment": [
+          "DEV",
+          "PROD"
+        ]
+      },
+      "initial_state": {
+        "stage": "RAW",
+        "artifact": false,
+        "credentials": true,
+        "cache": false,
+        "size": 1,
+        "environment": "PROD"
+      },
+      "goal": [
+        {
+          "var": "stage",
+          "op": "eq",
+          "value": "DEPLOYED"
+        }
+      ],
+      "global_constraints": [
+        {
+          "var": "size",
+          "op": "gt",
+          "value": 0
+        }
+      ],
+      "available_resources": [
+        "Browser",
+        "CPU",
+        "Credentials",
+        "Database",
+        "Network",
+        "Runner"
+      ],
+      "capabilities": [
+        {
+          "name": "Compile",
+          "type": "COMPUTATION",
+          "mechanism": {
+            "operation": "Compile",
+            "target": "/compile"
+          },
+          "preconditions": [
+            {
+              "var": "stage",
+              "op": "eq",
+              "value": "RAW"
+            }
+          ],
+          "effects": {
+            "stage": "BUILT",
+            "artifact": true
+          },
+          "inputs": [
+            {
+              "name": "source_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "artifact_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [
+            {
+              "var": "size",
+              "op": "gt",
+              "value": 0
+            }
+          ],
+          "resources": [
+            "CPU"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "Test",
+          "type": "COMPUTATION",
+          "mechanism": {
+            "operation": "Test",
+            "target": "/test"
+          },
+          "preconditions": [
+            {
+              "var": "stage",
+              "op": "eq",
+              "value": "BUILT"
+            }
+          ],
+          "effects": {
+            "stage": "TESTED"
+          },
+          "inputs": [
+            {
+              "name": "artifact_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "test_result",
+              "type": "STATUS",
+              "domain": [
+                "PASS"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [],
+          "resources": [
+            "Runner"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "Deploy",
+          "type": "API",
+          "mechanism": {
+            "operation": "Deploy",
+            "target": "/deploy"
+          },
+          "preconditions": [
+            {
+              "var": "stage",
+              "op": "eq",
+              "value": "TESTED"
+            }
+          ],
+          "effects": {
+            "stage": "DEPLOYED"
+          },
+          "inputs": [
+            {
+              "name": "test_result",
+              "type": "STATUS",
+              "domain": [
+                "PASS"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "deployment_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [
+            {
+              "var": "credentials",
+              "op": "eq",
+              "value": true
+            },
+            {
+              "var": "environment",
+              "op": "eq",
+              "value": "PROD"
+            }
+          ],
+          "resources": [
+            "Network",
+            "Credentials"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.25,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "ResetBuild",
+          "type": "API",
+          "mechanism": {
+            "operation": "ResetBuild",
+            "target": "/resetbuild"
+          },
+          "preconditions": [
+            {
+              "var": "stage",
+              "op": "eq",
+              "value": "RAW"
+            }
+          ],
+          "effects": {
+            "stage": "RAW",
+            "artifact": false
+          },
+          "inputs": [],
+          "outputs": [],
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "Compile_DATABASE",
+          "type": "DATABASE",
+          "mechanism": {
+            "operation": "INSERT",
+            "target": "records"
+          },
+          "preconditions": [
+            {
+              "var": "stage",
+              "op": "eq",
+              "value": "RAW"
+            }
+          ],
+          "effects": {
+            "stage": "BUILT",
+            "artifact": true
+          },
+          "inputs": [
+            {
+              "name": "source_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "artifact_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [
+            {
+              "var": "size",
+              "op": "gt",
+              "value": 0
+            }
+          ],
+          "resources": [
+            "Database"
+          ],
+          "quality": {
+            "time_ms": 60,
+            "money": 0.02,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.94,
+          "available": true
+        },
+        {
+          "name": "Compile_GUI",
+          "type": "GUI",
+          "mechanism": {
+            "operation": "CLICK",
+            "target": "submit_button"
+          },
+          "preconditions": [
+            {
+              "var": "stage",
+              "op": "eq",
+              "value": "RAW"
+            }
+          ],
+          "effects": {
+            "stage": "BUILT",
+            "artifact": true
+          },
+          "inputs": [
+            {
+              "name": "source_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "artifact_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "constraints": [
+            {
+              "var": "size",
+              "op": "gt",
+              "value": 0
+            }
+          ],
+          "resources": [
+            "Browser"
+          ],
+          "quality": {
+            "time_ms": 240,
+            "money": 0.005,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.82,
+          "available": true
+        },
+        {
+          "name": "BadTest",
+          "type": "API",
+          "mechanism": {
+            "operation": "BadTest",
+            "target": "/badtest"
+          },
+          "preconditions": [
+            {
+              "var": "stage",
+              "op": "eq",
+              "value": "BUILT"
+            }
+          ],
+          "effects": {
+            "stage": "TESTED"
+          },
+          "inputs": [
+            {
+              "name": "artifact_id",
+              "type": "INTEGER",
+              "domain": [
+                1,
+                2
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [],
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "WarmCache",
+          "type": "FUNCTION",
+          "mechanism": {
+            "operation": "WarmCache",
+            "target": "/warmcache"
+          },
+          "preconditions": [],
+          "effects": {
+            "cache": true
+          },
+          "inputs": [],
+          "outputs": [],
+          "constraints": [],
+          "resources": [
+            "CPU"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        },
+        {
+          "name": "Rollback",
+          "type": "API",
+          "mechanism": {
+            "operation": "Rollback",
+            "target": "/rollback"
+          },
+          "preconditions": [
+            {
+              "var": "stage",
+              "op": "eq",
+              "value": "DEPLOYED"
+            }
+          ],
+          "effects": {
+            "stage": "BUILT"
+          },
+          "inputs": [
+            {
+              "name": "deployment_id",
+              "type": "ID",
+              "domain": [
+                "valid"
+              ],
+              "required": true
+            }
+          ],
+          "outputs": [],
+          "constraints": [],
+          "resources": [
+            "Network"
+          ],
+          "quality": {
+            "time_ms": 80,
+            "money": 0.08,
+            "energy": 0.12,
+            "risk": 0.02,
+            "resource_cost": 1
+          },
+          "reliability": 0.98,
+          "available": true
+        }
+      ],
+      "compositions": [
+        [
+          "Compile",
+          "Test",
+          "Deploy"
+        ]
+      ]
+    }
+  ]
+}

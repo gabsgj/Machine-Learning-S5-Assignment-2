@@ -1,0 +1,4 @@
+base,variant,similarity,time_ms,reliability,availability
+MakePayment,MakePayment_Faster,0.9994,100,0.97,1
+MakePayment,MakePayment_LessReliable,0.9997,800,0.8,1
+MakePayment,MakePayment_Unavailable,0.9883,800,0.97,0

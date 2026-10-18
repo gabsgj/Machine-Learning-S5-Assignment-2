@@ -1,0 +1,4 @@
+first,second,cosine_similarity,compatibility_score,composable
+CreateOrder,MakePayment,0.3114319236832779,1.0,True
+CreateOrder,CancelCart,0.15946911363622018,0.3,False
+MakePayment,SendNotification,0.2051410774209395,0.7,True
