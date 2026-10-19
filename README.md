@@ -12,8 +12,8 @@ This repository is a consolidated collection of student submissions for **Machin
 | Metric | Count |
 | :--- | :--- |
 | **Total Students** | 76 |
-| **Submissions Received** | 70 |
-| **Missing / Pending** | 6 |
+| **Submissions Received** | 72 |
+| **Missing / Pending** | 4 |
 
 ---
 
@@ -68,7 +68,7 @@ This repository is a consolidated collection of student submissions for **Machin
 | 45 | `TCR24CS047` | Nandana Mk | ❌ **Missing** | *Not Submitted* |
 | 46 | `TCR24CS048` | Mridul Joy | ✅ Submitted | [TCR24CS048 - Mridul Joy](./TCR24CS048%20-%20Mridul%20Joy) |
 | 47 | `TCR24CS049` | Muhammad Shanidh T P | ✅ Submitted | [TCR24CS049 - Muhammad Shanidh T P](./TCR24CS049%20-%20Muhammad%20Shanidh%20T%20P) |
-| 48 | `TCR24CS050` | Nandana Sasikumar | ❌ **Missing** | *Not Submitted* |
+| 48 | `TCR24CS050` | Nandana Sasikumar | ✅ Submitted | [TCR24CS050 - Nandana Sasikumar](./TCR24CS050%20-%20Nandana%20Sasikumar) |
 | 49 | `TCR24CS051` | Nayana Shaji Mekkunnel | ✅ Submitted | [TCR24CS051 - Nayana Shaji Mekkunnel](./TCR24CS051%20-%20Nayana%20Shaji%20Mekkunnel) |
 | 50 | `TCR24CS052` | Nevin Beno | ✅ Submitted | [TCR24CS052 - Nevin Beno](./TCR24CS052%20-%20Nevin%20Beno) |
 | 51 | `TCR24CS053` | Niranjana Kanjoor | ✅ Submitted | [TCR24CS053 - Niranjana Kanjoor](./TCR24CS053%20-%20Niranjana%20Kanjoor) |
@@ -93,7 +93,7 @@ This repository is a consolidated collection of student submissions for **Machin
 | 70 | `TCR24CS072` | Dwaraka Dileep | ✅ Submitted | [TCR24CS072 - Dwaraka Dileep](./TCR24CS072%20-%20Dwaraka%20Dileep) |
 | 71 | `LTCR24CS073` | KAVYA THILAKAN | ✅ Submitted | [LTCR24CS073 - KAVYA THILAKAN](./LTCR24CS073%20-%20KAVYA%20THILAKAN) |
 | 72 | `TCR24CS074` | Muhammed Jiyad U | ✅ Submitted | [TCR24CS074 - Muhammed Jiyad U](./TCR24CS074%20-%20Muhammed%20Jiyad%20U) |
-| 73 | `TCR24CS075` | Nabeel T | ❌ **Missing** | *Not Submitted* |
+| 73 | `TCR24CS075` | Nabeel T | ✅ Submitted | [TCR24CS075 - Nabeel T](./TCR24CS075%20-%20Nabeel%20T) |
 | 74 | `TCR24CS076` | Sabeel T | ✅ Submitted | [TCR24CS076 - Sabeel T](./TCR24CS076%20-%20Sabeel%20T) |
 | 75 | `TCR24CS077` | Shima Shamsudheen | ✅ Submitted | [TCR24CS077 - Shima Shamsudheen](./TCR24CS077%20-%20Shima%20Shamsudheen) |
 | 76 | `KTE24CS077` | Joseph John Paul | ✅ Submitted | [KTE24CS077 - Joseph John Paul](./KTE24CS077%20-%20Joseph%20John%20Paul) |
