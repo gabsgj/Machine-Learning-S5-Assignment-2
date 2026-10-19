@@ -71,6 +71,7 @@ https://github.com/devikashilu/pccst503-assignment-2.git
 https://github.com/gabsgj/Careweave-Mini
 https://github.com/nandgate1302/capability_composition_vector_embd
 https://github.com/Nabeelt7034/ML-Assignment-2-Vector-Embedding
+https://github.com/Nandana2395/CapabilityEmbedding
 
 
 

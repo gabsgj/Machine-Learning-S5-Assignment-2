@@ -12,8 +12,8 @@ This repository is a consolidated collection of student submissions for **Machin
 | Metric | Count |
 | :--- | :--- |
 | **Total Students** | 76 |
-| **Submissions Received** | 72 |
-| **Missing / Pending** | 4 |
+| **Submissions Received** | 73 |
+| **Missing / Pending** | 3 |
 
 ---
 
@@ -65,7 +65,7 @@ This repository is a consolidated collection of student submissions for **Machin
 | 42 | `TCR24CS044` | Manasa M | ✅ Submitted | [TCR24CS044 - Manasa M](./TCR24CS044%20-%20Manasa%20M) |
 | 43 | `TCR24CS045` | Meera Nandita S | ✅ Submitted | [TCR24CS045 - Meera Nandita S](./TCR24CS045%20-%20Meera%20Nandita%20S) |
 | 44 | `TCR24CS046` | Melita Mariam Mathew | ✅ Submitted | [TCR24CS046 - Melita Mariam Mathew](./TCR24CS046%20-%20Melita%20Mariam%20Mathew) |
-| 45 | `TCR24CS047` | Nandana Mk | ❌ **Missing** | *Not Submitted* |
+| 45 | `TCR24CS047` | Nandana Mk | ✅ Submitted | [TCR24CS047 - Nandana Mk](./TCR24CS047%20-%20Nandana%20Mk) |
 | 46 | `TCR24CS048` | Mridul Joy | ✅ Submitted | [TCR24CS048 - Mridul Joy](./TCR24CS048%20-%20Mridul%20Joy) |
 | 47 | `TCR24CS049` | Muhammad Shanidh T P | ✅ Submitted | [TCR24CS049 - Muhammad Shanidh T P](./TCR24CS049%20-%20Muhammad%20Shanidh%20T%20P) |
 | 48 | `TCR24CS050` | Nandana Sasikumar | ✅ Submitted | [TCR24CS050 - Nandana Sasikumar](./TCR24CS050%20-%20Nandana%20Sasikumar) |
