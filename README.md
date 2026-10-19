@@ -92,9 +92,9 @@ This repository is a consolidated collection of student submissions for **Machin
 | 69 | `TCR24CS071` | VRINDHA P | ✅ Submitted | [TCR24CS071 - VRINDHA P](./TCR24CS071%20-%20VRINDHA%20P) |
 | 70 | `TCR24CS072` | Dwaraka Dileep | ✅ Submitted | [TCR24CS072 - Dwaraka Dileep](./TCR24CS072%20-%20Dwaraka%20Dileep) |
 | 71 | `LTCR24CS073` | KAVYA THILAKAN | ✅ Submitted | [LTCR24CS073 - KAVYA THILAKAN](./LTCR24CS073%20-%20KAVYA%20THILAKAN) |
-| 72 | `TCR24CS074` | Muhammed Jiyad U | ✅ Submitted | [TCR24CS074 - Muhammed Jiyad U](./TCR24CS074%20-%20Muhammed%20Jiyad%20U) |
-| 73 | `TCR24CS075` | Nabeel T | ✅ Submitted | [TCR24CS075 - Nabeel T](./TCR24CS075%20-%20Nabeel%20T) |
-| 74 | `TCR24CS076` | Sabeel T | ✅ Submitted | [TCR24CS076 - Sabeel T](./TCR24CS076%20-%20Sabeel%20T) |
+| 72 | `LTCR24CS074` | Muhammed Jiyad U | ✅ Submitted | [LTCR24CS074 - Muhammed Jiyad U](./LTCR24CS074%20-%20Muhammed%20Jiyad%20U) |
+| 73 | `LTCR24CS075` | Nabeel T | ✅ Submitted | [LTCR24CS075 - Nabeel T](./LTCR24CS075%20-%20Nabeel%20T) |
+| 74 | `LTCR24CS076` | Sabeel T | ✅ Submitted | [LTCR24CS076 - Sabeel T](./LTCR24CS076%20-%20Sabeel%20T) |
 | 75 | `TCR24CS077` | Shima Shamsudheen | ✅ Submitted | [TCR24CS077 - Shima Shamsudheen](./TCR24CS077%20-%20Shima%20Shamsudheen) |
 | 76 | `KTE24CS077` | Joseph John Paul | ✅ Submitted | [KTE24CS077 - Joseph John Paul](./KTE24CS077%20-%20Joseph%20John%20Paul) |
 
